@@ -7,7 +7,7 @@ module.exports = [
       // SidebarItem
 
       {
-        text: 'Dotnet core',
+        text: 'dotnet core',
         collapsible: true,
         children: [
         {

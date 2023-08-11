@@ -23,7 +23,7 @@ module.exports = [
     link: '/technology/',
     children: [
       {
-        text: "Dotnet core",
+        text: "dotnet core",
         link: "/technology/dotnetcore/",
         // 该元素将一直处于激活状态
         activeMatch: "/",
