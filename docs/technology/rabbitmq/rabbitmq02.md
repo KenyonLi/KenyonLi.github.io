@@ -59,7 +59,7 @@ RabbitMQ主要用在分布式系统中，主要是应用在微服务系统中。
 
 ​      通过nuget创建电商微服务系统
 
-​     ![image-20220219153024216](/images/dotnet/rabbitmq/image-20220219153024216.png)
+​     ![image-20220219153024216](/images/rabbitmq/image-20220219153024216.png)
 
 2、RabbitMQ准备
 
@@ -77,7 +77,7 @@ RabbitMQ主要用在分布式系统中，主要是应用在微服务系统中。
 rabbitmq-plugins enable rabbitmq_management
 ```
 
-​		![image-20220219171947027](/images/dotnet/rabbitmq/image-20220219171947027.png)
+​		![image-20220219171947027](/images/rabbitmq/image-20220219171947027.png)
 
 ​       2、然后启动RabbitMQ
 
@@ -85,7 +85,7 @@ rabbitmq-plugins enable rabbitmq_management
 	rabbitmq-server 
 ```
 
-​		![image-20220219172014622](/images/dotnet/rabbitmq/image-20220219172014622.png)
+​		![image-20220219172014622](/images/rabbitmq/image-20220219172014622.png)
 
 ​       3、然后看RabbitMQ是否运行成功
 
@@ -99,7 +99,7 @@ rabbitmq-plugins enable rabbitmq_management
 
 ​			http://localhost:15672
 
-​		![image-20220219172234488](/images/dotnet/rabbitmq/image-20220219172234488.png)
+​		![image-20220219172234488](/images/rabbitmq/image-20220219172234488.png)
 
 ### 创建商品业务场景落地
 
@@ -121,7 +121,7 @@ rabbitmq-plugins enable rabbitmq_management
 
 ​     1.2 然后在电商网站微服务中创建ProductController类
 
-​		 ![image-20220219173323417](/images/dotnet/rabbitmq/image-20220219173323417.png)
+​		 ![image-20220219173323417](/images/rabbitmq/image-20220219173323417.png)
 
 ​	 1.3、然后在ProductController类添加代码
 
@@ -175,11 +175,11 @@ rabbitmq-plugins enable rabbitmq_management
 
    1.4、然后启动电商网站添加商品消息到RabbitMQ
 
-![image-20220219173653854](/images/dotnet/rabbitmq/image-20220219173653854.png)
+![image-20220219173653854](/images/rabbitmq/image-20220219173653854.png)
 
 ​	1.5、添加商品
 
-![image-20220219175136999](/images/dotnet/rabbitmq/image-20220219175136999.png)
+![image-20220219175136999](/images/rabbitmq/image-20220219175136999.png)
 
 2、从RabbitMQ中消费商品消息
 
@@ -189,7 +189,7 @@ rabbitmq-plugins enable rabbitmq_management
 
 ​     1.2 然后在电商网站微服务中创建ProductController类
 
-![image-20220219174051946](/images/dotnet/rabbitmq/image-20220219174051946.png)
+![image-20220219174051946](/images/rabbitmq/image-20220219174051946.png)
 
 ​	 1.3、然后在ProductController类添加代码
 
@@ -239,11 +239,11 @@ rabbitmq-plugins enable rabbitmq_management
 
    1.4、然后启动商品微服务执行监听RabbitMQ
 
-![image-20220219174345405](/images/dotnet/rabbitmq/image-20220219174345405.png)
+![image-20220219174345405](/images/rabbitmq/image-20220219174345405.png)
 
 ​    1.5、消费商品数据
 
-![image-20220219174913901](/images/dotnet/rabbitmq/image-20220219174913901.png)
+![image-20220219174913901](/images/rabbitmq/image-20220219174913901.png)
 
 ### 创建商品业务场景落地-情况1
 
@@ -385,11 +385,11 @@ rabbitmq-plugins enable rabbitmq_management
 
 1、启动商品微服务实例1  5007
 
-![image-20220219182724684](/images/dotnet/rabbitmq/image-20220219182724684.png)
+![image-20220219182724684](/images/rabbitmq/image-20220219182724684.png)
 
 2、启动商品微服务实例2 5006
 
-![image-20220219182823591](/images/dotnet/rabbitmq/image-20220219182823591.png)
+![image-20220219182823591](/images/rabbitmq/image-20220219182823591.png)
 
 ### 创建商品业务场景落地-情况4
 
