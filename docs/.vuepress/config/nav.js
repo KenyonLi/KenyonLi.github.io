@@ -23,7 +23,7 @@ module.exports = [
     link: '/technology/',
     children: [
       {
-        text: "dotnet core",
+        text: "Dotnet core",
         link: "/technology/dotnetcore/",
         // 该元素将一直处于激活状态
         activeMatch: "/",
@@ -41,8 +41,14 @@ module.exports = [
         activeMatch: "/",
       },
       {
-        text: "kafka",
+        text: "Kafka",
         link: "/technology/kafka/kafka01",
+        // 该元素将一直处于激活状态
+        activeMatch: "/",
+      },
+      {
+        text: "Nginx",
+        link: "/technology/Nginx/Nginx001",
         // 该元素将一直处于激活状态
         activeMatch: "/",
       },

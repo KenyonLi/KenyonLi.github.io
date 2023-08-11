@@ -7,7 +7,7 @@ module.exports = [
       // SidebarItem
 
       {
-        text: 'dotnet core',
+        text: 'Dotnet core',
         collapsible: true,
         children: [
         {
@@ -105,6 +105,10 @@ module.exports = [
         {
           text: '分布式中间件-Kafka介绍（一）',
           link: '/technology/kafka/kafka01.md',
+        },
+        {
+          text: '分布式中间件-Nginx',
+          link: '/technology/nginx/nginx001.md',
         }
       ]
     },
