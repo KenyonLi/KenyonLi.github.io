@@ -39,15 +39,15 @@ Channel是我们与RabbitMQ打交道的最重要的一个接口，我们大部�
 
 Queue（队列）是RabbitMQ的内部对象，用于存储消息，用下图表示。
 
-![img](/images/dotnet/rabbitmq/rabbitmq001.png)
+![img](/images/rabbitmq/rabbitmq001.png)
 
 RabbitMQ中的消息都只能存储在Queue中，生产者（下图中的P）生产消息并最终投递到Queue中，消费者（下图中的C）可以从Queue中获取消息并消费。
 
-![img](/images/dotnet/rabbitmq/rabbitmq002.png)
+![img](/images/rabbitmq/rabbitmq002.png)
 
 多个消费者可以订阅同一个Queue，这时Queue中的消息会被平均分摊给多个消费者进行处理，而不是每个消费者都收到所有的消息并处理。
 
-![img](/images/dotnet/rabbitmq/rabbitmq003.png)
+![img](/images/rabbitmq/rabbitmq003.png)
 
 
 ## Message 确认
@@ -66,14 +66,14 @@ RabbitMQ中的消息都只能存储在Queue中，生产者（下图中的P）生
 
 前面我们讲到如果有多个消费者同时订阅同一个Queue中的消息，Queue中的消息会被平摊给多个消费者。这时如果每个消息的处理时间不同，就有可能会导致某些消费者一直在忙，而另外一些消费者很快就处理完手头工作并一直空闲的情况。我们可以通过设置prefetchCount来限制Queue每次发送给每个消费者的消息数，比如我们设置prefetchCount=1，则Queue每次给每个消费者发送一条消息；消费者处理完这条消息后Queue会再给该消费者发送一条消息。
 
-![img](/images/dotnet/rabbitmq/rabbitmq004.png)
+![img](/images/rabbitmq/rabbitmq004.png)
 
 
 ## Exchange
 
 在上一节我们看到生产者将消息投递到Queue中，实际上这在RabbitMQ中这种事情永远都不会发生。实际的情况是，生产者将消息发送到Exchange（交换器，下图中的X），由Exchange将消息路由到一个或多个Queue中（或者丢弃）。
 
-![img](/images/dotnet/rabbitmq/rabbitmq005.png)
+![img](/images/rabbitmq/rabbitmq005.png)
 
 
 Exchange是按照什么逻辑将消息路由到Queue的？这个将在下面的**8、Binding**中介绍。
@@ -90,7 +90,7 @@ RabbitMQ中的Exchange有四种类型，不同的类型有着不同的路由策�
 
 RabbitMQ中通过Binding将Exchange与Queue关联起来，这样RabbitMQ就知道如何正确地将消息路由到指定的Queue了。
  
-![img](/images/dotnet/rabbitmq/rabbitmq006.png)
+![img](/images/rabbitmq/rabbitmq006.png)
 
 
 ## Binding key
@@ -109,7 +109,7 @@ RabbitMQ常用的Exchange Type有fanout、direct、topic、headers这四种（AM
 fanout类型的Exchange路由规则非常简单，它会把所有发送到该Exchange的消息路由到所有与它绑定的Queue中。
 
 
-![img](/images/dotnet/rabbitmq/rabbitmq007.png)
+![img](/images/rabbitmq/rabbitmq007.png)
 
 
 上图中，生产者（P）发送到Exchange（X）的所有消息都会路由到图中的两个Queue，并最终被两个消费者（C1与C2）消费。
@@ -118,7 +118,7 @@ fanout类型的Exchange路由规则非常简单，它会把所有发送到该Exc
 
 direct类型的Exchange路由规则也很简单，它会把消息路由到那些binding key与routing key完全匹配的Queue中。
 
-![img](/images/dotnet/rabbitmq/rabbitmq008.png)
+![img](/images/rabbitmq/rabbitmq008.png)
 
 
 以上图的配置为例，我们以routingKey=”error”发送消息到Exchange，则消息会路由到Queue1（amqp.gen-S9b…，这是由RabbitMQ自动生成的Queue名称）和Queue2（amqp.gen-Agl…）；如果我们以routingKey=”info”或routingKey=”warning”来发送消息，则消息只会路由到Queue2。如果我们以其他routingKey发送消息，则消息不会路由到这两个Queue中。
@@ -133,7 +133,7 @@ binding key与routing key一样也是句点号“. ”分隔的字符串。
 
 binding key中可以存在两种特殊字符“*”与“#”，用于做模糊匹配，其中“*”用于匹配一个单词，“#”用于匹配多个单词（可以是零个）。
 
-![img](/images/dotnet/rabbitmq/rabbitmq009.png)
+![img](/images/rabbitmq/rabbitmq009.png)
 
 以上图中的配置为例，routingKey=”quick.orange.rabbit”的消息会同时路由到Q1与Q2，routingKey=”lazy.orange.fox”的消息会路由到Q1与Q2，routingKey=”lazy.brown.fox”的消息会路由到Q2，routingKey=”lazy.pink.rabbit”的消息会路由到Q2（只会投递给Q2一次，虽然这个routingKey与Q2的两个bindingKey都匹配）；routingKey=”quick.brown.fox”、routingKey=”orange”、routingKey=”quick.orange.male.rabbit”的消息将会被丢弃，因为它们没有匹配任何bindingKey。
 
@@ -151,7 +151,7 @@ MQ本身是基于异步的消息处理，前面的示例中所有的生产者（
 
 但实际的应用场景中，我们很可能需要一些同步处理，需要同步等待服务端将我的消息处理完成后再进行下一步处理。这相当于RPC（Remote Procedure Call，远程过程调用）。在RabbitMQ中也支持RPC。
 
-![img](/images/dotnet/rabbitmq/rabbitmq010.png)
+![img](/images/rabbitmq/rabbitmq010.png)
 
 
 RabbitMQ中实现RPC的机制是：

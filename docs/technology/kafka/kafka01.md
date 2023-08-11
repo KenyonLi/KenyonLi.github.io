@@ -70,8 +70,8 @@ Kafka主要用在分布式系统中，主要是应用在微服务系统中。
 
 ​     2.1 Kafka前提准备
 
-​			Kafka下载地址：https://archive.apache.org/dist/kafka/2.8.1/kafka_2.13-2.8.1.tgz
-
+​			Kafka下载地址：https://downloads.apache.org/kafka/3.5.1/kafka_2.13-3.5.1.tgz
+          [kafk官网下载地址](https://kafka.apache.org/downloads) 
 ​     2.2 Kafka运行 
 
 ​	    1、先运行zookeeper
@@ -79,23 +79,25 @@ Kafka主要用在分布式系统中，主要是应用在微服务系统中。
 ```c#
 zookeeper-server-start.bat ../../config/zookeeper.properties
 ```
-![Alt text](/images/dotnet/kafka/kafka_001_image.png)
-![Alt text](/images/dotnet/kafka/kafka_002_image.png)
+![Alt text](/images/kafka/kafka_001_image.png)
+![Alt text](/images/kafka/kafka_002_image.png)
 
 ​       2、然后启动Kafka
 
 ```c#
 kafka-server-start.bat ../../config/server.properties
 ```
-![Alt text](/images/dotnet/kafka/kafka_003_image.png)
-![Alt text](/images/dotnet/kafka/kafka_004_image.png)
-​       3、使用Kafkatool判断kafka是否运行成功
+![Alt text](/images/kafka/kafka_003_image.png)
+![Alt text](/images/kafka/kafka_004_image.png)
+​
+3、使用Kafkatool判断kafka是否运行成功
 
+[kafkatool下载地址](https://www.kafkatool.com/download.html)
 ```c#
 双击kafkatool.exe
 ```
 
-![Alt text](/images/dotnet/kafka/kafka_005_image.png)
+![Alt text](/images/kafka/kafka_005_image.png)
 
 ​        4、查看结果
 

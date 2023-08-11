@@ -13,12 +13,20 @@ sidebar: auto
 ::: tip 政府网址
 > [深圳市住房和建设局](http://zjj.sz.gov.cn/)
 :::
+
+## kafka 下载
+::: tip kafka 官网地址
+>  java sdk 8.0 安装  
+>    [kafka](https://kafka.apache.org/downloads)  
+>    [kafka-tool](https://www.kafkatool.com/download.html)  
+:::
+
 ## 前端
 ::: tip 前端
 >    建设中...
 :::
 ## 后端
-::: tip 政府网址
+::: tip 后端
 >  建设中...
 :::
 ## 操作系统
