@@ -74,3 +74,26 @@ dotnet ef migrations script   也跟pmc类似  如果没有任何参数的话默
 6、默认情况下，命名空间将是根命名空加上项目根目录下任何子目录的名称。但是，从EFCore 5.0 开始，可使用 --namespace 覆盖所有输出类的命名空间。还可使用 --context-namespace 仅覆盖DbContext类的命名空间
     dotnet ef dbcontext scaffold "Server=..;Port=3306;Database=...;Uid=root;Pwd=...;"  --namespace your.namespace --context-namespace your.DbContext.Namespace    
 ```
+ ## 三、EF 多表sql 查询
+1、创建一个实体类，把需要关联的字段写在这个类，并在实体类上添加`[keyless]`特性，表示该类没有主键。
+``` C# 
+  [keyless]
+  public class Test{
+     public string  rolseName{get;set;}
+     public string  ProjectName {get;set;}
+     public string  neighborhoodName {get;set;}
+     ....
+  }
+```
+2、在EFDbcontent 上下文类中，添加 `DbSet<Test> Tests {get;set;}` 
+``` C#
+         public DbSet<Test> Tests { get; set; }
+```
+3、使用 EF 实现 多表关联sql 查询 实例
+
+``` C# 
+    1、创建数据库对象 EFDbContext db   EF中`$`不能省略
+     var d = _dbContext.Tests.FromSqlInterpolated($@"select t1.`ProjectName`,t2.`rolseName`, t3.`neighborhoodName` from  `a` t1 
+                        left  join   `b` t2 on t1.`pointCode` = t2.`pointCode`
+                        left join `c` t3 on t3.`neighborhoodId` = t2.`neighborhoodId`");
+```
