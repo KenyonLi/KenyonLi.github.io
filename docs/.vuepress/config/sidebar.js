@@ -109,6 +109,10 @@ module.exports = [
         {
           text: '分布式中间件-Nginx',
           link: '/technology/nginx/nginx001.md',
+        },
+        {
+          text: '分布式中间件-ShardingShphere-Proxy',
+          link: "/technology/sharding_shphere_proxy/sharding_shphere_proxy001.md",
         }
       ]
     },
