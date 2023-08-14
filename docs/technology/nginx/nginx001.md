@@ -1124,6 +1124,7 @@ Nginx缓存是键值存储，URL是键，文件路径是值。键值存储的速
 >>1.1 使用openSSL工具生成  [下载openSSL](https://slproweb.com/products/Win32OpenSSL.html)   
 >>>1.1.1  下载openSSL地址：https://slproweb.com/download/Win64OpenSSL-3_1_2.msi   
 >>>1.1.2  证书生成地址：https://jingyan.baidu.com/article/6c67b1d6be538c2787bb1e06.html   
+>>>1.1.3  证书生成地址: https://blog.csdn.net/weixin_44454510/article/details/126939208
 
 >>1.2 证书路径：
 
