@@ -53,6 +53,12 @@ module.exports = [
         activeMatch: "/",
       },
       {
+        text: "ShardingShphere-Proxy",
+        link: "/technology/sharding_shphere_proxy/sharding_shphere_proxy001.md",
+        // 该元素将一直处于激活状态
+        activeMatch: "/",
+      },
+      {
         text: "c/c++",
         link: "/technology/cppreference/",
         // 该元素在当前路由路径是 /foo/ 开头时激活
