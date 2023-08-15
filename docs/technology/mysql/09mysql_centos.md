@@ -35,4 +35,3 @@ rpm -ivh mysql-community-client-8.0.31-1.el9.x86_64.rpm --nodeps --force
 rpm -ivh mysql-community-server-8.0.31-1.el9.x86_64.rpm --nodeps --force 
 ```
 :::
-

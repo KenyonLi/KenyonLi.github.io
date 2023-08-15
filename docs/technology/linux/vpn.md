@@ -255,7 +255,6 @@ sudo ufw disable
 ![Alt text](/images/linux/vpn_0024image.png)  
 
 >4、执行脚本
-![Alt text](image-2.png)
 ``` bash
 sudo bash -c "$(wget -qO- https://raw.githubusercontent.com/Jigsaw-Code/outline-server/master/src/server_manager/install_scripts/install_server.sh)"
 ``` 
