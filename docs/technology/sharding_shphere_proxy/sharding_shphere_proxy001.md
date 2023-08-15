@@ -38,3 +38,138 @@ categories:
 ### 单体项目中为什么要使用ShardingSphere-Proxy
 >单体系统，主要用来处理客户端的请求，客户端添加的数据，这些数据会存到数据库表中，一个表存储的容量是有限的，如果超过了一定的数量，表的处理性能就会下降，是因为表是通过InnoDB引擎来处理数据的，InnoDB通过B+树结构进行存储，如果超过了一定的阀值，就会使表的性能下降，如何提升性能？  
 >方案：就是分表技术。
+从并发量角度思考，如果客户端查询数据并发量比较大，超过了数据库的并发处理能力，就会导致数据库性能下降（因为数据库本身使用的系统资源还是有限的，例如内存资源、cpu资源，磁盘资料等等，都是有限，所以导致数据库并发处理能力有限）。如何提升表的性能？   
+>方案：就是分库分表技术。  
+>如何落实分库分表呢？  
+> 方案有两种，进程内 和 进程外两种   
+
+### 进程内方案
+![Alt text](/images/sharding/sharding_shphere_proxy003image.png)
+
+缺陷  
+1、资源竞争问题  
+2、异常影响问题   
+所以：需要使用进程外方案   
+
+### 进程外方案
+
+![Alt text](/images/sharding/sharding_shphere_proxy004image.png)
+
+缺陷   
+1、维护量上升的问题  
+2、稳定性问题   
+但是，为了做架构设计，所以，建议大家使用进程外来落地   
+
+### 数据库中间件技术类型  
+技术类型有2类   
+工具：  
+1、Mycat   
+2、ShardingSphere-Proxy  
+
+如何选择数据库中间件技术类型   
+  根据每个技术功能特点来进行  
+  1、Mycat   是java 开发的，落地麻烦  
+  2、ShardingSphere-Proxy 是java 开发的，落地快  
+  所以：最终选择ShardingSphere-Proxy   
+
+
+  ## 项目中如何落地ShardingSphere-Proxy  
+  环境：  
+  1、Windows10   
+  2、linux  
+  3、 JDK 1.8   [JDK下载地址](https://www.oracle.com/cn/java/technologies/javase/javase-jdk8-downloads.html)
+
+  前提：  
+  1、电商项目   
+  2、MySQL 8.0   
+  3、ShardingSphere-Proxy
+  步骤：  
+![Alt text](/images/sharding/sharding_shphere_proxy005image.png)
+
+  2、MySQL 8.0.33 准备
+  安装软件： mysql-installer-community-8.0.33.0 .msi   
+  [下载地址](https://downloads.mysql.com/archives/installer/)
+  >3、ShardingSphere-Proxy准备  
+  >> 3.1 先下载jdk 11.0.19   
+  [下载地址](https://www.oracle.com/java/technologies/javase/jdk11-archive-downloads.html)   
+  >> 3.2 mysql-connector-java-8.0.30.jar   
+  [mysql-connector-java-8.0.30.jar下载地址](https://repo1.maven.org/maven2/mysql/mysql-connector-java/8.0.30/mysql-connector-java-8.0.30.jar)   
+  >> 3.3 然后下载apache-shardingsphere-5.4.0-shardingsphere-proxy    
+  [apache-shardingsphere-5.4.0-shardingsphere-proxy-bin.tar.gz下载](https://archive.apache.org/dist/shardingsphere/5.4.0/apache-shardingsphere-5.4.0-shardingsphere-proxy-bin.tar.gz)
+
+  ​ 官网地址：https://shardingsphere.apache.org/
+
+​ 下载地址：https://archive.apache.org/dist/shardingsphere/5.4.0/ 
+
+​ 文档地址：https://shardingsphere.apache.org/document/current/cn/overview/  
+
+​ 开发者文档地址：https://shardingsphere.apache.org/document/current/cn/dev-manual/  
+
+  >> 3.4、使用`tar`命令解压
+``` bash
+​ tar zxvf   apache-shardingsphere-5.4.0-shardingsphere-proxy-bin.tar.gz
+```
+
+![Alt text](/images/sharding/sharding_shphere_proxy006image.png)
+
+
+   >> 3.5、将mysql-connector-java-8.0.30.jar拷贝到改目录下  
+
+![Alt text](/images/sharding/sharding_shphere_proxy007image.png)
+​
+## 商品表分表场景落地  
+条件：  
+1、 ebusiness库  
+2、 product表   
+目标：将proudct 表分成product_0 和 product_1 
+步骤  
+1、先在MySql中使用客户创建ebusiness数据库
+2、然后在ebusiness数据库中使用脚本创建product表
+```sql
+CREATE TABLE `product` (
+	`Id` INT(11) NOT NULL AUTO_INCREMENT,
+	`SeckillType` INT(11) NOT NULL,
+	`SeckillName` CHAR(255) NULL,
+	`SeckillUrl` CHAR(255) NULL,
+	`SeckillPrice` DECIMAL(18,2) NOT NULL,
+	`SeckillStock` INT(11) NOT NULL,
+	`SeckillPercent` CHAR(255) NULL,
+	`TimeId` INT(11) NOT NULL,
+	`ProductId` INT(11) NOT NULL,
+	`SeckillLimit` INT(11) NOT NULL,
+	`SeckillDescription` CHAR(255) NULL,
+	`SeckillIstop` INT(11) NOT NULL,
+	`SeckillStatus` INT(11) NOT NULL,
+	PRIMARY KEY (`Id`),
+	INDEX `ProductId` (`ProductId`)
+)
+COLLATE='utf8_general_ci'
+ENGINE=InnoDB
+AUTO_INCREMENT=2
+; 
+CREATE TABLE `order` (
+	`Id` INT(11) NOT NULL AUTO_INCREMENT,
+	`SeckillType` INT(11) NOT NULL,
+	`SeckillName` CHAR(255) NULL,
+	`SeckillUrl` CHAR(255) NULL,
+	`SeckillPrice` DECIMAL(18,2) NOT NULL,
+	`SeckillStock` INT(11) NOT NULL,
+	`SeckillPercent` CHAR(255) NULL,
+	`TimeId` INT(11) NOT NULL,
+	`ProductId` INT(11) NOT NULL,
+	`SeckillLimit` INT(11) NOT NULL,
+	`SeckillDescription` CHAR(255) NULL,
+	`SeckillIstop` INT(11) NOT NULL,
+	`SeckillStatus` INT(11) NOT NULL,
+	PRIMARY KEY (`Id`),
+	INDEX `ProductId` (`ProductId`)
+)
+COLLATE='utf8_general_ci'
+ENGINE=InnoDB
+AUTO_INCREMENT=2
+; 
+
+```
+
+3、然后进入apache-shardingsphere-5.4.0-shardingsphere-proxy-bin配置文件config-sharding.yaml中
+

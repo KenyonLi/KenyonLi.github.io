@@ -153,8 +153,12 @@ module.exports = [
         collapsible: true,
         children: [
           {
-            text: 'Mysql 基础',
+            text: 'Mysql8.0 Ubuntu 20.4 安装',
             link: '/technology/mysql/index.md',
+          },
+          {
+            text: 'Mysql8.0 CentOS Stream 9 安装',
+            link: '/technology/mysql/09mysql_centos.md',
           },
           {
             text: 'Mysql 架构体系详解',

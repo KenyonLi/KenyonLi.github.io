@@ -2085,3 +2085,21 @@ vrrp_script chk_http_port {
      weight 2 #比重
 }
 ```
+## socket 配置
+```bash
+   #数据库代理
+stream {
+    server {
+       listen 8181; 
+       proxy_connect_timeout 1s;
+       proxy_timeout 3s;
+       proxy_pass rfidConn;
+    }
+
+    upstream rfidConn {
+       server localhost:8182;
+       server localhost:8183;
+       server localhost:8184;
+    }
+}
+```
