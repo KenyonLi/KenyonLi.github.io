@@ -220,7 +220,7 @@ Query OK, 0 rows affected (0.01 sec)
 ### 远程访问 
 
 ```bash
-mysql> create user 'root'@'%' identified with mysql_native_password by 'skceDB123';
+mysql> create user 'root'@'%' identified with mysql_native_password by '123433356';
 Query OK, 0 rows affected (0.03 sec)
 mysql> grant all privileges on *.* to 'root'@'%' with grant option;
 Query OK, 0 rows affected (0.01 sec)
@@ -234,3 +234,274 @@ Query OK, 0 rows affected (0.01 sec)
 ```
 ### 终端远程
 ![Alt text](/images/mysql/09mysql_centos001.png)
+
+
+## Mysql 8.0 主从部署-读写分离
+[这27个常见的MySQL服务器参数配置你得记住！ 参考](https://blog.csdn.net/Cairo_A/article/details/130629394)   
+[主从配置参考](https://blog.csdn.net/u013618714/article/details/131558487)
+### 主服务器 192.168.3.63 
+
+
+1、创建一个同步账号 `db_sync` 
+``` bash
+mysql> create user 'db_sync'@'%' identified by 'db_sync@123';
+Query OK, 0 rows affected (0.03 sec)
+
+```
+2、在主服务器上执行以下命令获取当前二进制日志文件的名称和位置
+``` bash
+show master status;
+```
+2.1 记录输出中的File和Position值，后续在从服务器上使用。
+```bash
+mysql> show master status;
++---------------+----------+--------------+------------------+-------------------+
+| File          | Position | Binlog_Do_DB | Binlog_Ignore_DB | Executed_Gtid_Set |
++---------------+----------+--------------+------------------+-------------------+
+| binlog.000002 |      879 |              |                  |                   |
++---------------+----------+--------------+------------------+-------------------+
+1 row in set (0.00 sec)
+```
+3、配置主服务器 my.cnf 
+```bash
+cat  >> /etc/my.cnf <<EOF 
+#服务器 id，随意，但要唯一
+server-id = 1  
+#二进制文件存放路径
+log-bin = mysql-bin 
+#参数用于排除自带的数据库。  
+binlog-ignore-db = mysql 
+binlog-ignore-db = information_schema
+binlog-ignore-db = performance_schema
+#二进制日志格式，建议使用ROW格式以获得更好的兼容性和可靠性。
+binlog-format = ROW 
+EOF
+```
+3.1 重启mysql 服务器，配置才能生效。
+```bash
+systemctl restart mysqld 
+```
+
+### 次服务器192.168.3.64
+1、修改my.cnf配置 设置 server-id 不能重复。
+```bash
+cat >>/etc/my.cnf <<EOF
+server-id = 2
+#中继日志文件的名称，用于从主服务器接收二进制日志事件。
+relay-log = mysql-relay-bin 
+#从服务器的二进制日志文件的名称。
+log_bin = mysql-bin 
+#不同步相关的库
+replicate-ignore-db = mysql 
+replicate-ignore-db = information_schema
+replicate-ignore-db = performance_schema
+EOF 
+```
+重启mysql 服务器
+``` bash
+systemctl restart mysqld
+```
+
+2、登录 mysql  配置次服务参数 
+
+``` bash
+mysql> stop slave;
+Query OK, 0 rows affected, 1 warning (0.01 sec)
+## 配置主服务 信息
+mysql> change master to  master_host = '192.168.3.63', master_user = 'db_sync', master_password = 'skceDB@123',master_log_file = 'binlog.000002', master_log_pos = 1341, get_master_public_key=1;
+Query OK, 0 rows affected, 9 warnings (0.05 sec)
+
+mysql> start slave;
+Query OK, 0 rows affected, 1 warning (0.04 sec)
+
+
+```
+2.1 查询 同步状态
+```bash
+mysql> show slave status\G;
+*************************** 1. row ***************************
+               Slave_IO_State: 
+                  Master_Host: 192.168.3.63
+                  Master_User: db_sync
+                  Master_Port: 3306
+                Connect_Retry: 60
+              Master_Log_File: binlog.000002
+          Read_Master_Log_Pos: 1341
+               Relay_Log_File: localhost-relay-bin.000001
+                Relay_Log_Pos: 4
+        Relay_Master_Log_File: binlog.000002
+             Slave_IO_Running: No
+            Slave_SQL_Running: Yes
+              Replicate_Do_DB: 
+          Replicate_Ignore_DB: 
+           Replicate_Do_Table: 
+       Replicate_Ignore_Table: 
+      Replicate_Wild_Do_Table: 
+  Replicate_Wild_Ignore_Table: 
+                   Last_Errno: 0
+                   Last_Error: 
+                 Skip_Counter: 0
+          Exec_Master_Log_Pos: 1341
+              Relay_Log_Space: 157
+              Until_Condition: None
+               Until_Log_File: 
+                Until_Log_Pos: 0
+           Master_SSL_Allowed: No
+           Master_SSL_CA_File: 
+           Master_SSL_CA_Path: 
+              Master_SSL_Cert: 
+            Master_SSL_Cipher: 
+               Master_SSL_Key: 
+        Seconds_Behind_Master: NULL
+Master_SSL_Verify_Server_Cert: No
+                Last_IO_Errno: 13117
+                Last_IO_Error: Fatal error: The slave I/O thread stops because master and slave have equal MySQL server ids; these ids must be different for replication to work (or the --replicate-same-server-id option must be used on slave but this does not always make sense; please check the manual before using it).
+               Last_SQL_Errno: 0
+               Last_SQL_Error: 
+  Replicate_Ignore_Server_Ids: 
+             Master_Server_Id: 1
+                  Master_UUID: 
+             Master_Info_File: mysql.slave_master_info
+                    SQL_Delay: 0
+          SQL_Remaining_Delay: NULL
+      Slave_SQL_Running_State: Replica has read all relay log; waiting for more updates
+           Master_Retry_Count: 86400
+                  Master_Bind: 
+      Last_IO_Error_Timestamp: 230816 18:43:21
+     Last_SQL_Error_Timestamp: 
+               Master_SSL_Crl: 
+           Master_SSL_Crlpath: 
+           Retrieved_Gtid_Set: 
+            Executed_Gtid_Set: 
+                Auto_Position: 0
+         Replicate_Rewrite_DB: 
+                 Channel_Name: 
+           Master_TLS_Version: 
+       Master_public_key_path: 
+        Get_master_public_key: 1
+            Network_Namespace: 
+1 row in set, 1 warning (0.00 sec)
+
+ERROR: 
+No query specified
+```
+结果失败了    
+  ` Slave_IO_Running: No`   
+  `Slave_SQL_Running: Yes`  
+:::tip  Last_IO_Error
+  Last_IO_Error: Fatal error: The slave I/O thread stops because master and slave have equal MySQL server ids; these ids must be different for replication to work (or the --replicate-same-server-id option must be used on slave but this does not always make sense; please check the manual before using it).
+:::
+什么意思呢，就是 server_id 重复了（这里不是server_uuid,也排查过uuid没有重复）  
+主和从服务的server_id 的值相同的，证明一点，之前my.cnf配置server_id值没有生效。    
+``` bash 
+mysql> show variables like '%server_id%';     
++----------------+-------+
+| Variable_name  | Value |
++----------------+-------+
+| server_id      | 1     |
+| server_id_bits | 32    |
++----------------+-------+
+2 rows in set (0.01 sec)
+
+```
+使用脚本修改了之后，就可以。
+```bash
+mysql> set global server_id=2;
+Query OK, 0 rows affected (0.00 sec)
+
+mysql> show variables like '%server_id%';
++----------------+-------+
+| Variable_name  | Value |
++----------------+-------+
+| server_id      | 2     |
+| server_id_bits | 32    |
++----------------+-------+
+2 rows in set (0.00 sec)
+
+mysql> stop slave ;
+Query OK, 0 rows affected, 1 warning (0.01 sec)
+
+mysql> start slave;
+Query OK, 0 rows affected, 1 warning (0.04 sec)
+
+mysql> show slave status\G;
+*************************** 1. row ***************************
+               Slave_IO_State: Waiting for source to send event
+                  Master_Host: 192.168.3.63
+                  Master_User: db_sync
+                  Master_Port: 3306
+                Connect_Retry: 60
+              Master_Log_File: binlog.000004
+          Read_Master_Log_Pos: 157
+               Relay_Log_File: localhost-relay-bin.000005
+                Relay_Log_Pos: 367
+        Relay_Master_Log_File: binlog.000004
+             Slave_IO_Running: Yes
+            Slave_SQL_Running: Yes
+              Replicate_Do_DB: 
+          Replicate_Ignore_DB: 
+           Replicate_Do_Table: 
+       Replicate_Ignore_Table: 
+      Replicate_Wild_Do_Table: 
+  Replicate_Wild_Ignore_Table: 
+                   Last_Errno: 0
+                   Last_Error: 
+                 Skip_Counter: 0
+          Exec_Master_Log_Pos: 157
+              Relay_Log_Space: 791
+              Until_Condition: None
+               Until_Log_File: 
+                Until_Log_Pos: 0
+           Master_SSL_Allowed: No
+           Master_SSL_CA_File: 
+           Master_SSL_CA_Path: 
+              Master_SSL_Cert: 
+            Master_SSL_Cipher: 
+               Master_SSL_Key: 
+        Seconds_Behind_Master: 0
+Master_SSL_Verify_Server_Cert: No
+                Last_IO_Errno: 0
+                Last_IO_Error: 
+               Last_SQL_Errno: 0
+               Last_SQL_Error: 
+  Replicate_Ignore_Server_Ids: 
+             Master_Server_Id: 1
+                  Master_UUID: 278d0d30-3b11-11ee-b4c3-080027790eb7
+             Master_Info_File: mysql.slave_master_info
+                    SQL_Delay: 0
+          SQL_Remaining_Delay: NULL
+      Slave_SQL_Running_State: Replica has read all relay log; waiting for more updates
+           Master_Retry_Count: 86400
+                  Master_Bind: 
+      Last_IO_Error_Timestamp: 
+     Last_SQL_Error_Timestamp: 
+               Master_SSL_Crl: 
+           Master_SSL_Crlpath: 
+           Retrieved_Gtid_Set: 
+            Executed_Gtid_Set: 
+                Auto_Position: 0
+         Replicate_Rewrite_DB: 
+                 Channel_Name: 
+           Master_TLS_Version: 
+       Master_public_key_path: 
+        Get_master_public_key: 1
+            Network_Namespace: 
+1 row in set, 1 warning (0.00 sec)
+
+ERROR: 
+No query specified
+
+```
+
+---
+### 修改MySQLserver-id方法
+
+::: tip mysql 同步异常
+Fatal error: The slave I/O thread stops because master and slave have equal MySQL server ids; these ids must be different for replication to work (or the --replicate-same-server-id option must be used on slave but this does not always make sense; please check the manual before using it).
+:::
+解决方法   
+修改MySQLserver-id方法如下：  
+1、使用root用户登录MySQL数据库。   
+2、运行以下命令查看MySQL当前的server-id的值：`show variables like  'server_id'   
+3、运行以下命令修改MySQL的server-id值：`set global server_id=新的server-id值。   
+4、再次运行`show variables like '%server_id%'。`验证MySQL的server-id是否已经修改成功   
