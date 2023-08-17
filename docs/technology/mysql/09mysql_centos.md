@@ -505,3 +505,147 @@ Fatal error: The slave I/O thread stops because master and slave have equal MySQ
 2、运行以下命令查看MySQL当前的server-id的值：`show variables like  'server_id'   
 3、运行以下命令修改MySQL的server-id值：`set global server_id=新的server-id值。   
 4、再次运行`show variables like '%server_id%'。`验证MySQL的server-id是否已经修改成功   
+
+
+## Mysql读写分离原理
+条件  
+>1、binlog   
+>2、relaylog  
+原理  
+### Mysql读写分离分离异步同步模式  
+默认为异步同步模式。   
+异步同步模式会有缺陷，如果slave宕机，会导致数据不一致性风险。  
+需要使用同步模式进行同步   
+### Mysql读写分离分离半同步模式
+条件  
+>1、 `rpl_semi_sync_master`   (主服务器)   
+>2、 `rpl_semi_sync_slave`  （次服务器）  
+
+步骤：  
+>1、先查询mysql是否可以安装版本
+``` bash
+mysql> select @@have_dynamic_loading;
++------------------------+
+| @@have_dynamic_loading |
++------------------------+
+| YES                    |
++------------------------+
+1 row in set (0.00 sec)
+
+```
+显示查询结果为`YES` 可以安装   
+
+>#### 2、在主服务器的Mysql中安装`rpl_semi_sync_master` 插件   
+>在 192.168.3.63 服务器的mysql 安装
+>>2.1 先在`master` 节点上安装 `rpl_semi_sync_master` 
+```bash
+mysql> install plugin rpl_semi_sync_master SONAME 'semisync_master.so';
+Query OK, 0 rows affected, 1 warning (0.01 sec)
+```
+>>2.2 然后查询插件是否安装成功  
+
+```bash
+mysql> show variables like 'rpl_semi%';
++-------------------------------------------+------------+
+| Variable_name                             | Value      |
++-------------------------------------------+------------+
+| rpl_semi_sync_master_enabled              | OFF        |
+| rpl_semi_sync_master_timeout              | 10000      |
+| rpl_semi_sync_master_trace_level          | 32         |
+| rpl_semi_sync_master_wait_for_slave_count | 1          |
+| rpl_semi_sync_master_wait_no_slave        | ON         |
+| rpl_semi_sync_master_wait_point           | AFTER_SYNC |
++-------------------------------------------+------------+
+6 rows in set (0.00 sec)
+
+```
+>>2.3然后开启`master`复制
+```bash
+mysql> set global rpl_semi_sync_master_enabled=ON;
+Query OK, 0 rows affected (0.00 sec)
+```
+>>2.4 然后查询
+```bash 
+mysql> show variables like 'rpl_semi%';
++-------------------------------------------+------------+
+| Variable_name                             | Value      |
++-------------------------------------------+------------+
+| rpl_semi_sync_master_enabled              | ON         |
+| rpl_semi_sync_master_timeout              | 10000      |
+| rpl_semi_sync_master_trace_level          | 32         |
+| rpl_semi_sync_master_wait_for_slave_count | 1          |
+| rpl_semi_sync_master_wait_no_slave        | ON         |
+| rpl_semi_sync_master_wait_point           | AFTER_SYNC |
+| rpl_semi_sync_slave_enabled               | ON         |
+| rpl_semi_sync_slave_trace_level           | 32         |
++-------------------------------------------+------------+
+8 rows in set (0.00 sec)
+```
+结果为`ON` 设置成功    
+
+>#### 3、在次服务器的Mysql中安装`rpl_semi_sync_slave`插件  
+>在 192.168.3.64 服务器的mysql 安装
+>>3.1 先在`master` 节点上安装 `rpl_semi_sync_slave` 
+```bash
+mysql> install plugin rpl_semi_sync_slave SONAME 'semisync_slave.so';
+Query OK, 0 rows affected, 1 warning (0.02 sec)
+```
+>>3.2 然后查询插件是否安装成功  
+```bash
+mysql> show global variables like 'rpl_semi%';
++---------------------------------+-------+
+| Variable_name                   | Value |
++---------------------------------+-------+
+| rpl_semi_sync_slave_enabled     | OFF   |
+| rpl_semi_sync_slave_trace_level | 32    |
++---------------------------------+-------+
+```
+
+>>3.3 然后开启slaver复制   
+```bash
+mysql> set global rpl_semi_sync_slave_enabled=ON;
+Query OK, 0 rows affected (0.01 sec)
+
+
+```
+>>3.4 查看是否设置成功，如`NO`成功。
+```bash
+mysql> show global variables like 'rpl_semi%';
++---------------------------------+-------+
+| Variable_name                   | Value |
++---------------------------------+-------+
+| rpl_semi_sync_slave_enabled     | ON    |
+| rpl_semi_sync_slave_trace_level | 32    |
++---------------------------------+-------+
+2 rows in set (0.01 sec)
+```
+
+>>3.5  然后开启半同步复制模式
+```bash
+mysql> stop slave io_thread;
+Query OK, 0 rows affected, 1 warning (0.02 sec)
+
+mysql> start slave io_thread;
+Query OK, 0 rows affected, 1 warning (0.00 sec)
+
+```
+
+>>3.6 查询看slave 状态 是否成功 ,如 `Slave_IO_Running` 和 `Slave_SQL_Running`  为 `YES` ,表明设置成功。
+``` bash 
+mysql> show slave status\G;
+*************************** 1. row ***************************
+               Slave_IO_State: Waiting for source to send event
+                  Master_Host: 192.168.3.63
+                  Master_User: db_sync
+                  Master_Port: 3306
+                Connect_Retry: 60
+              Master_Log_File: binlog.000004
+          Read_Master_Log_Pos: 1492
+               Relay_Log_File: localhost-relay-bin.000003
+                Relay_Log_Pos: 323
+        Relay_Master_Log_File: binlog.000004
+             Slave_IO_Running: Yes
+            Slave_SQL_Running: Yes
+            ....
+```
+
