@@ -161,6 +161,10 @@ module.exports = [
             link: '/technology/mysql/09mysql_centos.md',
           },
           {
+            text: 'Mysql 8.0 主从部署-读写分离',
+            link: '/technology/mysql/10mysql_write_read.md',
+          },
+          {
             text: 'Mysql 架构体系详解',
             link: '/technology/mysql/01mysql_info.md',
           },

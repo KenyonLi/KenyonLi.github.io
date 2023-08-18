@@ -119,12 +119,96 @@ categories:
 ​
 ## 商品表分表场景落地  
 条件：  
-1、 ebusiness库  
-2、 product表   
-目标：将proudct 表分成product_0 和 product_1 
-步骤  
-1、先在MySql中使用客户创建ebusiness数据库
-2、然后在ebusiness数据库中使用脚本创建product表
+1、 ebusiness库   
+2、 product表    
+目标：将proudct 表分成product_0 和 product_1   
+步骤   
+>1、先在MySql中使用客户创建ebusiness数据库   
+
+>2、然后进入apache-shardingsphere-5.4.0-shardingsphere-proxy-bin配置文件config-sharding.yaml中 
+
+![Alt text](/images/sharding/sharding_shphere_proxy008image.png)
+
+>> 2.1 然后在config-sharding.yaml中添加分表配置  
+``` yaml
+# 3、创建客户端连接库
+databaseName: ebusiness
+#
+dataSources:
+  productdatasources_0:
+    url: jdbc:mysql://192.168.1.46:3307/ebusiness?serverTimezone=UTC&useSSL=false
+    username: root
+    password: skceDB123
+    connectionTimeoutMilliseconds: 30000
+    idleTimeoutMilliseconds: 60000
+    maxLifetimeMilliseconds: 1800000
+    maxPoolSize: 50
+    minPoolSize: 1
+# 2、分片规则
+rules:
+- !SHARDING
+  tables:
+    product:
+      actualDataNodes: productdatasources_0.product_${0..1}
+      tableStrategy:
+        standard:
+          shardingColumn: ProductId
+          shardingAlgorithmName: product_MOD
+      #开启 雪花算法生成id ,适用分步式部署
+      keyGenerateStrategy:
+        column: Id
+        keyGeneratorName: snowflake
+  shardingAlgorithms:
+    product_MOD:
+      type: INLINE
+      props:
+        algorithm-expression: product_${ProductId % 2}
+        
+  keyGenerators:
+    snowflake:
+      type: SNOWFLAKE
+```
+
+3、然后进入apache-shardingsphere-5.4.0-shardingsphere-proxy-bin配置文件server.yaml中
+ ![Alt text](/image/sharding/sharding_shphere_proxy010image.png)
+
+ 然后添加用户名和密码   
+ ```bash
+authority:
+  users:
+    - user: root@%
+      password: skceDB123
+    - user: sharding
+      password: skceDB123
+  privilege:
+    # 每个用户都拥有所有权限，无需专门授权；
+    type: ALL_PERMITTED   
+#
+ ```
+>> 3.1 server.yaml属性配置(默认可以不配置)
+
+​ 配置项说明
+
+|名称         |	数据类型|	说明	|默认值|
+|:--:         |   :--:  |:--:   |:--: |
+|sql-show (?)	|boolean	|是否在日志中打印 SQL。 打印 SQL 可以帮助开发者快速定位系统问题。日志内容包含：逻辑 SQL，真实 SQL 和 SQL 解析结果。 如果开启配置，日志将使用 Topic ShardingSphere-SQL，日志级别是 INFO。|	false|
+|sql-simple (?)	|boolean|	是否在日志中打印简单风格的 SQL。	|false|
+|executor-size (?)|	int	|用于设置任务处理线程池的大小。每个 ShardingSphereDataSource 使用一个独立的线程池，同一个 JVM 的不同数据源不共享线程池。|	infinite|
+|max-connections-size-per-query (?)	|int|	一次查询请求在每个数据库实例中所能使用的最大连接数。	|1|
+|check-table-metadata-enabled (?)	|boolean|	是否在程序启动和更新时检查分片元数据的结构一致性。	|false|
+|query-with-cipher-column (?)|	boolean	|是否使用加密列进行查询。在有原文列的情况下，可以使用原文列进行查询。|	true|
+|proxy-frontend-flush-threshold (?)	|int|	在 ShardingSphere-Proxy 中设置传输数据条数的 IO 刷新阈值。	|128|
+|proxy-transaction-type (?)	|String|	ShardingSphere-Proxy 中使用的默认事务类型。包括：LOCAL、XA 和 BASE。|	LOCAL|
+|proxy-opentracing-enabled (?)	|boolean|	是否允许在 ShardingSphere-Proxy 中使用 OpenTracing。|	false|
+|proxy-hint-enabled (?)	|boolean	|是否允许在 ShardingSphere-Proxy 中使用 Hint。使用 Hint 会将 Proxy 的线程处理模型由 IO 多路复用变更为每个请求一个独立的线程，会降低 Proxy 的吞吐量。|	false|
+|xa-transaction-manager-type (?)	|String	|XA 事务管理器类型。列如：Atomikos，Narayana，Bitronix。|	Atomikos|
+
+
+4、然后启动apache-shardingsphere-5.4.0-shardingsphere-proxy-bin  
+
+![Alt text](/images/sharding/sharding_shphere_proxy011image.png)
+
+5、然后在sharding-proxy-63-3307中使用脚本添加数据, ebusiness数据库中使用脚本创建product表   
 ```sql
 CREATE TABLE `product` (
 	`Id` INT(11) NOT NULL AUTO_INCREMENT,
@@ -147,43 +231,190 @@ COLLATE='utf8_general_ci'
 ENGINE=InnoDB
 AUTO_INCREMENT=2
 ; 
-CREATE TABLE `order` (
-	`Id` INT(11) NOT NULL AUTO_INCREMENT,
-	`SeckillType` INT(11) NOT NULL,
-	`SeckillName` CHAR(255) NULL,
-	`SeckillUrl` CHAR(255) NULL,
-	`SeckillPrice` DECIMAL(18,2) NOT NULL,
-	`SeckillStock` INT(11) NOT NULL,
-	`SeckillPercent` CHAR(255) NULL,
-	`TimeId` INT(11) NOT NULL,
-	`ProductId` INT(11) NOT NULL,
-	`SeckillLimit` INT(11) NOT NULL,
-	`SeckillDescription` CHAR(255) NULL,
-	`SeckillIstop` INT(11) NOT NULL,
-	`SeckillStatus` INT(11) NOT NULL,
-	PRIMARY KEY (`Id`),
-	INDEX `ProductId` (`ProductId`)
-)
-COLLATE='utf8_general_ci'
-ENGINE=InnoDB
-AUTO_INCREMENT=2
-; 
+ 
+INSERT INTO `product` (`Id`, `SeckillType`, `SeckillName`, `SeckillUrl`, `SeckillPrice`, `SeckillStock`, `SeckillPercent`, `TimeId`, `ProductId`, `SeckillLimit`, `SeckillDescription`, `SeckillIstop`, `SeckillStatus`) VALUES
+(2, 1, '22', 'https://cdn.cnbj1.fds.api.mi-img.com/mi-mall/c1d6232caff62f3b59d11ee09abdb9d5.jpg', 12.00, 22222, '1', 3, 2, 1, 'iphone6是最好的', 1, 1);
+
+## id 为char 类型，方便于 sharding 雪花算法自动生成id,分步式部署，保证id唯一性。  
+CREATE TABLE `product` (
+  `Id` char(100) NOT NULL,
+  `SeckillType` int(11) NOT NULL,
+  `SeckillName` char(255) DEFAULT NULL,
+  `SeckillUrl` char(255) DEFAULT NULL,
+  `SeckillPrice` decimal(18,2) NOT NULL,
+  `SeckillStock` int(11) NOT NULL,
+  `SeckillPercent` char(255) DEFAULT NULL,
+  `TimeId` int(11) NOT NULL,
+  `ProductId` int(11) NOT NULL,
+  `SeckillLimit` int(11) NOT NULL,
+  `SeckillDescription` char(255) DEFAULT NULL,
+  `SeckillIstop` int(11) NOT NULL,
+  `SeckillStatus` int(11) NOT NULL,
+  `CreateTime` datetime DEFAULT NULL,
+  KEY `ProductId_product` (`ProductId`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+## 添加
+INSERT INTO `product` (`SeckillType`, `SeckillName`, `SeckillUrl`, `SeckillPrice`, `SeckillStock`, `SeckillPercent`, `TimeId`, `ProductId`, `SeckillLimit`, `SeckillDescription`, `SeckillIstop`, `SeckillStatus`) VALUES
+(1, '22', 'https://cdn.cnbj1.fds.api.mi-img.com/mi-mall/c1d6232caff62f3b59d11ee09abdb9d5.jpg', 12.00, 22222, '1', 3, 3, 1, 'iphone6是最好的', 1, 1);
+```
+6、查看实际库中就生成了表
+
+![Alt text](/images/sharding/sharding_shphere_proxy012image.png)
+
+## 整体架构
+
+![Alt text](/images/sharding/sharding_shphere_proxy009image.png)  
+
+总共6个阶段：   
+
+1、数据库选择：选择具体数据库以及对应的版本    
+
+2、sql解析：把中间件连接解析成为真实数据库连接    
+
+3、sql路由：选择去哪一个真实数据库对应的表去执行(路由) 核心    
+
+4、sql重写：优化    
+
+5、sql执行：真实数据库获取结果   
+
+6、结果合并：从多个表或者多个库获取结果   
+
+### 分表原理  
+#### 库分板  
+技术：使用ModShardingAlgorithm分片算法  
+ShardingSQLRouter路由 
+过程：取出Id % 2 然后进行取模得到 0 1   
+分析：如果为0那么，数据就存储到第一张库，如果为1，数据就存储到第二张库   
+#### 表分析  
+技术：使用ModShardingAlgorithm分片算法  
+ShardingSQLRouter路由  
+过程：取出ProductId % 2  然后进行取模得到0 1   
+分析：如果为0那么，数据就存储到第1张库第1张表，如果为1，数据就存储到第1张库第2张表 
+
+
+## 商品取模分表-情况2 
+商品表product，如果在3307添加商品数据，数据会添加到product_0和product_1中，这个时候，一个一个添加肯定是没有问题的，但是如果批量添加数据到product_0和product_1，如果product_0成功了，product_1失败了，会导致数据不一致。如何解决数据一致性问题  
+方案：使用分布式事务  
+条件：  
+1、ebusiness库  
+2、product 表  
+目标： 将product表分成product_0和product_1    
+步骤： 
+1、进入apache-shardingsphere-5.4.0-shardingsphere-proxy-bin配置文件server.yaml中
+```bash
+authority:
+  users:
+    - user: root@%
+      password: skceDB123
+    - user: sharding
+      password: skceDB123
+  privilege:
+    type: ALL_PERMITTED
+
+transaction:
+  defaultType: XA
+  providerType: Atomikos
+
+```
+## 商品取模分表-情况3
+商品表product，如果在3307添加商品数据，数据会添加到product_0和product_1中，这个时候，如果查询商品数据并发量比较大，超过了单个数据处理最高处理能力，就会出现数据库压力过大，导致数据库性能下降或者宕机的问题。如何解决数据库性能或者宕机问题？   
+
+方案：使用读写分离   
+
+如何使用读写分离   
+条件：
+
+1、数据库集群，一主两从   
+
+目标：将product表分成product_0和product_1   
+
+步骤   
+
+1、先参考文档搭建mysql集群  [Mysql8.0 centos stream 9](/technology/mysql/09mysql_centos.md)    
+
+2、进入apache-shardingsphere-5.4.0-shardingsphere-proxy-bin配置文件config-sharding.yaml中   
+
+```bash 
+# 3、创建客户端连接库
+databaseName: ebusiness
+#
+dataSources:
+  write_ds:
+    url: jdbc:mysql://192.168.1.46:3307/ebusiness?serverTimezone=UTC&useSSL=false
+    username: root
+    password: skceDB123
+    connectionTimeoutMilliseconds: 30000
+    idleTimeoutMilliseconds: 60000
+    maxLifetimeMilliseconds: 1800000
+    maxPoolSize: 50
+    minPoolSize: 1
+  read_ds_0:
+    url: jdbc:mysql://192.168.1.46:3308/ebusiness?serverTimezone=UTC&useSSL=false
+    username: root
+    password: skceDB123
+    connectionTimeoutMilliseconds: 30000
+    idleTimeoutMilliseconds: 60000
+    maxLifetimeMilliseconds: 1800000
+    maxPoolSize: 50
+    minPoolSize: 1
+  read_ds_1:
+    url: jdbc:mysql://192.168.1.46:3309/ebusiness?serverTimezone=UTC&useSSL=false
+    username: root
+    password: skceDB123
+    connectionTimeoutMilliseconds: 30000
+    idleTimeoutMilliseconds: 60000
+    maxLifetimeMilliseconds: 1800000
+    maxPoolSize: 50
+    minPoolSize: 1
+# 2、分片规则
+rules:
+- !READWRITE_SPLITTING
+  dataSources:
+    readwrite_ds:
+      writeDataSourceName: write_ds
+      readDataSourceNames:
+        - read_ds_0
+        - read_ds_1
+      loadBalancerName: random  # 负载均衡算法名称
+      transactionalReadQueryStrategy: PRIMARY
+  # 负载均衡算法配置
+  loadBalancers:
+    random:  # 负载均衡算法名称
+      type: RANDOM
+      props:
+- !SHARDING
+  tables:
+    product:
+      actualDataNodes: write_ds.product_${0..1}
+      tableStrategy:
+        standard:
+          shardingColumn: ProductId
+          shardingAlgorithmName: product_MOD
+      #开启 雪花算法生成id ,适用分步式部署
+      keyGenerateStrategy:
+        column: Id
+        keyGeneratorName: snowflake
+  shardingAlgorithms:
+    product_MOD:
+      type: INLINE
+      props:
+        algorithm-expression: product_${ProductId % 2}
+        
+  keyGenerators:
+    snowflake:
+      type: SNOWFLAKE
+      props:
+        worker-id: 123
 
 ```
 
->3、然后进入apache-shardingsphere-5.4.0-shardingsphere-proxy-bin配置文件config-sharding.yaml中
 
-![Alt text](/images/sharding/sharding_shphere_proxy008image.png)
 
->> 3.1 然后在config-sharding.yaml中添加分表配置  
-``` yaml
-
-```
 
 ## ShardingSphere v5.1.0  YAML 配置说明
-[YAML配置说明](https://www.bookstack.cn/read/shardingsphere-5.1.0-zh/ec2cfd46b10987e2.md)
-[自动分片配置说明参考](https://juejin.cn/post/7007735588627415076)
-数据分片 
+[YAML配置说明](https://www.bookstack.cn/read/shardingsphere-5.1.0-zh/ec2cfd46b10987e2.md)    
+[自动分片配置说明参考](https://juejin.cn/post/7007735588627415076)    
+数据分片  
 配置项说明
 ```yaml
 dataSources: # 省略数据源配置，请参考使用手册
@@ -260,3 +491,5 @@ rules:
 props:
   # ...
 ```
+
+

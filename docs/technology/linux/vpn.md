@@ -12,7 +12,7 @@ categories:
 ## 目录
 [[toc]]
 
-## Ubuntu 20.4 搭建 vpn 服务器
+## Ubuntu 20.04 LTS x64 / Debian 10 x64 (buster) 搭建 vpn 服务器
 准备工作：  
 1、需要购买服务器，国外服务器 选择 Vultr 供应商品，也可选择其他的   
 2、需要 Shadowsocks 技术 / Outline Manager 工具     
