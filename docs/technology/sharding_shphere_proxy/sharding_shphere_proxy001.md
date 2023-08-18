@@ -170,7 +170,8 @@ rules:
 ```
 
 3、然后进入apache-shardingsphere-5.4.0-shardingsphere-proxy-bin配置文件server.yaml中
- ![Alt text](/image/sharding/sharding_shphere_proxy010image.png)
+
+ ![Alt text](/images/sharding/sharding_shphere_proxy010image.png)
 
  然后添加用户名和密码   
  ```bash
