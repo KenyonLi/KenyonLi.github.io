@@ -97,3 +97,17 @@ dotnet ef migrations script   也跟pmc类似  如果没有任何参数的话默
                         left  join   `b` t2 on t1.`pointCode` = t2.`pointCode`
                         left join `c` t3 on t3.`neighborhoodId` = t2.`neighborhoodId`");
 ```
+
+## 数据迁移：实现Entity与数据库的映射
+数据库迁移，即将程序中DbContenxt的实体类，映射到数据库中。具体而言就是根据DbContext中的实体类，在数据库中创建表、更改表结构等（即根据Entity,在数据库中设计表）。
+迁移主要用到两个命令：Add-Migration xxx 和 Update-Database.可通过vs自带的Package Manage Console 工具执行这两个命令完成迁移。  
+1、 Add-Migration xxx 命令：添加迁移，xxx为描述性单词。如果数据库还没有创建，则会创建一个迁移文件夹Migration,迁移文件夹中包含迁移类和快照类。   
+每次执行迁移文件夹中包含则会生成一个迁移类和快照类，每次执行Add-Migration 都会生成一个迁移类，而快照类只有一个。  
+迁移类的代码，就是对应创建数据库的代码（或者更新数据库的代码）。   
+2、Update-Database 命令：这个命令会使用迁移代码，将其转成sql语句，然后执行到目标数据库。执行成功后，数据库中的表就会和DbContext中的Entity一一对应。如果更新了DbContext中Entity的设计，则再此执行Add-Migration 和 Update-Database即可，此时会另外生成迁移类，但快照只有一个。
+
+3、通过vs2022 迁移数据库
+``` bashe 
+ Add-Migration InitialDB
+ Update-Migration InitialDB
+```

@@ -617,3 +617,22 @@ mysql> show variables like '%general_log%';
 ``` bash
 systemctl restart mysqld
 ```
+
+3、查看mysql 查询日志
+
+
+``` sql
+mysql> show variables like 'general_log%';
++------------------+------------------------------+
+| Variable_name    | Value                        |
++------------------+------------------------------+
+| general_log      | OFF                          |
+| general_log_file | /var/lib/mysql/localhost.log |
++------------------+------------------------------+
+2 rows in set (0.01 sec)
+
+# 开启
+mysql> set global general_log=ON;
+Query OK, 0 rows affected (0.00 sec)
+
+```

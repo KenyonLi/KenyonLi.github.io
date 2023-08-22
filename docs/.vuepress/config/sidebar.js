@@ -113,6 +113,10 @@ module.exports = [
         {
           text: '分布式中间件-ShardingShphere-Proxy',
           link: "/technology/sharding_shphere_proxy/sharding_shphere_proxy001.md",
+        },
+        {
+          text: '分布式中间件-Redis',
+          link: "/technology/redis/redis001.md",
         }
       ]
     },
@@ -132,6 +136,10 @@ module.exports = [
         children: [{
           text: 'linux基础',
           link: '/technology/linux/index.md',
+        },
+        {
+          text: 'linux（centos9）root密码忘记了，怎么重置或修改密码',
+          link: '/technology/linux/centos9_001.md',
         },
         {
           text: 'Ubuntu20.4 搭建vpn服务器',

@@ -409,8 +409,394 @@ rules:
 
 ```
 
+分库分表
+```yaml
+# 3、创建客户端连接库
+databaseName: ebusiness
+#
+dataSources:
+  write_ds:
+    url: jdbc:mysql://192.168.1.46:3307/ebusiness?serverTimezone=UTC&useSSL=false
+    username: root
+    password: skceDB123
+    connectionTimeoutMilliseconds: 30000
+    idleTimeoutMilliseconds: 60000
+    maxLifetimeMilliseconds: 1800000
+    maxPoolSize: 50
+    minPoolSize: 1
+  read_ds_0:
+    url: jdbc:mysql://192.168.1.46:3308/ebusiness?serverTimezone=UTC&useSSL=false
+    username: root
+    password: skceDB123
+    connectionTimeoutMilliseconds: 30000
+    idleTimeoutMilliseconds: 60000
+    maxLifetimeMilliseconds: 1800000
+    maxPoolSize: 50
+    minPoolSize: 1
+  read_ds_1:
+    url: jdbc:mysql://192.168.1.46:3309/ebusiness?serverTimezone=UTC&useSSL=false
+    username: root
+    password: skceDB123
+    connectionTimeoutMilliseconds: 30000
+    idleTimeoutMilliseconds: 60000
+    maxLifetimeMilliseconds: 1800000
+    maxPoolSize: 50
+    minPoolSize: 1
+  write_ds_0:
+    url: jdbc:mysql://192.168.1.46:3307/ebusiness_0?serverTimezone=UTC&useSSL=false
+    username: root
+    password: skceDB123
+    connectionTimeoutMilliseconds: 30000
+    idleTimeoutMilliseconds: 60000
+    maxLifetimeMilliseconds: 1800000
+    maxPoolSize: 50
+    minPoolSize: 1
+  read_ds_0_0:
+    url: jdbc:mysql://192.168.1.46:3308/ebusiness_0?serverTimezone=UTC&useSSL=false
+    username: root
+    password: skceDB123
+    connectionTimeoutMilliseconds: 30000
+    idleTimeoutMilliseconds: 60000
+    maxLifetimeMilliseconds: 1800000
+    maxPoolSize: 50
+    minPoolSize: 1
+  read_ds_0_1:
+    url: jdbc:mysql://192.168.1.46:3309/ebusiness_0?serverTimezone=UTC&useSSL=false
+    username: root
+    password: skceDB123
+    connectionTimeoutMilliseconds: 30000
+    idleTimeoutMilliseconds: 60000
+    maxLifetimeMilliseconds: 1800000
+    maxPoolSize: 50
+    minPoolSize: 1
+  write_ds_1:
+    url: jdbc:mysql://192.168.1.46:3307/ebusiness_1?serverTimezone=UTC&useSSL=false
+    username: root
+    password: skceDB123
+    connectionTimeoutMilliseconds: 30000
+    idleTimeoutMilliseconds: 60000
+    maxLifetimeMilliseconds: 1800000
+    maxPoolSize: 50
+    minPoolSize: 1
+  read_ds_1_0:
+    url: jdbc:mysql://192.168.1.46:3308/ebusiness_1?serverTimezone=UTC&useSSL=false
+    username: root
+    password: skceDB123
+    connectionTimeoutMilliseconds: 30000
+    idleTimeoutMilliseconds: 60000
+    maxLifetimeMilliseconds: 1800000
+    maxPoolSize: 50
+    minPoolSize: 1
+  read_ds_1_1:
+    url: jdbc:mysql://192.168.1.46:3309/ebusiness_1?serverTimezone=UTC&useSSL=false
+    username: root
+    password: skceDB123
+    connectionTimeoutMilliseconds: 30000
+    idleTimeoutMilliseconds: 60000
+    maxLifetimeMilliseconds: 1800000
+    maxPoolSize: 50
+    minPoolSize: 1
+# 2、分片规则
+rules:
+- !READWRITE_SPLITTING
+  dataSources:
+    readwrite_ds:
+      writeDataSourceName: write_ds
+      readDataSourceNames:
+        - read_ds_0
+        - read_ds_1
+      loadBalancerName: loadBalancer_round_robin  # 负载均衡算法名称
 
+    readwrite_ds1:
+      writeDataSourceName: write_ds_0
+      readDataSourceNames:
+        - read_ds_0_0
+        - read_ds_0_1
+      loadBalancerName: loadBalancer_round_robin  # 负载均衡算法名称
+    readwrite_ds2:
+      writeDataSourceName: write_ds_1
+      readDataSourceNames:
+        - read_ds_1_0
+        - read_ds_1_1
+      loadBalancerName: loadBalancer_round_robin  # 负载均衡算法名称
+     # transactionalReadQueryStrategy: PRIMARY
+  # 负载均衡算法配置
+  loadBalancers:
+    loadBalancer_round_robin:  # 负载均衡算法名称
+      type: ROUND_ROBIN #RANDOM
+      #props:
+- !SHARDING
+  tables:
+    product:
+      #actualDataNodes: write_ds.product_${0..1}  #  分表
+      actualDataNodes: write_ds_${0..1}.product_${0..1} #分库
+      tableStrategy:
+        standard:
+          shardingColumn: ProductId
+          shardingAlgorithmName: product_MOD
+      databaseStrategy:
+        standard:
+          shardingColumn: ProductId
+          shardingAlgorithmName: write_ds__MOD  
+      #开启 雪花算法生成id ,适用分步式部署
+      keyGenerateStrategy:
+        column: Id
+        keyGeneratorName: snowflake
+  shardingAlgorithms:
+    product_MOD:
+      type: INLINE
+      props:
+        algorithm-expression: product_${ProductId % 2}
+    write_ds__MOD:
+      type: INLINE
+      props:
+        algorithm-expression: write_ds_${ProductId % 2}    
+  keyGenerators:
+    snowflake:
+      type: SNOWFLAKE
+      props:
+        worker-id: 123
+```
 
+### 商品图片表场景落地
+
+商品表product使用Id作为自增主键，如果在3307添加商品数据，数据会添加到product_0和product_1中，这个时候，我们想对商品图片表进行分表，应该如何实现？   
+
+条件：  
+
+1、ebusinesss库  
+
+2、productimage表  
+
+目标：将productimage表分成productimage_0和productimage_1   
+
+步骤  
+
+1、先在MySQL中使用客户端创建ebusinesss数据库   
+
+2、然后在ebusinesss数据库中使用脚本创建创建productimage表  
+
+```sql
+CREATE TABLE `productimage` (
+	`Id` char(100) NOT NULL,
+	`SeckillType` INT(11) NOT NULL,
+	`SeckillName` CHAR(255) NULL,
+	`SeckillUrl` CHAR(255) NULL,
+	`SeckillPrice` DECIMAL(18,2) NOT NULL,
+	`SeckillStock` INT(11) NOT NULL,
+	`SeckillPercent` CHAR(255) NULL,
+	`TimeId` INT(11) NOT NULL,
+	`ProductId` INT(11) NOT NULL,
+	`SeckillLimit` INT(11) NOT NULL,
+	`SeckillDescription` CHAR(255) NULL,
+	`SeckillIstop` INT(11) NOT NULL,
+	`SeckillStatus` INT(11) NOT NULL,
+	INDEX `ProductId` (`ProductId`)
+)
+COLLATE='utf8_general_ci'
+ENGINE=InnoDB
+; 
+```
+### shardingSphere 数据分片规则
+```yaml
+# 3、创建客户端连接库
+databaseName: ebusiness
+#
+dataSources:
+  write_ds:
+    url: jdbc:mysql://192.168.1.46:3307/ebusiness?serverTimezone=UTC&useSSL=false
+    username: root
+    password: skceDB123
+    connectionTimeoutMilliseconds: 30000
+    idleTimeoutMilliseconds: 60000
+    maxLifetimeMilliseconds: 1800000
+    maxPoolSize: 50
+    minPoolSize: 1
+  read_ds_0:
+    url: jdbc:mysql://192.168.1.46:3308/ebusiness?serverTimezone=UTC&useSSL=false
+    username: root
+    password: skceDB123
+    connectionTimeoutMilliseconds: 30000
+    idleTimeoutMilliseconds: 60000
+    maxLifetimeMilliseconds: 1800000
+    maxPoolSize: 50
+    minPoolSize: 1
+  read_ds_1:
+    url: jdbc:mysql://192.168.1.46:3309/ebusiness?serverTimezone=UTC&useSSL=false
+    username: root
+    password: skceDB123
+    connectionTimeoutMilliseconds: 30000
+    idleTimeoutMilliseconds: 60000
+    maxLifetimeMilliseconds: 1800000
+    maxPoolSize: 50
+    minPoolSize: 1
+  write_ds_0:
+    url: jdbc:mysql://192.168.1.46:3307/ebusiness_0?serverTimezone=UTC&useSSL=false
+    username: root
+    password: skceDB123
+    connectionTimeoutMilliseconds: 30000
+    idleTimeoutMilliseconds: 60000
+    maxLifetimeMilliseconds: 1800000
+    maxPoolSize: 50
+    minPoolSize: 1
+  read_ds_0_0:
+    url: jdbc:mysql://192.168.1.46:3308/ebusiness_0?serverTimezone=UTC&useSSL=false
+    username: root
+    password: skceDB123
+    connectionTimeoutMilliseconds: 30000
+    idleTimeoutMilliseconds: 60000
+    maxLifetimeMilliseconds: 1800000
+    maxPoolSize: 50
+    minPoolSize: 1
+  read_ds_0_1:
+    url: jdbc:mysql://192.168.1.46:3309/ebusiness_0?serverTimezone=UTC&useSSL=false
+    username: root
+    password: skceDB123
+    connectionTimeoutMilliseconds: 30000
+    idleTimeoutMilliseconds: 60000
+    maxLifetimeMilliseconds: 1800000
+    maxPoolSize: 50
+    minPoolSize: 1
+  write_ds_1:
+    url: jdbc:mysql://192.168.1.46:3307/ebusiness_1?serverTimezone=UTC&useSSL=false
+    username: root
+    password: skceDB123
+    connectionTimeoutMilliseconds: 30000
+    idleTimeoutMilliseconds: 60000
+    maxLifetimeMilliseconds: 1800000
+    maxPoolSize: 50
+    minPoolSize: 1
+  read_ds_1_0:
+    url: jdbc:mysql://192.168.1.46:3308/ebusiness_1?serverTimezone=UTC&useSSL=false
+    username: root
+    password: skceDB123
+    connectionTimeoutMilliseconds: 30000
+    idleTimeoutMilliseconds: 60000
+    maxLifetimeMilliseconds: 1800000
+    maxPoolSize: 50
+    minPoolSize: 1
+  read_ds_1_1:
+    url: jdbc:mysql://192.168.1.46:3309/ebusiness_1?serverTimezone=UTC&useSSL=false
+    username: root
+    password: skceDB123
+    connectionTimeoutMilliseconds: 30000
+    idleTimeoutMilliseconds: 60000
+    maxLifetimeMilliseconds: 1800000
+    maxPoolSize: 50
+    minPoolSize: 1
+# 2、分片规则
+rules:
+- !READWRITE_SPLITTING
+  dataSources:
+    readwrite_ds:
+      writeDataSourceName: write_ds
+      readDataSourceNames:
+        - read_ds_0
+        - read_ds_1
+      loadBalancerName: loadBalancer_round_robin  # 负载均衡算法名称
+
+    readwrite_ds1:
+      writeDataSourceName: write_ds_0
+      readDataSourceNames:
+        - read_ds_0_0
+        - read_ds_0_1
+      loadBalancerName: loadBalancer_round_robin  # 负载均衡算法名称
+    readwrite_ds2:
+      writeDataSourceName: write_ds_1
+      readDataSourceNames:
+        - read_ds_1_0
+        - read_ds_1_1
+      loadBalancerName: loadBalancer_round_robin  # 负载均衡算法名称
+     # transactionalReadQueryStrategy: PRIMARY
+  # 负载均衡算法配置
+  loadBalancers:
+    loadBalancer_round_robin:  # 负载均衡算法名称
+      type: ROUND_ROBIN #RANDOM
+      #props:
+- !SHARDING
+  tables:
+    product:
+      #actualDataNodes: write_ds.product_${0..1}  #  分表
+      actualDataNodes: write_ds_${0..1}.product_${0..1} #分库
+      tableStrategy:
+        standard:
+          #shardingColumn: ProductId
+          #shardingAlgorithmName: product_MOD
+          #shardingColumn: SeckillName
+          #shardingAlgorithmName: product_HASH_MOD
+          #shardingColumn: ProductId
+          #shardingAlgorithmName: product_BOUNDARY_RANGE
+          #shardingColumn: ProductId
+          #shardingAlgorithmName: product_VOLUME_RANGE
+          shardingColumn: CreateTime
+          shardingAlgorithmName: product_AUTO_INTERVAL
+      databaseStrategy:
+        standard:
+          shardingColumn: TimeId
+          shardingAlgorithmName: write_ds__MOD  
+      #开启 雪花算法生成id ,适用分步式部署
+      keyGenerateStrategy:
+        column: Id
+        keyGeneratorName: snowflake
+    productimage:
+      #actualDataNodes: write_ds.product_${0..1}  #  分表
+      actualDataNodes: write_ds_${0..1}.productimage_${0..1} #分库
+      tableStrategy:
+        standard:
+          shardingColumn: ProductId
+          shardingAlgorithmName: productimage_MOD
+      databaseStrategy:
+        standard:
+          shardingColumn: TimeId
+          shardingAlgorithmName: write_ds__MOD  
+      #开启 雪花算法生成id ,适用分步式部署
+      keyGenerateStrategy:
+        column: Id
+        keyGeneratorName: snowflake
+
+  shardingAlgorithms:
+    product_MOD:
+      type: INLINE
+      props:
+        algorithm-expression: product_${ProductId % 2}
+    write_ds__MOD:
+      type: INLINE
+      props:
+        algorithm-expression: write_ds_${TimeId % 2}  
+    productimage_MOD:
+      type: INLINE
+      props:
+        algorithm-expression: productimage_${ProductId % 2}
+    product_VOLUME_RANGE:
+      type: VOLUME_RANGE
+      props:
+        range-lower: '5'
+        range-upper: '10'
+        #分片的区间的数据的间隔
+        sharding-volume: '5'
+    product_AUTO_INTERVAL:
+      type: AUTO_INTERVAL
+      props:
+        datetime-lower: '2023-03-01 23:59:59'
+        datetime-upper: '2023-04-01 23:59:59'
+        #以1年度为单位进行划分
+        #sharding-seconds: '31536000'
+        #以1个月为单位进行划分
+        #sharding-seconds: '2678400'
+        #以1天为单位进行划分
+        sharding-seconds: '86400'
+  #解决迪卡数据重复的问题      
+  bindingTables:
+     - product,productimage
+  # 默认不分表
+  defaultTableStrategy:
+     none:
+  keyGenerators:
+    snowflake:
+      type: SNOWFLAKE
+      props:
+        worker-id: 123
+```
 
 ## ShardingSphere v5.1.0  YAML 配置说明
 [YAML配置说明](https://www.bookstack.cn/read/shardingsphere-5.1.0-zh/ec2cfd46b10987e2.md)    
