@@ -31,20 +31,20 @@ categories:
 >自己购买一台内国服务器搭建了一个vpn , 采用 shadowsocks 技术，并且 shadowsocks-windows 工具  
 >1、设置vpn 地址密码   
 
-![Alt text](/images/linux/vpn_0001image.png)  
+![Alt text](/images/linux/vpn/vpn_0001image.png)  
 
 >2、启动 vpn ,第一次默认是没有启用的    
 
-![Alt text](/images/linux/vpn_0002image.jpg)
+![Alt text](/images/linux/vpn/vpn_0002image.jpg)
 >3、指定 vpn ip 地址
 
-![Alt text](/images/linux/vpn_0003image.png)
+![Alt text](/images/linux/vpn/vpn_0003image.png)
 
 > 4、现在可以去登录了
 >> 4.1 有验证码  
-![Alt text](/images/linux/vpn_0004image.png)  
+![Alt text](/images/linux/vpn/vpn_0004image.png)  
 >> 4.2 无验证码
-![Alt text](/images/linux/vpn_0005image.png)  
+![Alt text](/images/linux/vpn/vpn_0005image.png)  
 
 ## vultr 购买服务器,vpn 服务器配置一般就可以够用了  
 > $5.0美元/每个月，是按小时计费的比较灵活，每小时是$0.007美元。  
@@ -52,51 +52,51 @@ categories:
 
 >1 服务器选择类型   
 
-![Alt text](/images/linux/vpn_0006image.png)
+![Alt text](/images/linux/vpn/vpn_0006image.png)
 
 >2 选择区域  
-![Alt text](/images/linux/vpn_0007image.png)
+![Alt text](/images/linux/vpn/vpn_0007image.png)
 
 >3  选择操作系统，这里选择ubuntu 20.4 STL  版本（过高vpn部署会有问题），该版本经验多次测试可用。  
 
-![Alt text](/images/linux/vpn_0008image.png)
+![Alt text](/images/linux/vpn/vpn_0008image.png)
 
 >4  选择服务器基础配置，只用于vpn 就选择这个 $5美元/每个月，就行了。    
 
-![Alt text](/images/linux/vpn_0009image.png)
+![Alt text](/images/linux/vpn/vpn_0009image.png)
 
 >5 取消备份，状态 红色`off`，表示操作成功  
 
-![Alt text](/images/linux/vpn_0010image.png)
+![Alt text](/images/linux/vpn/vpn_0010image.png)
 
 
 >6 如有配置防火墙选择，没有就不选择，服务器名称可写也可以不写，确定好`$5/month`,后再点击`Deploy Now` 部署。  
 
-![Alt text](/images/linux/vpn_0011image.png)
+![Alt text](/images/linux/vpn/vpn_0011image.png)
 
 >7、 购买服务器操作效果图
-![Alt text](/images/linux/vpn_0012image.png)
+![Alt text](/images/linux/vpn/vpn_0012image.png)
 
 >8、在产品列表中，选择实例，找到ip  
 
-![Alt text](/images/linux/vpn_0013image.png)
+![Alt text](/images/linux/vpn/vpn_0013image.png)
 
 >9、使用IP可用性能工具，检查是否可以国内可以用：
 >>9.1 如果不可用,就要重新购买，这里需要注意的是，这之前已经购买的好的服务器，先不要`删除`,避免系统还会重新分配相同的IP给你，就会多花$0.01美元了。  
 
-![Alt text](/images/linux/vpn_0014image.png)
+![Alt text](/images/linux/vpn/vpn_0014image.png)
 
 >>9.2 如果可用，我们就可以通过shell 来部署vpn了  
 
-![Alt text](/images/linux/vpn_0015image.png)
+![Alt text](/images/linux/vpn/vpn_0015image.png)
 
 >>9.3 如果不想安装 shell 终端，就用浏览器上提供终端来部署就可以了。  
 
-![Alt text](/images/linux/vpn_0016image.png)  
+![Alt text](/images/linux/vpn/vpn_0016image.png)  
 
 >>9.4 浏览器提供的终端执行 linux 命令时，使用剪贴板，要方便些，如 登录，输入 root ,记得回车一下，再点击 `Pase` 即可。其他命令也样操作。
 
-![Alt text](/images/linux/vpn_0017image.png)    
+![Alt text](/images/linux/vpn/vpn_0017image.png)    
 
 
 ## 检查服务器是否可用
@@ -119,23 +119,23 @@ categories:
 ```
 >3.1 选择 `1` 按回车  
 
-![Alt text](/images/linux/vpn_0018image.png)   
+![Alt text](/images/linux/vpn/vpn_0018image.png)   
 
 >3.2 输入密码按回车 
 
-![Alt text](/images/linux/vpn_0019image.png)   
+![Alt text](/images/linux/vpn/vpn_0019image.png)   
 
 >3.3 输入端口号按回车
 
-![Alt text](/images/linux/vpn_0020image.png)  
+![Alt text](/images/linux/vpn/vpn_0020image.png)  
 
 >3.4  输入 `1` 按回车  
 
-![Alt text](/images/linux/vpn_0021image.png)    
+![Alt text](/images/linux/vpn/vpn_0021image.png)    
 
 >3.5 安装成功
 
-![Alt text](/images/linux/vpn_0022image.png)  
+![Alt text](/images/linux/vpn/vpn_0022image.png)  
 
 ## Shadowsocks-libev  配置多个账号使用 
 ::: tip 按照提示进行选择，和选中安装方式
@@ -250,9 +250,9 @@ sudo ufw disable
 
 >3、安装 Outline Manger 添加云服务
 
-![Alt text](/images/linux/vpn_0023image.png)  
+![Alt text](/images/linux/vpn/vpn_0023image.png)  
 
-![Alt text](/images/linux/vpn_0024image.png)  
+![Alt text](/images/linux/vpn/vpn_0024image.png)  
 
 >4、执行脚本
 ``` bash
@@ -260,21 +260,21 @@ sudo bash -c "$(wget -qO- https://raw.githubusercontent.com/Jigsaw-Code/outline-
 ``` 
 >4、安装成功，获取 apiUrl 管理地址
 
-![Alt text](/images/linux/vpn_0025image.png)  
+![Alt text](/images/linux/vpn/vpn_0025image.png)  
 
 >5、在Outline Manager 管理端添加
 
-![Alt text](/images/linux/vpn_0026image.png)  
+![Alt text](/images/linux/vpn/vpn_0026image.png)  
 
 >6、Outline Manager 添加失败   
 
-![Alt text](/images/linux/vpn_0027image.png)  
+![Alt text](/images/linux/vpn/vpn_0027image.png)  
 
 7、vultr 服务器的防火墙没有配置
 
-![Alt text](/images/linux/vpn_0028image.png)  
+![Alt text](/images/linux/vpn/vpn_0028image.png)  
 
-![Alt text](/images/linux/vpn_0029image.png)  
+![Alt text](/images/linux/vpn/vpn_0029image.png)  
 
 ## 现此说一下，为什么我要采用 Outline 和 shadowsocks 搭建 vpn 呢
 > 1、 outline 不说非常好用，不管从安装和部署都很简单，其实只需它就够用了，为什么要再弄一个 shadowsocks呢？
