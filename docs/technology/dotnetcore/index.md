@@ -109,5 +109,5 @@ dotnet ef migrations script   也跟pmc类似  如果没有任何参数的话默
 3、通过vs2022 迁移数据库
 ``` bashe 
  Add-Migration InitialDB
- Update-Migration InitialDB
+ Update-Database InitialDB
 ```
