@@ -22,3 +22,20 @@ categories:
 
 :::
 
+## 修改文件目录权限
+
+```bash
+#-R, --recursive  递归操作文件和目录
+chown -R 777 文件目录
+```
+
+## Ubuntu 开启后台守护线程 
+```bash
+# 开启守护
+sudo nohup 你的指令 &
+#如果要关闭，先查看程序的id
+netstat -tanlp
+#关闭程序
+sudo kill id -9 
+```
+

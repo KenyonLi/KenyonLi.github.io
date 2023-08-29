@@ -118,6 +118,11 @@ module.exports = [
           text: '分布式中间件-Redis',
           link: "/technology/redis/redis001.md",
         }
+        ,
+        {
+          text: '分布式中间件-MongoDB',
+          link: "/technology/mongodb/mongodb001.md",
+        }
       ]
     },
       {

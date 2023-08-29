@@ -151,3 +151,99 @@ Redis Zset原理图
 
 ![Alt text](/images/redis/redis_0014image.png)  
 
+
+
+## Apache Bench安装
+### Ubuntu  
+``` bash
+1: 使用apt在线安装
+sudo apt install apache2-utils
+2:检查安装是否成功：ab -V
+```
+### Centos 9
+```bash 
+yum -y install httpd-tools
+
+ab -v
+# 举例说明如何测试网站并发访问接受能力:
+ab -c 10 -n 1000 -k https://www.baidu.com/
+```
+
+### windows 
+[Apache 2.4 Server Binaries 下载](https://www.apachehaus.com/cgi-bin/download.plx)
+
+
+
+### ab 使用说明  
+[参考](https://blog.csdn.net/qq_22206899/article/details/82348122/)
+``` bash
+-c concurrency 请求并发数，默认为1；
+
+-n requests 请求总数；
+
+-A auth-username:password 向服务器提供基本认证信息。用户名和密码之间有一个“：”隔开，并将以base64编码形式发送，无论服务器是否需要（即是否发送了401认证需求代码），此字符串都会被发送。
+
+-b windowsize Size of TCP send/receive buffer, in bytes.
+
+-B local-address Address to bind to when making outgoing connections
+
+-C cookie-name=value 对请求附加一个“Cookie:”头行。其典型形式是：name=value的一个参数对。此参数可以重复。
+
+-d 不显示“percentage served within XX[ms] table”消息（为以前版本提供支持）
+
+-e csv-file 产生一个逗号分隔（CSV）文件，其中包含了处理每个相应百分比请求（从1%到100%）所需要的相应百分比时间（以微妙为单位）。由于这种格式已经“二进制化”。所以比“gnuplot”格式更有用。
+
+-f protocol 指定SSL/TLS procotol()
+
+-g gnuplot-file 把所有测试结果写入一个“gnuplot”或者TSV（以TAB分隔）文件。此文件可以方便地导入Gnuplot,IDL,Mathematica,Excel中。其中的第一行为标题。
+
+-h 显示使用方法的帮助信息
+
+-H custom-header 对请求附加额外的头信息，此参数的典型形式是一个有效的头信息行，其中包含了以冒号分隔的字段和值（如：”Accept-Encoding:zip/zop;8bit“）.
+
+-i 执行HEAD请求，而不是GET请求
+
+-k 启用Keepalive功能，即在一个HTTP会话中执行多个请求。默认不启用此功能
+
+-p POST-file 包含了POST数据的文件
+
+-P proxy-auth-username:password 对一个中转代理提供基本认证信息。用户名和密码用”：“隔开，并将以base64编码形式发送。无论服务器是否需要（即是否发送了407代理认证需求代码）此字符串都会被发送。
+
+-q 如果代理的请求数大于150，ab每处理大约10%或者100个请求时，会在stderr输出一个进度计数、此-q标记可以屏蔽这些信息。
+
+-r 在socket接收错误时不退出
+
+-s 用于编译中使用了SSL的受保护的https，而不是http协议的时候。此功能是实验性的，最好不要用。
+
+-S 不显示中值和标准偏差值，而且在均值和中值为标准偏差值得1-2倍时，也不显示警告和出错信息。默认时，会显示最小值/均值/最大值等数值
+
+-t timelimit 测试所进行的最大秒数。内部隐含值是”-n 50000“。它可以时对服务器的测试限制在一个固定的总时间以内。默认时：没有时间限制。
+
+-T content-type POST数据时所使用的”Content-type“头信息
+
+-u PUT-file File containing data to PUT. Remember to also set -T
+
+-v verbosity 设置显示信息的详细程度，4或更大值会显示头信息，3或更大值可以显示响应代码（404，200等），2或更大值可以显示警告和其他信息。
+
+-V 显示版本号并退出
+
+-w 以HTML表格信息输出结果，默认时，它是白色背景的两列宽度的一张表
+
+-x <table>-attributes 设置<table>属性的字符串。此属性被填入<table 这里>
+
+-X proxy[:port] 对请求使用代理服务器
+
+-y <tr>-attributes 设置<tr>属性的字符串
+
+-z <td>-attributes 设置<td>属性的字符串
+
+-Z ciphersuite 指定SSL/TLS密码套件（见openssl密码）
+```
+
+## 总线
+>1、分布锁:
+>> 使用场合：集群系统
+>> 使用场景：在集群系统中修改字段值的时候，使用。执行update
+
+>2、封装分布试锁
+>3、使用redis:主要就是集群
