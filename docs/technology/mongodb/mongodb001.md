@@ -1114,5 +1114,464 @@ compass 连接地址
   所以：需要使用MongoDB分片  
 ## MongoDB分片
 
+MongoDB分片架构  
+
+![Alt text](/images/mongodb/mongodb_0041image.png)  
+
+架构说明  
+1、2套shard分片复制集群。作用：分片存储数据。6个实例地址  
+2、Config Server 配置中心。作用：存储分片地址。3个实例地址  
+3、Routers 路由。作用：连接客户端，实现数据如何分片。2个实例地址  
+4、总共需要11实例地址。  
+### 微服务项目中如何落地MongoDB分片  
+#### MongoDB 分片落地前提   
+条件  
+ 1、Shard分片1  3个实例  
+ 2、Shard分片2  3个实例
+ 3、Config Server 3个实例
+ 4、Router 2个实例
+
+ ##### MongoDB分片1 阶段准备   
+ 步骤     
+ 1、Shard 分片1准备  
+ 1.1、先在MongoDB bin 目录中创建shards 文件夹  
+
+![Alt text](/images/mongodb/mongodb_0042image.png)  
+
+1.2、在MongoDB中创建3个配置文件 
+
+![Alt text](/images/mongodb/mongodb_0043image.png)  
 
 
+1.3、然后在mongod-27021.cfg文件中添加内容  
+
+``` bash
+# mongod.conf
+
+# for documentation of all options, see:
+#   http://docs.mongodb.org/manual/reference/configuration-options/
+
+# Where and how to store data.
+storage:
+  dbPath: D:\Program Files\MongoDB\Server\7.0\shards-data\shard-27021
+
+# where to write logging data.
+systemLog:
+  destination: file
+  logAppend: true
+  path:  D:\Program Files\MongoDB\Server\7.0\shards-log\mongod-27021.log
+
+# network interfaces
+net:
+  port: 27021
+  bindIp: 127.0.0.1
+
+
+#processManagement:
+     #mongodb使用的时区
+      #timeZoneInfo: /usr/share/zoneinfo
+     # 是否以后台驻留进程运行（true：是，false：否）
+      #fork: true
+#security:
+
+#operationProfiling:
+
+replication:
+  replSetName: sharding1 
+
+sharding:
+  # 分片集群名称。统一管理的
+  clusterRole: shardsvr
+## Enterprise-Only Options:
+
+#auditLog:
+
+```
+
+1.4 然后在mongod-27022.cfg文件中添加内容  
+
+``` bash 
+# mongod.conf
+
+# for documentation of all options, see:
+#   http://docs.mongodb.org/manual/reference/configuration-options/
+
+# Where and how to store data.
+storage:
+  dbPath: D:\Program Files\MongoDB\Server\7.0\shards-data\shard-27022
+
+# where to write logging data.
+systemLog:
+  destination: file
+  logAppend: true
+  path:  D:\Program Files\MongoDB\Server\7.0\shards-log\mongod-27022.log
+
+# network interfaces
+net:
+  port: 27022
+  bindIp: 127.0.0.1
+
+
+#processManagement:
+     #mongodb使用的时区
+      #timeZoneInfo: /usr/share/zoneinfo
+     # 是否以后台驻留进程运行（true：是，false：否）
+      #fork: true
+#security:
+
+#operationProfiling:
+
+replication:
+  replSetName: sharding1 
+
+sharding:
+  # 分片集群名称。统一管理的
+  clusterRole: shardsvr
+## Enterprise-Only Options:
+
+#auditLog:
+
+```
+
+1.5、然后在mongod-27023.cfg文件中添加内容   
+``` bash
+# mongod.conf
+
+# for documentation of all options, see:
+#   http://docs.mongodb.org/manual/reference/configuration-options/
+
+# Where and how to store data.
+storage:
+  dbPath: D:\Program Files\MongoDB\Server\7.0\shards-data\shard-27023
+
+# where to write logging data.
+systemLog:
+  destination: file
+  logAppend: true
+  path:  D:\Program Files\MongoDB\Server\7.0\shards-log\mongod-27023.log
+
+# network interfaces
+net:
+  port: 27023
+  bindIp: 127.0.0.1
+
+
+#processManagement:
+     #mongodb使用的时区
+      #timeZoneInfo: /usr/share/zoneinfo
+     # 是否以后台驻留进程运行（true：是，false：否）
+      #fork: true
+#security:
+
+#operationProfiling:
+
+replication:
+  replSetName: sharding1 
+
+sharding:
+  # 分片集群名称。统一管理的
+  clusterRole: shardsvr
+## Enterprise-Only Options:
+
+#auditLog:
+
+```
+
+2、在MongoDB 分片1 中创建3个数据目录  
+
+![Alt text](/images/mongodb/mongodb_0044image.png)  
+
+3、在MongoDB中创建日志目录  
+
+![Alt text](/images/mongodb/mongodb_0045image.png)  
+
+>4、MongoDB 启动分片1 多个实例 
+>>4.1 mongod-27021实例启动 
+``` bash 
+D:\Program Files\MongoDB\Server\7.0\bin>mongod.exe --config ./shards/mongod-27021.cfg
+``` 
+![Alt text](/images/mongodb/mongodb_0046image.png)  
+
+
+>>4.2 mongod-27022实例启动 
+``` bash 
+D:\Program Files\MongoDB\Server\7.0\bin>mongod.exe --config ./shards/mongod-27022.cfg
+``` 
+![Alt text](/images/mongodb/mongodb_0047image.png)  
+
+>>4.3 mongod-27023实例启动 
+``` bash 
+D:\Program Files\MongoDB\Server\7.0\bin>mongod.exe --config ./shards/mongod-27023.cfg
+``` 
+![Alt text](/images/mongodb/mongodb_0048image.png)   
+
+#### MongoDB 分片角色分配  
+
+条件  
+1、 mongosh.exe 
+步骤  
+1、primary 节点初始化  
+1.1 连接27021 节点 `mongosh.exe --host 127.0.0.1 --port 27021`   
+
+![Alt text](/images/mongodb/mongodb_0049image.png)   
+
+1.2 初始化主节点`rs.initiate()`
+
+```bash
+rs.initiate();
+```
+![Alt text](/images/mongodb/mongodb_0050image.png)   
+
+1.3、查看主节点状态 `rs.status()`
+```bash
+rs.status();
+```
+![Alt text](/images/mongodb/mongodb_0051image.png)   
+
+1.4、主节点添加270022节点
+```bash
+rs.add("127.0.0.1:27022");
+```
+![Alt text](/images/mongodb/mongodb_0052image.png)   
+
+1.5、主节点中添加27023节点
+```bash
+rs.add("127.0.0.1:27023");
+```
+![Alt text](/images/mongodb/mongodb_0053image.png)   
+
+1.6、 查看节点状态  
+```bash
+rs.status();
+```
+![Alt text](/images/mongodb/mongodb_0054image.png)   
+
+### MongoDB复制集Compass连接
+#### Compass连接地址 
+`mongodb://localhost:27021,localhost:27022,localhost:27023/?readPreference=primary&appname=MongoDB%20Compass&ssl=false`  
+
+![Alt text](/images/mongodb/mongodb_0055image.png)     
+
+
+#### MongoDB分片2阶段准备
+
+步骤  
+1、Shard 分片2准备  
+1.1 先在MongoDB bin目录中创建shards文件夹 
+
+![Alt text](/images/mongodb/mongodb_0042image.png)  
+
+1.2、在MongoDB中创建3个配置文件 
+
+![Alt text](/images/mongodb/mongodb_0043image.png)  
+
+​ 1.3、然后在mongod-27031.cfg文件中添加内容
+ ``` bash 
+ # mongod.conf
+
+# for documentation of all options, see:
+#   http://docs.mongodb.org/manual/reference/configuration-options/
+
+# Where and how to store data.
+storage:
+  dbPath: D:\Program Files\MongoDB\Server\7.0\shards-data\shard-27031
+
+# where to write logging data.
+systemLog:
+  destination: file
+  logAppend: true
+  path:  D:\Program Files\MongoDB\Server\7.0\shards-log\mongod-27031.log
+
+# network interfaces
+net:
+  port: 27031
+  bindIp: 127.0.0.1
+
+
+#processManagement:
+     #mongodb使用的时区
+      #timeZoneInfo: /usr/share/zoneinfo
+     # 是否以后台驻留进程运行（true：是，false：否）
+      #fork: true
+#security:
+
+#operationProfiling:
+
+replication:
+  replSetName: sharding2 
+
+sharding:
+  #  分片集群中当前实例的角色（configsvr：配置中心实例，shardsvr：分片实例）
+  clusterRole: shardsvr
+## Enterprise-Only Options:
+
+#auditLog:
+
+ ```
+
+ ​ 1.4、然后在mongod-27032.cfg文件中添加内容
+ ```bash
+# mongod.conf
+
+# for documentation of all options, see:
+#   http://docs.mongodb.org/manual/reference/configuration-options/
+
+# Where and how to store data.
+storage:
+  dbPath: D:\Program Files\MongoDB\Server\7.0\shards-data\shard-27032
+
+# where to write logging data.
+systemLog:
+  destination: file
+  logAppend: true
+  path:  D:\Program Files\MongoDB\Server\7.0\shards-log\mongod-27032.log
+
+# network interfaces
+net:
+  port: 27032
+  bindIp: 127.0.0.1
+
+
+#processManagement:
+     #mongodb使用的时区
+      #timeZoneInfo: /usr/share/zoneinfo
+     # 是否以后台驻留进程运行（true：是，false：否）
+      #fork: true
+#security:
+
+#operationProfiling:
+
+replication:
+  replSetName: sharding2 
+
+sharding:
+  #  分片集群中当前实例的角色（configsvr：配置中心实例，shardsvr：分片实例）
+  clusterRole: shardsvr
+## Enterprise-Only Options:
+
+#auditLog:
+
+
+ ```
+
+  1.5、然后在mongod-27033.cfg文件中添加内容
+ ```bash
+# mongod.conf
+
+# for documentation of all options, see:
+#   http://docs.mongodb.org/manual/reference/configuration-options/
+
+# Where and how to store data.
+storage:
+  dbPath: D:\Program Files\MongoDB\Server\7.0\shards-data\shard-27033
+
+# where to write logging data.
+systemLog:
+  destination: file
+  logAppend: true
+  path:  D:\Program Files\MongoDB\Server\7.0\shards-log\mongod-27033.log
+
+# network interfaces
+net:
+  port: 27033
+  bindIp: 127.0.0.1
+
+
+#processManagement:
+     #mongodb使用的时区
+      #timeZoneInfo: /usr/share/zoneinfo
+     # 是否以后台驻留进程运行（true：是，false：否）
+      #fork: true
+#security:
+
+#operationProfiling:
+
+replication:
+  replSetName: sharding2 
+
+sharding:
+  #  分片集群中当前实例的角色（configsvr：配置中心实例，shardsvr：分片实例）
+  clusterRole: shardsvr
+## Enterprise-Only Options:
+
+#auditLog:
+
+
+ ```
+
+ 2、在MongoDB 分片2中创建3个数据目录
+
+
+![Alt text](/images/mongodb/mongodb_0056image.png)     
+
+3、在MongoDB中创建日志目录
+
+![Alt text](/images/mongodb/mongodb_0045image.png)     
+
+4、MongoDB分片2多实例启动
+ 4.1、mongod-27031实例启动
+```bash
+    mongod.exe -f ./shards/mongod-27031.cfg
+```
+![Alt text](/images/mongodb/mongodb_0057image.png)     
+
+ 4.2、mongod-27032实例启动
+```bash
+    mongod.exe -f ./shards/mongod-27032.cfg
+```
+![Alt text](/images/mongodb/mongodb_0058image.png)     
+
+4.3、mongod-27033实例启动
+```bash
+mongod.exe -f ./shards/mongod-27033.cfg
+```
+![Alt text](/images/mongodb/mongodb_0057image.png)     
+
+
+
+#### MongoDB 分片角色分配  
+
+条件  
+1、 mongosh.exe 
+步骤  
+1、primary 节点初始化  
+1.1 连接27031 节点 `mongosh.exe --host 127.0.0.1 --port 27031`   
+![Alt text](image.png)
+![Alt text](/images/mongodb/mongodb_0060image.png)   
+
+1.2 初始化主节点`rs.initiate()`
+
+```bash
+rs.initiate();
+```
+![Alt text](/images/mongodb/mongodb_0061image.png)   
+
+1.3、查看主节点状态 `rs.status()`
+```bash
+rs.status();
+```
+
+![Alt text](/images/mongodb/mongodb_0062image.png)   
+
+1.4、主节点添加270032节点
+```bash
+rs.add("127.0.0.1:27032");
+```
+![Alt text](/images/mongodb/mongodb_0063image.png)   
+
+1.5、主节点中添加27033节点
+```bash
+rs.add("127.0.0.1:27033");
+```
+![Alt text](/images/mongodb/mongodb_0064image.png)  
+
+1.6、 查看节点状态  
+```bash
+rs.status();
+```
+![Alt text](/images/mongodb/mongodb_0065image.png)   
+### MongoDB复制集Compass连接
+#### Compass连接地址 
+`mongodb://localhost:27031,localhost:27032,localhost:27033/?readPreference=primary&appname=MongoDB%20Compass&ssl=false`  
+
+![Alt text](/images/mongodb/mongodb_0066image.png)     
