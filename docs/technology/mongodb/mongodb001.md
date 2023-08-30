@@ -1536,7 +1536,6 @@ mongod.exe -f ./shards/mongod-27033.cfg
 步骤  
 1、primary 节点初始化  
 1.1 连接27031 节点 `mongosh.exe --host 127.0.0.1 --port 27031`   
-![Alt text](image.png)
 ![Alt text](/images/mongodb/mongodb_0060image.png)   
 
 1.2 初始化主节点`rs.initiate()`
