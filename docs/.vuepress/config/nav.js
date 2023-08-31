@@ -53,8 +53,8 @@ module.exports = [
         activeMatch: "/",
       },
       {
-        text: "ShardingShphere-Proxy",
-        link: "/technology/sharding_shphere_proxy/sharding_shphere_proxy001.md",
+        text: "ShardingSphere-Proxy",
+        link: "/technology/sharding_sphere_proxy/sharding_sphere_proxy001.md",
         // 该元素将一直处于激活状态
         activeMatch: "/",
       },

@@ -28,12 +28,12 @@ categories:
 ## 什么是分库
 >分库：表存储到不同数据库  
 
-![Alt text](/images/sharding/sharding_shphere_proxy001image.png)
+![Alt text](/images/sharding/sharding_sphere_proxy001image.png)
 
 什么是分表
 分表：一张分成多张表  
 
-![Alt text](/images/sharding/sharding_shphere_proxy002image.png)
+![Alt text](/images/sharding/sharding_sphere_proxy002image.png)
 
 ### 单体项目中为什么要使用ShardingSphere-Proxy
 >单体系统，主要用来处理客户端的请求，客户端添加的数据，这些数据会存到数据库表中，一个表存储的容量是有限的，如果超过了一定的数量，表的处理性能就会下降，是因为表是通过InnoDB引擎来处理数据的，InnoDB通过B+树结构进行存储，如果超过了一定的阀值，就会使表的性能下降，如何提升性能？  
@@ -44,7 +44,7 @@ categories:
 > 方案有两种，进程内 和 进程外两种   
 
 ### 进程内方案
-![Alt text](/images/sharding/sharding_shphere_proxy003image.png)
+![Alt text](/images/sharding/sharding_sphere_proxy003image.png)
 
 缺陷  
 1、资源竞争问题  
@@ -53,7 +53,7 @@ categories:
 
 ### 进程外方案
 
-![Alt text](/images/sharding/sharding_shphere_proxy004image.png)
+![Alt text](/images/sharding/sharding_sphere_proxy004image.png)
 
 缺陷   
 1、维护量上升的问题  
@@ -84,7 +84,7 @@ categories:
   2、MySQL 8.0   
   3、ShardingSphere-Proxy
   步骤：  
-![Alt text](/images/sharding/sharding_shphere_proxy005image.png)
+![Alt text](/images/sharding/sharding_sphere_proxy005image.png)
 
   2、MySQL 8.0.33 准备
   安装软件： mysql-installer-community-8.0.33.0 .msi   
@@ -110,12 +110,12 @@ categories:
 ​ tar zxvf   apache-shardingsphere-5.4.0-shardingsphere-proxy-bin.tar.gz
 ```
 
-![Alt text](/images/sharding/sharding_shphere_proxy006image.png)
+![Alt text](/images/sharding/sharding_sphere_proxy006image.png)
 
 
    >> 3.5、将mysql-connector-java-8.0.30.jar拷贝到改目录下  
 
-![Alt text](/images/sharding/sharding_shphere_proxy007image.png)
+![Alt text](/images/sharding/sharding_sphere_proxy007image.png)
 ​
 ## 商品表分表场景落地  
 条件：  
@@ -127,7 +127,7 @@ categories:
 
 >2、然后进入apache-shardingsphere-5.4.0-shardingsphere-proxy-bin配置文件config-sharding.yaml中 
 
-![Alt text](/images/sharding/sharding_shphere_proxy008image.png)
+![Alt text](/images/sharding/sharding_sphere_proxy008image.png)
 
 >> 2.1 然后在config-sharding.yaml中添加分表配置  
 ``` yaml
@@ -171,7 +171,7 @@ rules:
 
 3、然后进入apache-shardingsphere-5.4.0-shardingsphere-proxy-bin配置文件server.yaml中
 
- ![Alt text](/images/sharding/sharding_shphere_proxy010image.png)
+ ![Alt text](/images/sharding/sharding_sphere_proxy010image.png)
 
  然后添加用户名和密码   
  ```bash
@@ -207,7 +207,7 @@ authority:
 
 4、然后启动apache-shardingsphere-5.4.0-shardingsphere-proxy-bin  
 
-![Alt text](/images/sharding/sharding_shphere_proxy011image.png)
+![Alt text](/images/sharding/sharding_sphere_proxy011image.png)
 
 5、然后在sharding-proxy-63-3307中使用脚本添加数据, ebusiness数据库中使用脚本创建product表   
 ```sql
@@ -260,11 +260,11 @@ INSERT INTO `product` (`SeckillType`, `SeckillName`, `SeckillUrl`, `SeckillPrice
 ```
 6、查看实际库中就生成了表
 
-![Alt text](/images/sharding/sharding_shphere_proxy012image.png)
+![Alt text](/images/sharding/sharding_sphere_proxy012image.png)
 
 ## 整体架构
 
-![Alt text](/images/sharding/sharding_shphere_proxy009image.png)  
+![Alt text](/images/sharding/sharding_sphere_proxy009image.png)  
 
 总共6个阶段：   
 

@@ -111,8 +111,8 @@ module.exports = [
           link: '/technology/nginx/nginx001.md',
         },
         {
-          text: '分布式中间件-ShardingShphere-Proxy',
-          link: "/technology/sharding_shphere_proxy/sharding_shphere_proxy001.md",
+          text: '分布式中间件-ShardingSphere-Proxy',
+          link: "/technology/sharding_sphere_proxy/sharding_sphere_proxy001.md",
         },
         {
           text: '分布式中间件-Redis',
