@@ -1574,3 +1574,449 @@ rs.status();
 `mongodb://localhost:27031,localhost:27032,localhost:27033/?readPreference=primary&appname=MongoDB%20Compass&ssl=false`  
 
 ![Alt text](/images/mongodb/mongodb_0066image.png)     
+
+### MongoDB Config Server阶段准备  
+步骤  
+1、Config Server 准备  
+1.1、先在MongoDB bin目录中创建shards文件夹
+
+![Alt text](/images/mongodb/mongodb_0067image.png)     
+
+1.2、在MongoDB中创建ConfigServer 
+ 
+![Alt text](/images/mongodb/mongodb_0068image.png)     
+
+1.3、在MongoDB中创建3个配置文件 
+ 
+![Alt text](/images/mongodb/mongodb_0069image.png)     
+
+1.4 然后在mongod-27010.cfg文件中添加内容
+
+``` yaml
+# mongod.conf
+
+# for documentation of all options, see:
+#   http://docs.mongodb.org/manual/reference/configuration-options/
+
+# Where and how to store data.
+storage:
+  dbPath: D:\Program Files\MongoDB\Server\7.0\shards-data\ConfigServer\configserver-27010
+
+# where to write logging data.
+systemLog:
+  destination: file
+  logAppend: true
+  path:  D:\Program Files\MongoDB\Server\7.0\shards-log\ConfigServer\mongod-27010.log
+
+# network interfaces
+net:
+  port: 27010
+  bindIp: 127.0.0.1
+
+
+#processManagement:
+     #mongodb使用的时区
+      #timeZoneInfo: /usr/share/zoneinfo
+     # 是否以后台驻留进程运行（true：是，false：否）
+      #fork: true
+#security:
+
+#operationProfiling:
+
+replication:
+  #集群名称，如果不是同一个集群内的机器，请不要配置重复
+  replSetName: confset 
+
+sharding:
+  # 分片集群中当前实例的角色（configsvr：配置中心实例，shardsvr：分片实例）
+  clusterRole: configsvr
+## Enterprise-Only Options:
+
+#auditLog:
+
+```
+
+
+1.5 然后在mongod-27011.cfg文件中添加内容
+
+``` yaml
+# mongod.conf
+
+# for documentation of all options, see:
+#   http://docs.mongodb.org/manual/reference/configuration-options/
+
+# Where and how to store data.
+storage:
+  dbPath: D:\Program Files\MongoDB\Server\7.0\shards-data\ConfigServer\configserver-27011
+
+# where to write logging data.
+systemLog:
+  destination: file
+  logAppend: true
+  path:  D:\Program Files\MongoDB\Server\7.0\shards-log\ConfigServer\mongod-27011.log
+
+# network interfaces
+net:
+  port: 27011
+  bindIp: 127.0.0.1
+
+
+#processManagement:
+     #mongodb使用的时区
+      #timeZoneInfo: /usr/share/zoneinfo
+     # 是否以后台驻留进程运行（true：是，false：否）
+      #fork: true
+#security:
+
+#operationProfiling:
+
+replication:
+  #集群名称，如果不是同一个集群内的机器，请不要配置重复
+  replSetName: confset 
+
+sharding:
+  # 分片集群中当前实例的角色（configsvr：配置中心实例，shardsvr：分片实例）
+  clusterRole: configsvr
+## Enterprise-Only Options:
+
+#auditLog:
+
+```
+
+
+1.6 然后在mongod-27012.cfg文件中添加内容
+
+``` yaml
+# mongod.conf
+
+# for documentation of all options, see:
+#   http://docs.mongodb.org/manual/reference/configuration-options/
+
+# Where and how to store data.
+storage:
+  dbPath: D:\Program Files\MongoDB\Server\7.0\shards-data\ConfigServer\configserver-27012
+
+# where to write logging data.
+systemLog:
+  destination: file
+  logAppend: true
+  path:  D:\Program Files\MongoDB\Server\7.0\shards-log\ConfigServer\mongod-27012.log
+
+# network interfaces
+net:
+  port: 27012
+  bindIp: 127.0.0.1
+
+
+#processManagement:
+     #mongodb使用的时区
+      #timeZoneInfo: /usr/share/zoneinfo
+     # 是否以后台驻留进程运行（true：是，false：否）
+      #fork: true
+#security:
+
+#operationProfiling:
+
+replication:
+  #集群名称，如果不是同一个集群内的机器，请不要配置重复
+  replSetName: confset 
+
+sharding:
+  # 分片集群中当前实例的角色（configsvr：配置中心实例，shardsvr：分片实例）
+  clusterRole: configsvr
+## Enterprise-Only Options:
+
+#auditLog:
+
+```
+
+2、在MongoDB 分片2 中创建3个数据目录
+
+![Alt text](/images/mongodb/mongodb_0070image.png)     
+
+3、在MongoDB 中创建3个日志目录
+
+![Alt text](/images/mongodb/mongodb_0071image.png)     
+
+4、MongoDB Config Server 多个实例启动
+4.1 、mongod-27010实例启动
+
+``` bash
+D:\Program Files\MongoDB\Server\7.0\bin>mongod.exe -f ./shards/ConfigServer/mongod-27010.cfg
+```
+![Alt text](/images/mongodb/mongodb_0072image.png)     
+
+4.2 、mongod-27011 实例启动  
+
+``` bash
+D:\Program Files\MongoDB\Server\7.0\bin>mongod.exe -f ./shards/ConfigServer/mongod-27011.cfg
+```
+![Alt text](/images/mongodb/mongodb_0073image.png)  
+
+4.3、mongod-27012 实例启动  
+
+``` bash 
+D:\Program Files\MongoDB\Server\7.0\bin>mongod.exe -f ./shards/ConfigServer/mongod-27012.cfg
+```
+![Alt text](/images/mongodb/mongodb_0074image.png)     
+
+### MongoDB Config Server角色分配 
+条件  
+1、mongosh.exe 
+步骤  
+>1、primary节点初始化   
+>>1.1、连接2710节点 `mongosh.exe --host 127.0.0.1 --port 27010` 
+``` bash
+mongosh.exe --host 127.0.0.1 --port 27010
+```
+![Alt text](/images/mongodb/mongodb_0075image.png)     
+
+>>1.2、初始化主节点 
+```bash
+rs.initiate();
+```
+![Alt text](/images/mongodb/mongodb_0076image.png)     
+
+>>1.3、主节点查看状态
+```bash
+rs.status();
+```
+![Alt text](/images/mongodb/mongodb_0077image.png)     
+
+>>1.4、主节点添加27011节点
+``` bash
+rs.add("127.0.0.1:27011");
+``` 
+![Alt text](/images/mongodb/mongodb_0078image.png)     
+
+>>1.5、主节点添加27012节点
+``` bash
+rs.add("127.0.0.1:27012");
+``` 
+![Alt text](/images/mongodb/mongodb_0079image.png)     
+
+>>1.6、查看节点状态
+```bash
+rs.status();
+```
+![Alt text](/images/mongodb/mongodb_0080image.png)     
+### MongoDB复制集Compass连接  
+#### Compass连接地址
+`mongodb://localhost:27010,localhost:27011,localhost:27012/?readPreference=primary&appname=MongoDB%20Compass&ssl=false`
+ 
+![Alt text](/images/mongodb/mongodb_0081image.png)     
+
+### MongoDB Routers阶段准备  
+步骤  
+1、Routers准备  
+1.1、 先在MongoDB bin 目录中创建shards文件夹  
+
+![Alt text](/images/mongodb/mongodb_0067image.png)     
+
+1.2、 在MongoDB shard中创建Routers  
+ 
+![Alt text](/images/mongodb/mongodb_0082image.png)     
+
+1.3、 在MongoDB 中创建2个配置文件 
+
+![Alt text](/images/mongodb/mongodb_0083image.png)     
+
+
+1.4、然后再mongod-27000.cfg文件中添加内容    
+
+::: tip `sharding下的配置是 configDB`   
+```bash
+....
+sharding:
+  # 配置中心地址，你有几台就配置几台
+  configDB: confset/127.0.0.1:27010,127.0.0.1:27011,127.0.0.1:27012
+## Enterprise-Only Options:
+....
+```
+:::
+
+``` bash
+# mongod.conf
+
+# for documentation of all options, see:
+#   http://docs.mongodb.org/manual/reference/configuration-options/
+
+# Where and how to store data.
+#storage:
+ # dbPath: D:\Program Files\MongoDB\Server\7.0\shards-data\Router\Router-27000
+
+# where to write logging data.
+systemLog:
+  destination: file
+  logAppend: true
+  path:  D:\Program Files\MongoDB\Server\7.0\shards-log\Router\mongod-27000.log
+
+# network interfaces
+net:
+  port: 27000
+  bindIp: 127.0.0.1
+
+
+#processManagement:
+     #mongodb使用的时区
+      #timeZoneInfo: /usr/share/zoneinfo
+     # 是否以后台驻留进程运行（true：是，false：否）
+      #fork: true
+#security:
+
+#operationProfiling:
+
+#replication:
+  #集群名称，如果不是同一个集群内的机器，请不要配置重复
+ # replSetName: confset 
+
+sharding:
+  # 配置中心地址，你有几台就配置几台
+  configDB: confset/127.0.0.1:27010,127.0.0.1:27011,127.0.0.1:27012
+## Enterprise-Only Options:
+
+#auditLog:
+
+```
+1.5、然后再mongod-27100.cfg文件中添加内容  
+
+``` bash
+# mongod.conf
+
+# for documentation of all options, see:
+#   http://docs.mongodb.org/manual/reference/configuration-options/
+
+# Where and how to store data.
+#storage:
+#  dbPath: D:\Program Files\MongoDB\Server\7.0\shards-data\Router\Router-27100
+
+# where to write logging data.
+systemLog:
+  destination: file
+  logAppend: true
+  path:  D:\Program Files\MongoDB\Server\7.0\shards-log\Router\mongod-27100.log
+
+# network interfaces
+net:
+  port: 27100
+  bindIp: 127.0.0.1
+
+
+#processManagement:
+     #mongodb使用的时区
+      #timeZoneInfo: /usr/share/zoneinfo
+     # 是否以后台驻留进程运行（true：是，false：否）
+      #fork: true
+#security:
+
+#operationProfiling:
+
+#replication:
+  #集群名称，如果不是同一个集群内的机器，请不要配置重复
+ # replSetName: confset 
+
+sharding:
+  # 配置中心地址，你有几台就配置几台
+  configDB: confset/127.0.0.1:27010,127.0.0.1:27011,127.0.0.1:27012
+## Enterprise-Only Options:
+
+#auditLog:
+```
+
+2、在MongoDB Router中创建1个日志目录
+
+![Alt text](/images/mongodb/mongodb_0085image.png)     
+
+3、MongoDB Routers 多实例启动   
+
+![Alt text](/images/mongodb/mongodb_0086image.png)      
+
+3.1 mongod-27000实例启动
+```bash 
+D:\Program Files\MongoDB\Server\7.0\bin>mongos.exe --config ./shards/Router/mongod-27000.cfg
+```
+ ![Alt text](/images/mongodb/mongodb_0087image.png) 
+
+3.2 mongod-27100实例启动
+```bash 
+D:\Program Files\MongoDB\Server\7.0\bin>mongos.exe --config ./shards/Router/mongod-27100.cfg
+```
+ ![Alt text](/images/mongodb/mongodb_0088image.png) 
+
+### MongoDB复制集Compass连接
+#### Compass连接地址
+`mongodb://localhost:27000,localhost:27100/?readPreference=primary&appname=MongoDB%20Compass&ssl=false`
+
+ ![Alt text](/images/mongodb/mongodb_0089image.png) 
+
+### MongoDB 复制集电商微服务项目连接  
+
+报错：
+ ![Alt text](/images/mongodb/mongodb_0090image.png) 
+
+### 主要原因是，路由并没有注册 
+
+1、需要使用 `mongosh.exe` 连接27000实例，之前已经做了分片，以及configServer 配置，现在只需要在路由的实例上注册即可。
+
+```bash
+mongosh.exe --host 127.0.0.1 --port 27000
+sh.help();  
+```
+ ![Alt text](/images/mongodb/mongodb_0091image.png) 
+
+
+2、然后将分片27021，27021分别配置到路由
+
+```bash
+#单个注册 
+# sh.addShard("127.0.0.1:27021");
+#以分片批量注册  sharding1 作为前缀 
+sh.addShard("sharding1/127.0.0.1:27021,127.0.0.1:27022,127.0.0.1:27023");
+
+```
+ ![Alt text](/images/mongodb/mongodb_0092image.png) 
+
+
+```bash 
+#单个注册 
+# sh.addShard("127.0.0.1:27031");
+#以分片批量注册  sharding2 作为前缀 
+sh.addShard("sharding1/127.0.0.1:27031,127.0.0.1:27032,127.0.0.1:27033");
+```
+ ![Alt text](/images/mongodb/mongodb_0093image.png) 
+
+```bash 
+sh.status();
+```
+ ![Alt text](/images/mongodb/mongodb_0094image.png) 
+
+
+
+#### 现在使用项目添加项目商品数据，发现分片集群，只有分片2有数据，分片1没有数据，默认分片规则为范围分片。
+1、范围分片
+ ![Alt text](/images/mongodb/mongodb_0095image.png) 
+
+2、Hashed分片 ，就是可以均分数据到两个分片当中。
+2.1 执行分片命令
+```bash
+ sh.shardCollection("ProductDb.Product",{"ProductCode":"hashed"});
+MongoServerError: Please create an index that starts with the proposed shard key before sh
+```
+  报错：
+
+ ![Alt text](/images/mongodb/mongodb_0096image.png) 
+2.2 解决报错，需要通过`mongosh.exe` 执行指令 创建新的数据库。
+``` bash
+[direct: mongos] test> sh.enableSharding("productshard")
+```
+ ![Alt text](/images/mongodb/mongodb_0097image.png) 
+``` bash
+[direct: mongos] test> sh.shardCollection("productshard.Product",{"ProductCode":"hashed"});
+```
+ ![Alt text](/images/mongodb/mongodb_0098image.png) 
+
+3、项目连接，在浏览器上添加商品数据
+ ![Alt text](/images/mongodb/mongodb_0099image.png) 
+
+4、实现了hashed 分片
+ ![Alt text](/images/mongodb/mongodb_00100image.png) 
