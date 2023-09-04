@@ -2023,15 +2023,15 @@ MongoServerError: Please create an index that starts with the proposed shard key
 
 
 ## 总结 分片集群
-1、11节点搭建分片集群
-2、分片键就是字段
-3、分片算法：hash 分片，范围分片 
-4、 MongoDB 一个表只能一个分片键。
-5、MongoDB 创建一个范围分片键 如:分页分片场景
+1、11节点搭建分片集群  
+2、分片键就是字段   
+3、分片算法：hash 分片，范围分片    
+4、 MongoDB 一个表只能一个分片键。   
+5、MongoDB 创建一个范围分片键 如:分页分片场景    
 ```bash
 sh.enableSharding("productshard_1");
 # key: 1 表示升序，-1表示 降序 
 sh.shardCollection("productshard_1.Product",{"ProductTitle":1});
 ```
 ### 复制集和分片集群
- 1、 索引  
+ 1、 索引   

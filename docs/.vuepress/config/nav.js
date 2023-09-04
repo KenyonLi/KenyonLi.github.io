@@ -59,6 +59,12 @@ module.exports = [
         activeMatch: "/",
       },
       {
+        text: "Redis",
+        link: "/technology/redis/redis001.md",
+        // 该元素将一直处于激活状态
+        activeMatch: "/",
+      },
+      {
         text: "MongoDB",
         link: "/technology/mongodb/mongodb001.md",
         // 该元素将一直处于激活状态

@@ -151,8 +151,810 @@ Redis Zset原理图
 
 ![Alt text](/images/redis/redis_0014image.png)  
 
+### 查询商品缓存场景落地-情况1
+情况1：当客户端通过集群电商系统从`redis`中查询数据的时候，都是一个一个查询的，如何实现批量查询呢？  
+方案： 批量查询   
+条件 
+1. Set  
+步骤   
+1.1、在ProductController类添加代码  
+``` C# 
+/// <summary>
+    /// 商品控制器
+    /// </summary>
+    [ApiController]
+    [Route("[controller]")]
+    public class ProductController : ControllerBase
+    {
+        private readonly ConnectionMultiplexer _connectionMultiplexer;
+        public ProductController(ConnectionMultiplexer connectionMultiplexer)
+        {
+            _connectionMultiplexer = connectionMultiplexer;
+        }
+        /// <summary>
+        /// 查询商品
+        /// </summary>
+        /// <param name="productCreateDto"></param>
+        /// <returns></returns>
+        [HttpPost]
+        public Product GetProduct()
+        {
+           #region 2、存储商品对象-集合商品数据
+            {
+                // 1、从redis中取对象
+                RedisValue[] productvalues = _connectionMultiplexer.GetDatabase(0).SetMembers("products");
+                List<Product> products = new List<Product>();
+                if (productvalues.Length == 0)
+                {
+                    // 2、从数据库中查询
+                    products = _productDbContext.Products.ToList();
+
+                    // 3、存储到redis中
+                    List<RedisValue> redisValues = new List<RedisValue>();
+                    foreach (var product1 in products)
+                    {
+                        string productjson = JsonConvert.SerializeObject(product1);//序列化
+                        redisValues.Add(productjson);
+                    }
+
+                    _connectionMultiplexer.GetDatabase(0).SetAdd("products", redisValues.ToArray());
+
+                    return products;
+                }
+
+                // 4、序列化，反序列化
+                foreach (var redisValue in productvalues)
+                {
+                    product = JsonConvert.DeserializeObject<Product>(redisValue);//反序列化
+                    products.Add(product);
+                }
+                return product;
+            }
+            #endregion
+        }
+    }     
+        
+```
+
+### 查询商品缓存场景落地-情况2  
+情况2：当客户端通过集群电商系统从redis批量查询数据的时候，全部一起查询，由于数据量过大，导致查询性能低下，如何提升查询性能？  
+方案：分页查询  
+条件    
+1.SetScan   
+步骤   
+1.1、在ProductController类添加代码   
+``` bash 
+ /// <summary>
+    /// 商品控制器
+    /// </summary>
+    [ApiController]
+    [Route("[controller]")]
+    public class ProductController : ControllerBase
+    {
+        private readonly ConnectionMultiplexer _connectionMultiplexer;
+        public ProductController(ConnectionMultiplexer connectionMultiplexer)
+        {
+            _connectionMultiplexer = connectionMultiplexer;
+        }
+         /// <summary>
+        /// 查询商品
+        /// </summary>
+        /// <param name="productCreateDto"></param>
+        /// <returns></returns>
+        [HttpPost]
+        public Product GetProduct()
+        {
+          #region 3、存储商品对象-集合-分页查询
+            {
+                // 1、从redis中取对象
+                RedisValue[] productvalues = _connectionMultiplexer.GetDatabase(0).SetScan("products", 10, 0, 10).ToArray();
+                List<Product> products = new List<Product>();
+                if (productvalues.Length == 0)
+                {
+                    // 2、从数据库中查询
+                    products = _productDbContext.Products.ToList();
+
+                    // 3、存储到redis中
+                    List<RedisValue> redisValues = new List<RedisValue>();
+                    foreach (var product1 in products)
+                    {
+                        string productjson = JsonConvert.SerializeObject(product1);//序列化
+                        redisValues.Add(productjson);
+                    }
+
+                    _connectionMultiplexer.GetDatabase(0).SetAdd("products", redisValues.ToArray());
+                }
+
+                // 4、序列化，反序列化
+                foreach (var redisValue in productvalues)
+                {
+                    product = JsonConvert.DeserializeObject<Product>(redisValue);//反序列化
+                    products.Add(product);
+                }
+                return product;
+            }
+            #endregion
+        }
+    }     
+```
+### 修改商品销量场景落地
+分析： 当客户端通过电商网站，每次购买一件商品，就会导致商品销量增加，由于商品存储到`redis`是以`json`的形式进行存储的，导致每次修改商品销量字段都需要进行商品数据序列化和反序列化，由于序列化和反序列化比较多，导致修改改商品销量性能下降，如何提升性能呢？   
+方案： Hash字典   
+条件  
+1、`max_fails=2 fail_timeout=10s `;   
+步骤   
+1、在ProductController类添加代码   
+``` C# 
+ /// <summary>
+    /// 商品控制器
+    /// </summary>
+    [ApiController]
+    [Route("[controller]")]
+    public class ProductController : ControllerBase
+    {
+        private readonly ConnectionMultiplexer _connectionMultiplexer;
+        public ProductController(ConnectionMultiplexer connectionMultiplexer)
+        {
+            _connectionMultiplexer = connectionMultiplexer;
+        }
+         /// <summary>
+        /// 查询商品
+        /// </summary>
+        /// <param name="productCreateDto"></param>
+        /// <returns></returns>
+        [HttpPost]
+        public Product GetProduct()
+        {
+          #region 4、存储商品对象-字典形式
+            {
+                string ProductSold = _connectionMultiplexer.GetDatabase(0).HashGet("productHash", "ProductSold");
+                if (string.IsNullOrEmpty(ProductSold))
+                {
+                    product = _productDbContext.Products.FirstOrDefault(s => s.Id == 1);
+                    _connectionMultiplexer.GetDatabase(0).HashSet("productHash", "ProductSold", product.ProductStock);
+                   //设置过期时间  10 秒
+                    _connectionMultiplexer.GetDatabase(0).KeyExpire("productHash", TimeSpan.FromSeconds(10));
+                }
+
+                // 1、增加销量
+                _connectionMultiplexer.GetDatabase(0).HashIncrement("productHash", "ProductSold");
+                return product;
+            }
+            #endregion
+        }
+    }     
+       
+```
+
+### 商品销量批量存储场景落地
+
+分析：当数据库中商品销量数据存储到`redis`的时候，是一个个存储，多次和redis建立连接，导致添加效率下降，如何提升添加商品销量数据的性能？    
+方案：批量添加   
+#### 如何落地批量添加？
+条件  
+1、IBatch  
+步骤   
+1、在ProductController类添加代码 
+
+```C# 
+ /// <summary>
+    /// 商品控制器
+    /// </summary>
+    [ApiController]
+    [Route("[controller]")]
+    public class ProductController : ControllerBase
+    {
+        private readonly ConnectionMultiplexer _connectionMultiplexer;
+        public ProductController(ConnectionMultiplexer connectionMultiplexer)
+        {
+            _connectionMultiplexer = connectionMultiplexer;
+        }
+         /// <summary>
+        /// 查询商品
+        /// </summary>
+        /// <param name="productCreateDto"></param>
+        /// <returns></returns>
+        [HttpPost]
+        public Product GetProduct()
+        {
+          #region 6、存储商品对象-批量操作
+            {
+                var batch = _connectionMultiplexer.GetDatabase(0).CreateBatch();
+
+                List<Product> products = new List<Product>();
+                // 2、从数据库中查询
+                products = _productDbContext.Products.ToList();
+
+                // 3、存储到redis中
+                for (int i = 0; i < products.Count; i++)
+                {
+                    batch.HashSetAsync("productHash" + i, "ProductSold", products[i].ProductSold);
+                }
+                batch.Execute();
+
+                return product;
+            }
+            #endregion
+        }
+    }     
+```
+
+### 扣减商品库存业务场景落地  
+条件  
+1、电商系统   
+2、Mysql8.0.23   
+3、客户端   
+步骤   
+1、在电商系统中添加具体类 
+
+![Alt text](/images/redis/redis_0015image.png)  
+
+1.1、在电商系统中ProductController类中添加代码  
+
+```C# 
+/// <summary>
+    /// 商品控制器
+    /// </summary>
+    [ApiController]
+    [Route("[controller]")]
+    public class ProductController : ControllerBase
+    {
+         /// <summary>
+        /// 扣减商品库存
+        /// 做4件事情
+        /// </summary>
+        /// <returns></returns>
+        [HttpGet("SubStock")]
+        public IActionResult SubStock()
+        {
+            #region 1、扣减库存流程
+            {
+                  // 1、获取商品库存
+                  var stocks = getPorductStocks();
+
+                    // 2、判断商品库存是否为空
+                    if (stocks.Count == 0)
+                    {
+                        // 2.1 秒杀失败消息
+                        Console.WriteLine($"{Thread.CurrentThread.ManagedThreadId}：不好意思，秒杀已结束，商品编号:{stocks.Count}");
+                    return new JsonResult("秒杀失败");
+                    }
+
+                    // 3、秒杀成功消息
+                    Console.WriteLine($"{Thread.CurrentThread.ManagedThreadId}：恭喜你，秒杀成功，商品编号:{stocks.Count}");
+
+                    // 4、扣减商品库存
+                    subtracProductStocks(stocks);
+                return new JsonResult("秒杀成功");
+            }
+            #endregion
+
+            return new JsonResult("秒杀成功");
+        }
+        
+        
+        /// <summary>
+        /// 获取商品库存
+        /// </summary>
+        /// <returns></returns>
+        private Stocks getPorductStocks()
+        {
+            // 1、查询数据库获取库存，获取第一个商品的库存数(1)
+            Stocks stocks = _productDbContext.Stocks.FirstOrDefault(s => s.Id == 1);
+
+            // 2、返回库存
+            return stocks;
+        }
+
+        /// <summary>
+        /// 扣减商品库存
+        /// </summary>
+        private void subtracProductStocks(Stocks stocks)
+        {
+            // 1、扣减商品库存
+            Stocks updateStocks = _productDbContext.Stocks.FirstOrDefault(s => s.Id == stocks.Id);
+            updateStocks.Count = stocks.Count - 1;
+
+            // 2、更新数据库
+            _productDbContext.SaveChanges();
+        }
+    }
+```
+1.2、启动电商网站   
+
+![Alt text](/images/redis/redis_0016image.png)  
 
 
+2、在Mysql中创建Stock表
+
+![Alt text](/images/redis/redis_0017image.png)  
+
+3、客户端访问
+![Alt text](/images/redis/redis_0018image.png)  
+
+### 扣减商品库存业务分析 
+
+分析： 当客户端从电商网站购买商品的时候，需要扣减商品库存，直接从数据库进行扣减，当电商系统是单实例的时候，如果客户端扣减库存并发量比较大，会出现超卖问题。如何解决超卖（10件商品卖出12件等）问题？
+这个使用lock锁的方式可以进行解决，当电商系统是集群实例的时候，如果客户端扣减库存并发量比较大，这个时候，lock锁就会出现缺陷，依然存在超卖问题。如何解决集群电商系统中的超卖问题？    
+方案： 分布式锁    
+#### 如何落地分布式锁
+条件  
+1、RedisLock    
+步骤   
+1、封装分布式锁   
+1.1 、 先在电商系统中创建RedisLock类  
+
+![Alt text](/images/redis/redis_0019image.png)  
+
+1.2、 然后在RedisLock类添加代码  
+ ``` C# 
+ /// <summary>
+/// redis分布式锁
+/// 1、封装redis分布锁
+///    1、加锁
+///    2、解锁
+/// 2、应用分布式锁
+/// </summary>
+public class RedisLock
+{
+    // 1、redis连接管理类
+    private ConnectionMultiplexer connectionMultiplexer = null;
+
+    // 2、redis数据操作类
+    private IDatabase database = null;
+    public RedisLock()
+    {
+        connectionMultiplexer = ConnectionMultiplexer.Connect("192.168.44.4:6379");
+
+        database = connectionMultiplexer.GetDatabase(0);
+    }
+
+    /// <summary>
+    /// 加锁
+    /// 1、key:锁名称
+    /// 2、value:谁加的这把锁。线程1
+    /// 3、exprie：过期时间：目的是为了防止死锁
+    /// 
+    /// </summary>
+
+    public void Lock()
+    {
+        while (true)
+        {
+            bool flag = database.LockTake("redis-lock", Thread.CurrentThread.ManagedThreadId, TimeSpan.FromSeconds(60));
+            // 1、true 加锁成功 2、false 加锁失败
+            if (flag)
+            {
+                break;
+            }
+            // 防止死循环。通过等待时间，释放资源
+            Thread.Sleep(10);
+        }
+    }
+
+    /// <summary>
+    /// 解锁
+    /// </summary>
+
+    public void UnLock()
+    {
+        bool flag = database.LockRelease("redis-lock", Thread.CurrentThread.ManagedThreadId);
+
+        // true:释放成功  false 释放失败
+        // 方案：释放资源
+        connectionMultiplexer.Close();
+    }
+}
+ ```
+
+2、应用分布式锁  
+2.1、在电商系统中ProductController类中添加分布式锁代码
+```C# 
+/// <summary>
+    /// 商品控制器
+    /// </summary>
+    [ApiController]
+    [Route("[controller]")]
+    public class ProductController : ControllerBase
+    {
+         /// <summary>
+        /// 扣减商品库存
+        /// 做4件事情
+        /// </summary>
+        /// <returns></returns>
+        [HttpGet("SubStock")]
+        public IActionResult SubStock()
+        {
+            #region 1、扣减库存流程
+            {
+              
+                RedisLock redisLock = new RedisLock();
+                redisLock.Lock();
+                  // 1、获取商品库存
+                  var stocks = getPorductStocks();
+
+                    // 2、判断商品库存是否为空
+                    if (stocks.Count == 0)
+                    {
+                        // 2.1 秒杀失败消息
+                        Console.WriteLine($"{Thread.CurrentThread.ManagedThreadId}：不好意思，秒杀已结束，商品编号:{stocks.Count}");
+                    redisLock.UnLock();
+                    return new JsonResult("秒杀失败");
+                    }
+
+                    // 3、秒杀成功消息
+                    Console.WriteLine($"{Thread.CurrentThread.ManagedThreadId}：恭喜你，秒杀成功，商品编号:{stocks.Count}");
+
+                    // 4、扣减商品库存
+                    subtracProductStocks(stocks);
+                redisLock.UnLock();
+                return new JsonResult("秒杀成功");
+            }
+            #endregion
+
+            return new JsonResult("秒杀成功");
+        }
+        
+        
+        /// <summary>
+        /// 获取商品库存
+        /// </summary>
+        /// <returns></returns>
+        private Stocks getPorductStocks()
+        {
+            // 1、查询数据库获取库存，获取第一个商品的库存数(1)
+            Stocks stocks = _productDbContext.Stocks.FirstOrDefault(s => s.Id == 1);
+
+            // 2、返回库存
+            return stocks;
+        }
+
+        /// <summary>
+        /// 扣减商品库存
+        /// </summary>
+        private void subtracProductStocks(Stocks stocks)
+        {
+            // 1、扣减商品库存
+            Stocks updateStocks = _productDbContext.Stocks.FirstOrDefault(s => s.Id == stocks.Id);
+            updateStocks.Count = stocks.Count - 1;
+
+            // 2、更新数据库
+            _productDbContext.SaveChanges();
+        }
+    }
+```
+
+## Redis-cluster(集群)  
+### 什么是redis-cluster
+redis-cluster 就是redis集群   
+### 项目中为什么要使用redis-cluster
+#### 电商集群系统使用redis   
+
+![Alt text](/images/redis/redis_0020image.png)  
+
+
+#### 单体redis  
+
+![Alt text](/images/redis/redis_0021image.png)  
+
+缺陷：单体redis可能由于各种原因导致宕机的问题。所以，需要使用redis主从集群   
+redis-主从集群  
+
+![Alt text](/images/redis/redis_0022image.png)  
+
+缺陷：redis-主从集群，如果主节点宕机。导致整个redis集群不可用，所以，需要使用哨兵集群  
+
+![Alt text](/images/redis/redis_0023image.png)  
+
+ 缺陷：  
+ 1、无法解决高并发写   
+ 2、无法解决海里数据存储  
+ 所以：需要使用redis-cluster   
+ redis-cluster(集群)  
+
+![Alt text](/images/redis/redis_0024image.png)  
+
+redis-缓存架构   
+
+![Alt text](/images/redis/redis_0025image.png)    
+
+redis-cluster架构说明   
+1、6个redis实例。 reids-cluster 运行需要的角色实例     
+2、redis-trib.rb.作用：分配redis 主从角色     
+
+### 集群电商系统中如何落地redis-cluster 
+redis-cluster前提准备   
+条件    
+1、redis(6个实例)   
+步骤  
+1、在redisk 创建6个配置文件 
+![Alt text](/images/redis/redis_0026image.png)    
+
+1.1、在redis.6380.conf文件中，添加内容
+```bash
+port 6380
+#bind 127.0.0.1 
+bind 0.0.0.0       
+appendonly yes
+appendfilename "appendonly.6380.aof"   
+cluster-enabled yes                                    
+cluster-config-file nodes.6380.conf
+cluster-node-timeout 15000
+cluster-slave-validity-factor 10
+cluster-migration-barrier 1
+cluster-require-full-coverage yes
+```
+
+​1.2、在redis.6381.conf文件中，添加内容  
+
+```bash
+port 6381
+bind 0.0.0.0        
+appendonly yes
+appendfilename "appendonly.6381.aof"   
+cluster-enabled yes                                    
+cluster-config-file nodes.6381.conf
+cluster-node-timeout 15000
+cluster-slave-validity-factor 10
+cluster-migration-barrier 1
+cluster-require-full-coverage yes
+```
+1.3、在redis.6382.conf文件中，添加内容
+
+```bash
+port 6382
+bind 0.0.0.0        
+appendonly yes
+appendfilename "appendonly.6382.aof"   
+cluster-enabled yes                                    
+cluster-config-file nodes.6382.conf
+cluster-node-timeout 15000
+cluster-slave-validity-factor 10
+cluster-migration-barrier 1
+cluster-require-full-coverage yes
+```
+
+1.4、在redis.6383.conf文件中，添加内容
+```bash
+port 6383
+bind 0.0.0.0         
+appendonly yes
+appendfilename "appendonly.6383.aof"   
+cluster-enabled yes                                    
+cluster-config-file nodes.6383.conf
+cluster-node-timeout 15000
+cluster-slave-validity-factor 10
+cluster-migration-barrier 1
+cluster-require-full-coverage yes
+```
+
+1.5、在redis.6384.conf文件中，添加内容
+```bash
+port 6384
+bind 0.0.0.0        
+appendonly yes
+appendfilename "appendonly.6384.aof"   
+cluster-enabled yes                                    
+cluster-config-file nodes.6380.conf
+cluster-node-timeout 15000
+cluster-slave-validity-factor 10
+cluster-migration-barrier 1
+cluster-require-full-coverage yes
+```
+
+1.6、在redis.6385.conf文件中，添加内容
+
+```bash
+port 6385
+bind 0.0.0.0        
+appendonly yes
+appendfilename "appendonly.6385.aof"   
+cluster-enabled yes                                    
+cluster-config-file nodes.6385.conf
+cluster-node-timeout 15000
+cluster-slave-validity-factor 10
+cluster-migration-barrier 1
+cluster-require-full-coverage yes
+```
+
+2、启动6个redis实例  
+
+1.1 启动redis.6380.conf 
+```bash
+[root@localhost redis-7.2.0]# ./src/redis-server  ./redis-config/redis.6380.conf 
+```
+![Alt text](/images/redis/redis_0027image.png)    
+
+
+1.2 启动redis.6381.conf 
+```bash
+[root@localhost redis-7.2.0]# ./src/redis-server  ./redis-config/redis.6381.conf 
+```
+![Alt text](/images/redis/redis_0028image.png)    
+
+1.3 启动redis.6382.conf 
+
+```bash
+[root@localhost redis-7.2.0]# ./src/redis-server  ./redis-config/redis.6382.conf 
+```
+![Alt text](/images/redis/redis_0029image.png)    
+
+1.4 启动redis.6383.conf 
+```bash
+[root@localhost redis-7.2.0]# ./src/redis-server  ./redis-config/redis.6383.conf 
+```
+![Alt text](/images/redis/redis_0030image.png)    
+
+1.5 启动redis.6384.conf 
+
+```bash
+[root@localhost redis-7.2.0]# ./src/redis-server  ./redis-config/redis.6384.conf 
+```
+![Alt text](/images/redis/redis_0031image.png)    
+
+1.6 启动redis.6385.conf 
+
+```bash
+[root@localhost redis-7.2.0]# ./src/redis-server  ./redis-config/redis.6385.conf 
+```
+![Alt text](/images/redis/redis_0032image.png)  
+
+### redis-cluster 主从角色分配  
+条件   
+1、redis-trib.rb   
+[ruby-3.0.6下载](https://cache.ruby-lang.org/pub/ruby/3.0/ruby-3.0.6.tar.gz)   
+步骤    
+1、ruby环境安装     
+ 1.1 windows    
+ ruby环境下载：https://github.com/oneclick/rubyinstaller2/releases/download/RubyInstaller-3.2.2-1/rubyinstaller-3.2.2-1-x64.exe    
+ [rubyinstaller 下载](https://rubyinstaller.org/downloads/)   
+ 1.2 centos9 
+``` bash
+ yum  install  ruby
+ ```
+2、 安装 redsi-3.2.2.gem 使用脚本命令
+  2.1 window 安装
+  ```bahs
+   gem install redis -v 3.2.2
+  ```
+  ![Alt text](/images/redis/redis_0033image.png)  
+  
+  2.2 centos9 安装 
+
+ ``` bash
+ [root@localhost ruby]# gem install redis -v 3.2.2
+ ```
+  ![Alt text](/images/redis/redis_0034image.png)  
+​
+  2.3、redis-3.2.2.gem下载地址：https://rubygems.org/gems/redis/versions/3.2.2
+
+3、redis-trib.rb搭建redis-cluster主从   
+   3.1、 redis-trib.rb 下载地址：https://github.com/beebol/redis-trib.rb    
+   [redis-trib.rb  源码下载](https://github.com/redis/redis/blob/3.2/src/redis-trib.rb)
+
+   ![Alt text](/images/redis/redis_0035image.png)  
+
+   3.2、 redis-trib.rb使用   
+      通过cmd使用redis-trib.rb 
+      ``` bash
+      ruby redis-trib.rb create --replicas 1 127.0.0.1:6380 127.0.0.1:6381 127.0.0.1:6382 127.0.0.1:6383 127.0.0.1:6384 127.0.0.1:6385
+      ```
+      
+   3.3 redis-trib.rb redis-cluster集群状态检查  
+
+   ``` bash 
+   ruby redis-tris-trib.rb  check 127.0.0.1:6380 
+   ```
+   ![Alt text](/images/redis/redis_0036image.png)  
+
+## redis7.2 版本后， redist-trib.rb  集群配置都在 redis-cli 配置
+[Anolis 8.6 下 Redis 7.2.0 集群搭建和配置 参考](https://blog.csdn.net/weixin_42176639/article/details/132434053)
+
+```bash
+
+## 1.在 rd1 复制配置文件
+cp /home/redis-7.2.0/redis.conf /usr/local/redis/redis-cluster.conf
+## 2.编辑
+vim /usr/local/redis/redis-cluster.conf
+## 设置密码 requirepass 123456
+## 关闭保护模式 protected-mode no
+## 开启集群 cluster-enabled yes 约1586行
+## 设置配置文件 cluster-config-file redis-cluster.conf 约1594行
+## 设置超时 cluster-node-timeout 15000 约1600行
+## 设置主节点密码 masterauth 123456
+## 设置日志 logfile /var/log/redis/redis-cluster.log
+## 3.将 redis-cluster.conf 分发到 rd2 / rd3 / rd4 / rd5 / rd6
+scp /usr/local/redis/redis-cluster.conf root@rd2:/usr/local/redis/
+scp /usr/local/redis/redis-cluster.conf root@rd3:/usr/local/redis/
+scp /usr/local/redis/redis-cluster.conf root@rd4:/usr/local/redis/
+scp /usr/local/redis/redis-cluster.conf root@rd5:/usr/local/redis/
+scp /usr/local/redis/redis-cluster.conf root@rd6:/usr/local/redis/
+## 4.依次启动 rd1 / rd2 /rd3 /rd4 /rd5 / rd6
+/usr/local/redis/bin/redis-server /usr/local/redis/redis-cluster.conf &
+## 5.清空已有数据
+## 5.创建集群 在任一节点执行
+## -a 密码认证，若没写密码无效带这个参数
+## --cluster create 创建集群实例列表 IP:PORT IP:PORT IP:PORT IP:PORT IP:PORT IP:PORT
+## --cluster-replicas 复制因子1（即每个主节点需2个从节点）
+/usr/local/redis/bin/redis-cli -a 123456 --cluster create --cluster-replicas 1 127.0.0.1:6380 127.0.0.1:6381 127.0.0.1:6382 127.0.0.1:6383 127.0.0.1:6384 127.0.0.1:6385
+
+## 1.解压缩
+tar zxvf redis-7.2.0.tar.gz
+## 2.进入源码安装目录
+cd /home/redis-7.2.0/src/
+## 3.编译和安装
+make && make install PREFIX=/usr/local/redis
+## 4.进入Redis解压目录
+cd /home/redis-7.2.0/
+## 5.修改配置
+vim redis.conf
+## 6.启动服务
+/usr/local/redis/bin/redis-server redis.conf &
+## 7.停止服务
+kill -9 `ps aux |grep redis|grep -v grep | awk '{print $2}'`
+ ```
+
+1、查看集群帮文档
+
+``` bash
+[root@localhost src]# ./redis-cli --cluster help
+```
+   ![Alt text](/images/redis/redis_0037image.png)  
+2、分配角色
+```bash
+[root@localhost src]# ./redis-cli --cluster create --cluster-replicas 1 0.0.0.0:6380 0.0.0.0:6381 0.0.0.0:6382 0.0.0.0:6383 0.0.0.0:6384 0.0.0.0:6385
+```
+   ![Alt text](/images/redis/redis_0038image.png)  
+  
+  是否同意系统分配，接受 输入 `yes`  
+
+ ![Alt text](/images/redis/redis_0039image.png)  
+
+ 3、查看节点状态
+ ``` bash
+ #状态
+ [root@localhost src]# ./redis-cli --cluster check 0.0.0.0:6380
+0.0.0.0:6380 (26b27f3b...) -> 0 keys | 5461 slots | 1 slaves.
+127.0.0.1:6381 (c4f1f3e7...) -> 0 keys | 5462 slots | 1 slaves.
+127.0.0.1:6382 (2a9f5d67...) -> 0 keys | 5461 slots | 1 slaves.
+[OK] 0 keys in 3 masters.
+0.00 keys per slot on average.
+>>> Performing Cluster Check (using node 0.0.0.0:6380)
+M: 26b27f3b253331d3e3dab852115d98d7b94e8b86 0.0.0.0:6380
+   slots:[0-5460] (5461 slots) master
+   1 additional replica(s)
+S: 64e0075c643b46b5c76695690f741ba68cd424c2 127.0.0.1:6383
+   slots: (0 slots) slave
+   replicates 2a9f5d67f084d24e11989a7cd5f2a3bebca91286
+M: c4f1f3e7e23993df60c847696cebbd2228f79c21 127.0.0.1:6381
+   slots:[5461-10922] (5462 slots) master
+   1 additional replica(s)
+S: 2c195b27f07dd22b2c5a712b5c09f984141caca2 127.0.0.1:6384
+   slots: (0 slots) slave
+   replicates 26b27f3b253331d3e3dab852115d98d7b94e8b86
+M: 2a9f5d67f084d24e11989a7cd5f2a3bebca91286 127.0.0.1:6382
+   slots:[10923-16383] (5461 slots) master
+   1 additional replica(s)
+S: e8a0bd1e391f8665df7e64a817c65a88924cceb2 127.0.0.1:6385
+   slots: (0 slots) slave
+   replicates c4f1f3e7e23993df60c847696cebbd2228f79c21
+[OK] All nodes agree about slots configuration.
+>>> Check for open slots...
+>>> Check slots coverage...
+[OK] All 16384 slots covered.
+
+ #信息
+ [root@localhost src]# ./redis-cli --cluster info 0.0.0.0:6380
+ # slots信息
+ [root@localhost redis-7.2.0]# ./src/redis-cli  -p 6380
+127.0.0.1:6380> CLUSTER SLOTS
+
+ ```     
+ 
+ 
+
+## Redis 客户端工具
+[Another-Redis-Desktop-Manager.1.6.1.exe 下载](https://gitee.com/qishibo/AnotherRedisDesktopManager/releases/tag/v1.6.1)
 ## Apache Bench安装
 ### Ubuntu  
 ``` bash
@@ -240,10 +1042,10 @@ ab -c 10 -n 1000 -k https://www.baidu.com/
 -Z ciphersuite 指定SSL/TLS密码套件（见openssl密码）
 ```
 
-## 总线
->1、分布锁:
->> 使用场合：集群系统
->> 使用场景：在集群系统中修改字段值的时候，使用。执行update
+## 总线 
+>1、分布锁:   
+>> 使用场合：集群系统   
+>> 使用场景：在集群系统中修改字段值的时候，使用。执行update   
 
->2、封装分布试锁
->3、使用redis:主要就是集群
+>2、封装分布试锁   
+>3、使用redis:主要就是集群   
