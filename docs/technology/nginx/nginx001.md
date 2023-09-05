@@ -1880,11 +1880,11 @@ stream {
 ```
 ### 2 下载nginx
 ```bash
-	 wget  http://nginx.org/download/nginx-1.17.1.tar.gz
+	 wget  http://nginx.org/download/nginx-1.24.0.tar.gz
 ```
 ### 3 nginx解压/nginx目录
 ```bash
-	tar -zxvf  nginx-1.17.1.tar.gz
+	tar -zxvf  nginx-1.24.0.tar.gz
 ```
 ### 4 切换到/nginx/nginx-1.17.1
 ```

@@ -69,6 +69,11 @@ module.exports = [
         link: "/technology/mongodb/mongodb001.md",
         // 该元素将一直处于激活状态
         activeMatch: "/",
+      },{
+        text: "ElasticSearch",
+        link: "/technology/elasticsearch/elasticsearch001.md",
+        // 该元素将一直处于激活状态
+        activeMatch: "/",
       },
       {
         text: "c/c++",

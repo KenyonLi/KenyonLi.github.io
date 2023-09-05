@@ -122,6 +122,10 @@ module.exports = [
         {
           text: '分布式中间件-MongoDB',
           link: "/technology/mongodb/mongodb001.md",
+        },
+        {
+          text: "分布式中间件-ElasticSearch",
+          link: "/technology/elasticsearch/elasticsearch001.md",
         }
       ]
     },
