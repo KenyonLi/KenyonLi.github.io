@@ -76,6 +76,16 @@ module.exports = [
         activeMatch: "/",
       },
       {
+        text: "Minio",
+        link: "/technology/minio/minio001.md",
+        activeMatch: "/",
+      },
+      {
+        text: "ScheduleMaster",
+        link: "/technology/schedule_master/schedule_master001.md",
+        activeMatch: "/",
+      },
+      {
         text: "c/c++",
         link: "/technology/cppreference/",
         // 该元素在当前路由路径是 /foo/ 开头时激活

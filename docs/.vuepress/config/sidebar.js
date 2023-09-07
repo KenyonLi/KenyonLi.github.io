@@ -126,7 +126,19 @@ module.exports = [
         {
           text: "分布式中间件-ElasticSearch",
           link: "/technology/elasticsearch/elasticsearch001.md",
-        }
+        },
+        {
+          text: "分布式中间件-ElasticSearch-分词器",
+          link: "/technology/elasticsearch/elasticsearch002.md",
+        },
+        {
+          text: "分布式中间件-Minio",
+          link: "/technology/minio/minio001.md",
+        },
+        {
+          text: "分布式任务调度中间件-ScheduleMaster",
+          link: "/technology/schedule_master/schedule_master001.md",
+        },
       ]
     },
       {
