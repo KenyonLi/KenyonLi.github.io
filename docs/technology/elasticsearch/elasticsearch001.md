@@ -211,8 +211,6 @@ public class ProductService : IProductService
 ```
 1.4、然后在电商网站中创建product类
 
-![Alt text](image.png)
-
 ![Alt text](/images/elasticsearch/elasticsearch_013image.png)    
 
 然后在product类中添加代码   
@@ -1013,7 +1011,6 @@ GET products_3/_analyze
 elasticsearch-plugin.bat install https://github.com/medcl/elasticsearch-analysis-ik/releases/download/v7.10.1/elasticsearch-analysis-ik-7.10.1.zip   
 ```
 ​ 1.2.3、进入大plugins目录中，安装成功
-![Alt text](image.png)
 ![Alt text](/images/elasticsearch/elasticsearch_048image.png)        
 ![Alt text](/images/elasticsearch/elasticsearch_049image.png)        
 
@@ -1689,7 +1686,6 @@ elasticsearch-head-master说明
 2、然后进入elasticsearch-head-master中，查看数据
 
 ![Alt text](/images/elasticsearch/elasticsearch_074image.png)   
-![Alt text](image-1.png)
 
 #### Elasticsearch集群数据存储原理  
 
