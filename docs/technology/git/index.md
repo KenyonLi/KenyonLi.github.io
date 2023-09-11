@@ -87,6 +87,8 @@ ssh-keygen -t rsa -C "邮箱"
 > 2.打开本地仓库的git bash页面。输入  
 ``` bash
 git remote add origin "项目SSH"
+## 删除 现有远程的git地址 
+git remote remove origin
 ```
 
  > 3.先同步github上master分支的代码，再指定上传的默认分支  
