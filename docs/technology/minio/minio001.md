@@ -420,3 +420,325 @@ D:\experimental environment\minio>minio.exe server .\data
 2、客户端访问，进入到浏览器进行访问  
 
 ![Alt text](/images/minio/minio001_0023image.png)    
+
+### 复制商品图片业务场景落地   
+
+步骤   
+1、先在ProductController类中添加代码   
+``` c# 
+/// <summary>
+    /// 商品图片控制器
+    /// </summary>
+    [ApiController]
+    [Route("[controller]")]
+    public class ProductFileController : ControllerBase
+    {
+
+        private readonly ILogger<ProductFileController> _logger;
+
+        public ProductFileController(ILogger<ProductFileController> logger)
+        {
+            _logger = logger;
+        }
+
+         /// <summary>
+        /// 商品图片复制
+        /// </summary>
+        /// <returns></returns>
+        [HttpPost("FileCopy")]
+        public IActionResult FileCopy(string fileName, string destFileName)
+        {
+            #region 1、图片复制
+            {
+                try
+                {
+                    // 2.1、创建客户端
+                    MinioClient minioClient = new MinioClient("127.0.0.1:9000", "minioadmin", "minioadmin");
+
+                    var imgStream = new MemoryStream();
+                    // 2.2、批量删除
+                    minioClient.CopyObjectAsync("product", fileName, "productnew", destFileName).Wait();
+                }
+                catch (MinioException e)
+                {
+                    Console.WriteLine("Error: " + e);
+                }
+
+            }
+            #endregion
+
+            return Ok("复制成功");
+        }
+```
+
+2、浏览器添加  
+
+![Alt text](/images/minio/minio001_0024image.png)      
+
+注意Copy的对象，需要在Minio客户端创建目标数据库    
+
+![Alt text](/images/minio/minio001_0025image.png)      
+
+3、进入Minio中查看图片数据   
+
+![Alt text](/images/minio/minio001_0026image.png)      
+![Alt text](/images/minio/minio001_0027image.png)    
+  
+然后查看复制的图片   
+
+![Alt text](/images/minio/minio001_0028image.png)      
+
+### 商品图片监听场景落地   
+分析：当客户端通过电商微服务往Minio中添加数据的时候，商品数据已经被成功添加到Minio中。如何从Minio中搜索商品数据？   
+方案： 商品图片监听  
+
+#### 如何落地商品图片监听    
+条件   
+1、Mysql  
+2、Minio Console  
+3、Minio  
+4、Minio mc  
+步骤   
+1、Mysql 准备  
+1.1、在Mysql 中创建miniodb数据库    
+
+![Alt text](/images/minio/minio001_0029image.png)    
+
+2、Minio Console准备   
+2.1、进入Minio Console, 选择`Events`
+
+![Alt text](/images/minio/minio001_0030image.png)   
+
+2.2、在Event Destinations 中 选择Mysql 
+
+![Alt text](/images/minio/minio001_0031image.png)    
+
+2.3、Mysql Event Destination 填写连接数据库信息    
+
+![Alt text](/images/minio/minio001_0032image.png)     
+
+3、Minio准备     
+3.1、进入Minio目录中，然后重启，输入     
+
+``` bash
+
+minio server --address :9000 --console-address ":9001" ./data
+
+```
+
+![Alt text](/images/minio/minio001_0033image.png)    
+
+获取Mysql队列名：`arn:minio:sqs::miniok01:mysql`   
+
+4、Minio mc 准备  
+4.1、进入到Minio目录，使用 cmd ,输入  
+``` bash
+mc.exe alias set myminio http://127.0.0.1:9000 minioadmin minioadmin
+```
+![Alt text](/images/minio/minio001_0034image.png)    
+
+4.2、进入到Minio目录，使用cmd ,输入  
+
+``` bash
+mc event add --event "put,delete" myminio/productpictures arn:minio:sqs::miniok01:mysql
+```
+![Alt text](/images/minio/minio001_0035image.png)    
+
+5、浏览器准备   
+
+![Alt text](/images/minio/minio001_0036image.png)    
+
+6、数据库中查看结果  
+
+![Alt text](/images/minio/minio001_0037image.png)    
+
+
+
+### Minio多租户
+
+#### 什么是多租户  
+
+多租户：系统运行多个实例给个不同的客户使用   
+
+多租户如图所示   
+
+![Alt text](/images/minio/minio001_0038image.png)    
+
+### 为什么要在微服务系统中使用多租户  
+分析： Minio默认给一个客户使用，当客户变多之后，所有客户的数据都集中在Minio内部的时候，导致数据冲突的问题。例如：客户A的数据，可能会修改成客户B的数据，客户B可能查询客户A的数据。所以，如何解决客户数据冲突问题？   
+
+方案：Minio多租户  
+
+### 微服务系统中如何落地多租户   
+条件   
+1、Minio   
+2、电商项目   
+
+步骤   
+
+1、租户1启动  
+
+1.1 进入到Minio目录中   
+
+![Alt text](/images/minio/minio001_0039image.png)    
+
+1.2 然后输入以下命令  
+
+``` bash 
+minio server --address :9001 --console-address ":9002" ./tenant1
+```
+
+![Alt text](/images/minio/minio001_0040image.png)    
+ 
+ 1.3、进入到Minio查看结果   
+
+![Alt text](/images/minio/minio001_0041image.png)    
+
+
+
+1.4、电商项目连接
+
+​ 1.4.1、先在ProductController类中添加代码
+
+``` c# 
+    /// <summary>
+    /// 文件上传
+    /// </summary>
+    /// <returns></returns>
+    [HttpPost("UploadList")]
+    public IActionResult UploadList(IFormFile[] files)
+    {
+        // 2.1 遍历所有文件
+        foreach (var formFile in files)
+        {
+            if (formFile.Length > 0)
+            {
+                // 2.1 创建MinioClient客户端
+                MinioClient minioClient = new MinioClient()
+                                    .WithEndpoint("127.0.0.1", 9000)
+                                    .WithCredentials("minioadmin", "minioadmin")
+                                    .Build();
+                //minioClient.WithSSL();
+                // 2.2 创建文件桶(数据库)
+                if (!minioClient.BucketExistsAsync(new BucketExistsArgs().WithBucket("productpictures")).Result)
+                {
+                    minioClient.MakeBucketAsync(new MakeBucketArgs().WithBucket("productpictures")).Wait();
+                }
+
+
+                // 2.3 上传文件
+                minioClient.PutObjectAsync(new PutObjectArgs().WithBucket("productpictures").WithObject(formFile.FileName).WithStreamData(formFile.OpenReadStream()).WithObjectSize(formFile.Length)).ConfigureAwait(false);
+
+                _logger.LogInformation($"文件:{formFile.FileName}上传到MinIO成功");
+            }
+        }
+
+        return new JsonResult("上传成功");
+    }
+```
+
+2、租户2启动 
+2.1 进入到Minio目录中   
+
+![Alt text](/images/minio/minio001_0039image.png)    
+
+2.2 然后输入以下命令  
+
+``` bash 
+minio server --address :9001 --console-address ":9002" ./tenant2
+```
+​ 2.3、进入到Minio查看结果,会生成`tenant2`文件 。
+2.4、电商项目连接
+​ 2.4.1、先在ProductController类中添加代码
+``` c# 
+ /// <summary>
+    /// 文件上传
+    /// </summary>
+    /// <returns></returns>
+    [HttpPost("UploadList")]
+    public IActionResult UploadList(IFormFile[] files)
+    {
+        // 2.1 遍历所有文件
+        foreach (var formFile in files)
+        {
+            if (formFile.Length > 0)
+            {
+                // 2.1 创建MinioClient客户端
+                MinioClient minioClient = new MinioClient()
+                                    .WithEndpoint("127.0.0.1", 9000)
+                                    .WithCredentials("minioadmin", "minioadmin")
+                                    .Build();
+                //minioClient.WithSSL();
+                // 2.2 创建文件桶(数据库)
+                if (!minioClient.BucketExistsAsync(new BucketExistsArgs().WithBucket("productpictures")).Result)
+                {
+                    minioClient.MakeBucketAsync(new MakeBucketArgs().WithBucket("productpictures")).Wait();
+                }
+
+
+                // 2.3 上传文件
+                minioClient.PutObjectAsync(new PutObjectArgs().WithBucket("productpictures").WithObject(formFile.FileName).WithStreamData(formFile.OpenReadStream()).WithObjectSize(formFile.Length)).ConfigureAwait(false);
+
+                _logger.LogInformation($"文件:{formFile.FileName}上传到MinIO成功");
+            }
+        }
+
+        return new JsonResult("上传成功");
+    }
+```
+
+3、租户3启动    
+
+​ 3.1、进入到Minio目录中   
+
+![Alt text](/images/minio/minio001_0039image.png)    
+
+ 3.2、然后输入以下命令   
+
+``` bash
+minio server --address :9005 --console-address ":9006" ./tenant3
+```
+
+ 3.4、电商项目连接
+
+​ 3.4.1、先在ProductController类中添加代码
+``` C# 
+/// <summary>
+    /// 文件上传
+    /// </summary>
+    /// <returns></returns>
+    [HttpPost("UploadList")]
+    public IActionResult UploadList(IFormFile[] files)
+    {
+        // 2.1 遍历所有文件
+        foreach (var formFile in files)
+        {
+            if (formFile.Length > 0)
+            {
+                // 2.1 创建MinioClient客户端
+                MinioClient minioClient = new MinioClient()
+                                    .WithEndpoint("127.0.0.1", 9000)
+                                    .WithCredentials("minioadmin", "minioadmin")
+                                    .Build();
+                //minioClient.WithSSL();
+                // 2.2 创建文件桶(数据库)
+                if (!minioClient.BucketExistsAsync(new BucketExistsArgs().WithBucket("productpictures")).Result)
+                {
+                    minioClient.MakeBucketAsync(new MakeBucketArgs().WithBucket("productpictures")).Wait();
+                }
+
+
+                // 2.3 上传文件
+                minioClient.PutObjectAsync(new PutObjectArgs().WithBucket("productpictures").WithObject(formFile.FileName).WithStreamData(formFile.OpenReadStream()).WithObjectSize(formFile.Length)).ConfigureAwait(false);
+
+                _logger.LogInformation($"文件:{formFile.FileName}上传到MinIO成功");
+            }
+        }
+
+        return new JsonResult("上传成功");
+    }
+
+```
+
+### Minio集群  
+
