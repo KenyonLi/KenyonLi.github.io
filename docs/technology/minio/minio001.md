@@ -418,6 +418,5 @@ D:\experimental environment\minio>minio.exe server .\data
 ```
 
 2、客户端访问，进入到浏览器进行访问  
-![Alt text](image.png)
 
 ![Alt text](/images/minio/minio001_0023image.png)    
