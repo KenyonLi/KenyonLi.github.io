@@ -87,3 +87,35 @@ yum clean, yum clean all (= yum clean packages; yum clean oldheaders) 清除缓�
 yum -enablerepo=fedora-source install package1 从fedora-source源中安装包package1
 
 ### 七、Yum Shellyum shll 进去yum的shell环境
+
+
+## 硬盘挂载、分区、格式化为ext4格式
+[硬盘挂载、分区、格式化为ext4格式](https://blog.csdn.net/hochoy/article/details/80751839)    
+硬盘分区分两种情况：当硬盘磁盘空间<2T时，使用此种方式没有问题，当硬盘磁盘空间>2T时，使用此种方式可能会出现问题，这种情况下使用`Parted`磁盘分区及挂载     
+第一步：添加硬盘、新建分区（`fdisk`）(此步骤非必须)   
+第二步：格式化分区（`mkfs.ext4`） 
+第三步：加载分区（`mount`）    
+ 
+## ssh 免密码登录
+[免密码登录 ](https://www.cnblogs.com/kluan/p/4453851.html)
+在客户端生成私钥、公钥（注意，在客户端完成）：
+``` bash 
+生成密钥
+ssh-keygen -t rsa
+```
+-t指定要创建的密钥类型，默认就是rsa了，所以只执行ssh-keygen是一样的。
+
+期间会提示你输入你私钥的加密密码。如果需要完全脱离密码，此处可留空，直接回车，否则以后每次连接需要本地解锁。
+
+完成后，会当前用户的主目录下的~/.ssh/路径下生成两个文件id_rsa与id_rsa.pub分别是私钥与公钥。
+
+接下来，要把生成的公钥上传到服务器上，同样还是在客户端执行以下的代码。
+``` bash
+ ssh-copy-id -i ~/.ssh/id_rsa.pub root@192.168.1.1
+```
+其中root可以修改为你想要自动登录的服务器端用户名，192.168.1.1修改为你的VPS主机名或IP地址。
+
+最后，ssh登录远程服务器。
+``` bash
+ ssh root@192.168.1.1
+``` 
