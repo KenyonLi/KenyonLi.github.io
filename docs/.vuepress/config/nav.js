@@ -141,8 +141,14 @@ module.exports = [
         // 支持正则表达式
         activeMatch: "/",
       },
-    ],
-  },
+      {
+        text: "Apb微服务项目",
+        link: "/technology/abpmicroservices/abpmicroservices0001.md",
+        // 该元素在当前路由路径是 /foo/ 开头时激活
+        // 支持正则表达式
+        activeMatch: "/",
+      },
+  ]},
   {
     text: "阅读",
     children: [
