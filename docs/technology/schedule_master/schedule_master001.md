@@ -872,25 +872,504 @@ private static async Task Start(IHosSchedule schedule)
 
 ### 超时订单回收程序集场景
 
+在微服务系统中，默认使用http接口进行任务处理，如果需要处理的任务不能提供http,希望能够使用ScheduleMaster   
+如何处理？  
+
+方案：程序集任务   
+#### 如何落地程序集任务 
+
+条件  
+
+1、LKN.ScheduleService    
+
+步骤  
+1、LKN.ScheduleService准备   
+
+1.1 LKN.ScheuleService项目创建，并引入`ScheduleMaster`
+
+![Alt text](/images/schedulemaster/schedule_master001_036image.png)
+
+1.2 创建 `OrderCancelTask` 类，并写入代码
+
+``` C#  
+using Hos.ScheduleMaster.Base;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace LKN.ScheduleService
+{
+    public class OrderCancelTask : TaskBase
+    {
+        public override void Run(TaskContext context)
+        {
+            // 1、超时定时逻辑
+            context.WriteLog("回收超时订单......成功");
+        }
+    }
+}
+```
+1.3、`LKN.ScheduleService`编译，进入到`bin` 发布目录，然后再打包成`LKN.ScheduleService.zip`文件
+
+![Alt text](/images/schedulemaster/schedule_master001_037image.png)
 
 
+ 注意：`Hos.ScheduleMaster.Base.dll` 不要打包到`zip`文件中，防止冲突问题   
 
 
+![Alt text](/images/schedulemaster/schedule_master001_038image.png)
 
 
+2、LKN.ScheduleService.zip上传
+2.1、进入到ScheduleMaster后台控制台界面，选择任务列表
+ 
+![Alt text](/images/schedulemaster/schedule_master001_039image.png)   
+ 
+2.2、然后点击创建任务，创建程序集任务    
+
+![Alt text](/images/schedulemaster/schedule_master001_040image.png)   
+
+2.3、然后进入到元数据配置，上传程序集  
+
+![Alt text](/images/schedulemaster/schedule_master001_041image.png)   
+
+2.4、查看程序集任务  
+
+![Alt text](/images/schedulemaster/schedule_master001_042image.png)   
+
+2.5、在程序集任务上点击日志按钮  
+
+![Alt text](/images/schedulemaster/schedule_master001_043image.png)   
+
+3、LKN.ScheduleService.zip结果
+
+​ 3.1、进入到Hos.ScheduleMaster.Web项目中(发布运行程序目录中)   
+
+![Alt text](/images/schedulemaster/schedule_master001_044image.png)   
+
+3.2、然后进入到wwwroot/plugins目录中  
+
+![Alt text](/images/schedulemaster/schedule_master001_045image.png)   
 
 
+### ScheduleMaster集群
+
+目前，我们只启动了一个Master，Worker节点，节点名称为Worker1，订单取消任务是在Worker节点中进行运行的，如果Worker1节点宕机了，会导致订单取消任务无法运行！如何保证订单取消任务在这种情况下能够运行？
+
+方案：Worker节点集群
+
+#### 如何落地Worker节点集群
+条件
+
+1、Hos.ScheduleMaster.QuartzHost
+
+步骤
+
+1、进入到Hos.ScheduleMaster.QuartzHost publish目录中
+
+ 
+![Alt text](/images/schedulemaster/schedule_master001_046image.png)   
 
 
+​2、进入到appsetting.json文件中，增加配置   
+
+``` C#
+{
+  "Logging": {
+    "LogLevel": {
+      "Default": "Information",
+      "Microsoft": "Warning",
+      "Microsoft.Hosting.Lifetime": "Information"
+    }
+  },
+  "AllowedHosts": "*",
+  /*
+  Provider的可选值：sqlserver、postgresql、mysql，默认为mysql
+  ConnectionString是对应数据库类型的连接字符串，格式示例：
+    - sqlserver："Persist Security Info = False; User ID =sa; Password =123456; Initial Catalog =schedule_master; Server =."
+    - postgresql："Server=localhost;Port=5432;Database=schedule_master;User Id=postgres;Password=123456;Pooling=true;MaxPoolSize=20;"
+    - mysql："Data Source=localhost;Database=schedule_master;User ID=root;Password=123456;pooling=true;CharSet=utf8mb4;port=3306;sslmode=none;TreatTinyAsBoolean=true"
+  */
+  "DbConnector": {
+    "Provider": "mysql",
+    "ConnectionString": "Data Source=localhost;Database=schedule_master;User ID=root;Password=root;pooling=true;CharSet=utf8mb4;port=3306;sslmode=none;TreatTinyAsBoolean=true"
+  },
+  "NodeSetting": {
+    "IdentityName": "worker2",
+    "Role": "worker",
+    "Protocol": "http",
+    "IP": "localhost",
+    "Port": 30002,
+    "Priority": 3,
+    "MaxConcurrency": 20
+  }
+}
+```
+3、进入到Hos.ScheduleMaster.QuartzHost publish目录中  
+
+![Alt text](/images/schedulemaster/schedule_master001_047image.png)    
 
 
+4、然后使用CMD启动Hos.ScheduleMaster.QuartzHost
+
+​ 在CMD中输入命令：`dotnet Hos.ScheduleMaster.QuartzHost.dll –-urls http://*:30002`
+
+![Alt text](/images/schedulemaster/schedule_master001_048image.png)      
+
+5、Hos.ScheduleMaster.Web启动是否成功
+
+​ 进入浏览器访问Hos.ScheduleMaster.Web后台管理系统节点管理  
+
+![Alt text](/images/schedulemaster/schedule_master001_049image.png)      
 
 
+ 如图所示：worker1 worker2节点状态运行状态，意味着成功   
+
+### Worker节点集群应用   
+
+#### 超时订单集群任务设置
+
+1、进入到Hos.ScheduleMaster.Web后台管理系统，任务列表   
+
+2、​然后点击创建任务，创建HTTP任务，基础信息   
+
+![Alt text](/images/schedulemaster/schedule_master001_050image.png)    
+
+3、然后创建Http接口信息  
+
+![Alt text](/images/schedulemaster/schedule_master001_051image.png)    
+
+4、进人任务列表，查看任务状态  
+
+![Alt text](/images/schedulemaster/schedule_master001_052image.png)    
+
+5、任务执行结果
+
+​ 5.1、Hos.ScheduleMaster.Web查看结果   
+
+​ 5.1.1、进入到任务列表，点击订单任务日志  
+
+![Alt text](/images/schedulemaster/schedule_master001_053image.png)    
+
+5.1.2、然后查看运行结果 
+
+![Alt text](/images/schedulemaster/schedule_master001_054image.png)    
+
+5.2、订单微服务查看结果   
+
+![Alt text](/images/schedulemaster/schedule_master001_055image.png)    
 
 
+#### 超时订单集群任务关闭worker1
+1、worker1关闭
+
+![Alt text](/images/schedulemaster/schedule_master001_056image.png)    
+
+2、查看任务日志，worker2开始执行任务  
+
+![Alt text](/images/schedulemaster/schedule_master001_057image.png)    
+
+#### 超时订单集群任务关闭worker2   
+1、worker2关闭  
+
+![Alt text](/images/schedulemaster/schedule_master001_058image.png)    
+
+2、查看任务日志，worker1开始执行任务
+ 
+![Alt text](/images/schedulemaster/schedule_master001_059image.png)    
+
+### ScheduleMaster集群原理
+当worker1宕机，任务会自动切换到worker2上面运行，
+
+当worker2宕机，任务会自动切换到worker1上面运行，主要依靠什么什么做到的？核心：健康检测，故障转移
+
+条件
+
+1、健康检测
+
+2、故障转移
+
+步骤
+
+1、进入到Hos.ScheduleMaster.Web项目中，找到SystemSchedulerRegistry类
+
+![Alt text](/images/schedulemaster/schedule_master001_060image.png)      
+
+2、然后SystemSchedulerRegistry找到WorkerCheckJob类   
+
+``` C# 
+internal class WorkerCheckJob : IJob
+    {
+        /// <summary>
+        /// 执行计划
+        /// </summary>
+        public void Execute()
+        {
+            using (var scope = ConfigurationCache.RootServiceProvider.CreateScope())
+            {
+                Core.Interface.INodeService service = scope.ServiceProvider.GetService<Core.Interface.INodeService>();
+                AutowiredServiceProvider provider = new AutowiredServiceProvider();
+                provider.PropertyActivate(service, scope.ServiceProvider);
+                service.WorkerHealthCheck();
+            }
+        }
+    }
+```
+3、然后在WorkerCheckJob类中找到NodeService，进入到Hos.ScheduleMaster.Core项目  
+
+![Alt text](/images/schedulemaster/schedule_master001_061image.png)      
 
 
+4、然后进入到NodeService类中，找到WorkerHealthCheck方法   
 
+```C# 
+
+        /// <summary>
+        /// worker健康检查
+        /// </summary>
+        public void WorkerHealthCheck()
+        {
+            var workers = _repositoryFactory.ServerNodes.Where(x => x.NodeType == "worker" && x.Status != 0).ToList();
+            if (!workers.Any())
+            {
+                return;
+            }
+            //允许最大失败次数
+            int allowMaxFailed = ConfigurationCache.GetField<int>("System_WorkerUnHealthTimes");
+            if (allowMaxFailed <= 0) allowMaxFailed = 3;
+            //遍历处理
+            workers.ForEach(async (w) =>
+            {
+                using (var scope = new Core.ScopeDbContext())
+                {
+                    var db = scope.GetDbContext();
+                    _serverClient.Server = w;
+                    //初始化计数器
+                    ConfigurationCache.WorkerUnHealthCounter.TryAdd(w.NodeName, 0);
+                    var success = await _serverClient.HealthCheck();
+                    if (success)
+                    {
+                        w.LastUpdateTime = DateTime.Now;
+                        db.ServerNodes.Update(w);
+                        await db.SaveChangesAsync();
+                        ConfigurationCache.WorkerUnHealthCounter[w.NodeName] = 0;
+                    }
+                    else
+                    {
+                        //获取已失败次数
+                        int failedCount = ConfigurationCache.WorkerUnHealthCounter[w.NodeName];
+                        System.Threading.Interlocked.Increment(ref failedCount);
+                        if (failedCount >= allowMaxFailed)
+                        {
+                            w.Status = 0;//标记下线，实际上可能存在因为网络抖动等原因导致检查失败但worker进程还在运行的情况
+                            db.ServerNodes.Update(w);
+                            //释放该节点占据的锁
+                            var locks = db.ScheduleLocks.Where(x => x.LockedNode == w.NodeName && x.Status == 1).ToList();
+                            locks.ForEach(x =>
+                            {
+                                x.Status = 0;
+                                x.LockedNode = null;
+                                x.LockedTime = null;
+                            });
+                            db.ScheduleLocks.UpdateRange(locks);
+                            await db.SaveChangesAsync();
+                            //重置计数器
+                            ConfigurationCache.WorkerUnHealthCounter[w.NodeName] = 0;
+                        }
+                        else
+                        {
+                            ConfigurationCache.WorkerUnHealthCounter[w.NodeName] = failedCount;
+                        }
+                    }
+                }
+            });
+        }
+
+```
+5、然后在WorkerHealthCheck方法中，找到ServerClient类   
+
+![Alt text](/images/schedulemaster/schedule_master001_062image.png)       
+
+6、然后在ServerClient类中，找到HealthCheck方法
+``` C#
+public async Task<bool> HealthCheck()
+        {
+            HttpClient client = CreateClient();
+            try
+            {
+                var response = await client.GetAsync("/health");
+                return await ClientResponse(response);
+            }
+            catch (Exception ex)
+            {
+                Log.LogHelper.Warn($"请求地址：{client.BaseAddress.ToString()}/health，响应消息：{(ex.InnerException ?? ex).Message}");
+                return false;
+            }
+        }
+```
+7、在Hos.ScheduleMaster.QuartzHost项目中，找到Startup类 ,然后在Startup类中，进入ConfigureServices方法中，找到AddHealthChecks方法   
+ 
+![Alt text](/images/schedulemaster/schedule_master001_063image.png)   
+
+
+7.1、然后在Startup类中，进入Configure方法中，找到MapHealthChecks方法
+
+![Alt text](/images/schedulemaster/schedule_master001_064image.png)   
+
+目前，我们只启动了一个Master,Worker节点，节点名称为Worker1,订单取消任务是在Worker节点中进行运行的，如果Worker1节点宕机了，会导致订单取消任务无法运行！如何保证订单取消任务在这种情况下能够运行？  
+方案： Worker节点集群   
+
+#### 如何落地Master节点集群  
+
+目前，我们只启动了一个Master，Worker节点，节点名称为Worker1，订单取消任务是在Worker节点中进行运行的，如果Worker1节点宕机了，可以使用Worker集群解决， 如果Master宕机，也会导致整个集群不可用
+
+方案：Master节点集群
+
+条件
+
+1、Hos.ScheduleMaster.Web
+
+步骤
+
+2、Hos.ScheduleMaster.Web准备
+
+​ 2.1、进入到Hos.ScheduleMaster.Web publish目录中   
+
+![Alt text](/images/schedulemaster/schedule_master001_065image.png)   
+
+2.2、进入到appsetting.json文件中，增加配置   
+``` C# 
+{
+  "Logging": {
+    "LogLevel": {
+      "Default": "Information",
+      "Microsoft": "Warning",
+      "Microsoft.Hosting.Lifetime": "Information"
+    }
+  },
+  "AllowedHosts": "*",
+  /*
+  Provider的可选值：sqlserver、postgresql、mysql，默认为mysql
+  ConnectionString是对应数据库类型的连接字符串，格式示例：
+    - sqlserver："Persist Security Info = False; User ID =sa; Password =123456; Initial Catalog =schedule_master; Server =."
+    - postgresql："Server=localhost;Port=5432;Database=schedule_master;User Id=postgres;Password=123456;Pooling=true;MaxPoolSize=20;"
+    - mysql："Data Source=localhost;Database=schedule_master;User ID=root;Password=123456;pooling=true;CharSet=utf8mb4;port=3306;sslmode=none;TreatTinyAsBoolean=true"
+  */
+  "DbConnector": {
+    "Provider": "mysql",
+    "ConnectionString": "Data Source=localhost;Database=schedule_master;User ID=root;Password=root;pooling=true;CharSet=utf8mb4;port=3306;sslmode=none;TreatTinyAsBoolean=true"
+  },
+  "AppSettings": {
+    "AdminDefaultPwd": "111111"
+  },
+  "NodeSetting": {
+    "IdentityName": "master-node1",
+    "Role": "master",
+    "Protocol": "http",
+    "IP": "localhost",
+    "Port": 30003
+  }
+
+}
+```
+2.3、进入到Hos.ScheduleMaster.Web publish目录中 
+
+![Alt text](/images/schedulemaster/schedule_master001_066image.png)   
+
+
+2.4、然后使用CMD启动Hos.ScheduleMaster.Web
+
+​ 在CMD中输入命令：`dotnet Hos.ScheduleMaster.Web.dll -–urls http://*:30003`
+
+![Alt text](/images/schedulemaster/schedule_master001_067image.png)    
+
+2.5、Hos.ScheduleMaster.Web启动是否成功
+
+​ 进入浏览器访问Hos.ScheduleMaster.Web后台管理系统节点管理
+
+![Alt text](/images/schedulemaster/schedule_master001_068image.png)      
+
+
+如图所示：master-node master-node1节点状态运行状态，意味着成功
+
+### Master节点集群应用
+条件
+
+1、Nginx
+
+步骤
+
+​ 1、Nginx下载：http://nginx.org/download/nginx-1.20.2.zip
+
+​ 2、Nginx配置ScheduleMaster
+
+​ 2.1、进入到Nginx conf目录中
+
+![Alt text](/images/schedulemaster/schedule_master001_069image.png)      
+
+​ 2.2、在nginx.conf目录中配置   
+
+``` yml
+#user  nobody;
+worker_processes  1;
+
+#error_log  logs/error.log;
+#error_log  logs/error.log  notice;
+#error_log  logs/error.log  info;
+
+#pid        logs/nginx.pid;
+
+events {
+    worker_connections  1024;
+}
+
+http {
+	include       mime.types;
+    default_type  application/octet-stream;
+
+    #log_format  main  '$remote_addr - $remote_user [$time_local] "$request" '
+    #                  '$status $body_bytes_sent "$http_referer" '
+    #                  '"$http_user_agent" "$http_x_forwarded_for"';
+
+    #access_log  logs/access.log  main;
+
+    sendfile        on;
+    #tcp_nopush     on;
+
+    #keepalive_timeout  0;
+    keepalive_timeout  65;
+
+    #gzip  on;
+    server {
+        listen       8081;
+        server_name  localhost;
+
+        #charset koi8-r;
+
+        #access_log  logs/host.access.log  main;
+
+		location / {
+            proxy_pass  http://YDT.ScheduleMaster;
+        }
+
+     
+    }
+	
+	#ScheduleMaster负载均衡配置
+    upstream YDT.ScheduleMaster{
+        server localhost:30000;
+        server localhost:30003;
+    }
+}
+```
+
+1.2.1、nginx启动
+
+​ 使用cmd输入命令：nginx
+ 
+![Alt text](/images/schedulemaster/schedule_master001_070image.png)      
 
 
 ## API自定义任务

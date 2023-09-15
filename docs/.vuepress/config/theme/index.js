@@ -4,6 +4,7 @@ const sidebarConf = require('../sidebar')
 
 module.exports = defaultTheme({
     sidebar: sidebarConf,
+    sidebarDepth:2,
     activeHeaderLinks: true,
     lastUpdated: false,
     lastUpdatedText: "最近更新时间",
