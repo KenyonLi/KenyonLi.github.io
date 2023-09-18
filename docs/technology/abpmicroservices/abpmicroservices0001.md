@@ -213,7 +213,7 @@ abp new LKN.User -t module –dbms mysql –no-ui -o moduls\LKN.User -v 7.3.0
 
 ![Alt text](/images/abpmicroservices/abpmicroservices0001_0030.png)  
 
-​3、然后在`OrderHttpApiHostModule`类中修改为
+​3、然后在`OrderHttpApiHostModule`类中修改为  
 
 ![Alt text](/images/abpmicroservices/abpmicroservices0001_0031.png)  
 
@@ -227,15 +227,13 @@ abp new LKN.User -t module –dbms mysql –no-ui -o moduls\LKN.User -v 7.3.0
 
 4.1、修改后结果如图所示： 
 
-![Alt text](/images/abpmicroservices/abpmicroservices0001_0033.png)  
+![Alt text](/images/abpmicroservices/abpmicroservices0001_0034.png)  
 
 
 ​ 5、然后在`OrderHttpApiHostMigrationsDbContextFactory`类中修改为
 
-![Alt text](/images/abpmicroservices/abpmicroservices0001_0034.png)  
+![Alt text](/images/abpmicroservices/abpmicroservices0001_0035.png)  
 
 5.1、修改后结果如图所示：
 
-![Alt text](/images/abpmicroservices/abpmicroservices0001_0035.png)  
-
-![Alt text](image.png)
+![Alt text](/images/abpmicroservices/abpmicroservices0001_0036.png)  
