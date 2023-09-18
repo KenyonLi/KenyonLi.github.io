@@ -237,3 +237,29 @@ abp new LKN.User -t module –dbms mysql –no-ui -o moduls\LKN.User -v 7.3.0
 5.1、修改后结果如图所示：
 
 ![Alt text](/images/abpmicroservices/abpmicroservices0001_0036.png)  
+
+### 订单微服务迁移    
+1、LKN.Order.HttpApi.Host项目控制台  
+输入命令：
+```bash
+dotnet ef migrations add orderservice  
+```
+![Alt text](/images/abpmicroservices/abpmicroservices0001_0037.png)   
+
+
+1.1 迁移文件如图所示   
+
+![Alt text](/images/abpmicroservices/abpmicroservices0001_0038.png)  
+
+2、然后进入LKN.Order.HttpApi.Host项目控制台   
+输入命令：
+```bash
+dotnet ef database update  
+``` 
+![Alt text](/images/abpmicroservices/abpmicroservices0001_0039.png)  
+
+3.Mysql数据库结果如图所示  
+
+![Alt text](/images/abpmicroservices/abpmicroservices0001_0040.png)  
+
+
