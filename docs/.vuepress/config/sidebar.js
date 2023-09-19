@@ -146,9 +146,13 @@ module.exports = [
       collapsible:true,
       children:[
         {
-        text:'创建微服务项目结构',
+        text:'微服务电商项目落地',
         link:'/technology/abpmicroservices/abpmicroservices0001.md'
-       } 
+        },
+        {
+          text:'微服务通信',
+          link:'/technology/abpmicroservices/abpmicroservices0002.md'
+         } 
     ]},
       {
         text: 'c/c++',
