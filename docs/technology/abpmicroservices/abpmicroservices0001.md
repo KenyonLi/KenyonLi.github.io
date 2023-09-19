@@ -262,4 +262,48 @@ dotnet ef database update
 
 ![Alt text](/images/abpmicroservices/abpmicroservices0001_0040.png)  
 
+### 订单微服务启动  
+1、先进入LKN.Order.HttpApi.Host 项目控制台  
+输入命令：
+``` bash
+dotnet run  
+```
+![Alt text](/images/abpmicroservices/abpmicroservices0001_0041.png)  
+![Alt text](/images/abpmicroservices/abpmicroservices0001_0042.png)  
 
+### 订单微服务访问  
+
+1、先进入浏览器  
+输入地址：` https://localhost:44392`
+
+![Alt text](/images/abpmicroservices/abpmicroservices0001_0043.png)  
+
+2、在`OrderHttpApiHostModule` 中，配置自动生在API接口 
+
+``` C# 
+ public override void ConfigureServices(ServiceConfigurationContext context)
+    {
+        var hostingEnvironment = context.Services.GetHostingEnvironment();
+        var configuration = context.Services.GetConfiguration();
+        Configure<AbpDbContextOptions>(options =>
+        {
+            options.UseMySQL();
+        });
+
+        //自动生成api 
+        ConfigureConventionalControllers();
+        .....
+    }
+
+    //自动生成 api 接口方法
+    private void ConfigureConventionalControllers()
+    {
+        Configure<AbpAspNetCoreMvcOptions>(options =>
+        {
+            options.ConventionalControllers.Create(typeof(OrderApplicationModule).Assembly, options =>
+            {
+                options.RootPath = "OrderService";
+            });
+        });
+    }
+```
