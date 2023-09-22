@@ -152,6 +152,14 @@ module.exports = [
         {
           text:'微服务通信',
           link:'/technology/abpmicroservices/abpmicroservices0002.md'
+         },
+         {
+          text:'微服务内部网关-Ocelot',
+          link:'/technology/abpmicroservices/abpmicroservices0003.md'
+         } ,
+         {
+          text:'微服务注册中心-Consul',
+          link:'/technology/abpmicroservices/abpmicroservices0004.md'
          } 
     ]},
       {

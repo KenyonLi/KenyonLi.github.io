@@ -228,3 +228,11 @@ $ git pull <远程主机名> <远程分支名>:<本地分支名>
 ```
 $ git pull origin next
 ```
+
+### git下载指定分支代码到本地
+
+任务一：下载地址为git@e.coding.net:lkn-microservices/LKN-MicroServices.git；分支名为dev
+```bash
+$ git clone -b 分支名 网址.git 
+$ git clone -b lesson-2 git@e.coding.net:lkn-microservices/LKN-MicroServices.git
+```
