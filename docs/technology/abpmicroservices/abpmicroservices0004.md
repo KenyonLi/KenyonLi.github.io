@@ -260,3 +260,211 @@ new AgentServiceCheck
                 Interval = TimeSpan.FromSeconds(10),
      }	
  ```
+
+ ##### 如何封装Consul？   
+
+步骤   
+
+
+1、首先根据服务角色，将服务抽象为提供者和发现者   
+
+![Alt text](/images/abpmicroservices/micro004/abpmicroservices0004_0004image.png)     
+
+2、然后使用ioc容器进行条件准备，使用app构建器进行服务注册   
+
+### Consul如何搭建集群   
+
+
+参数解释   
+
+命令行参数   
+
+``` bash
+-bind:为该节点绑定一个地址  
+-enable-script-checks=tue:设置检查服务可用   
+-join:加入到已有的集群中  
+-server 表示当前使用sever模式  
+-node: 指定当前节点在集群中的名称
+-config-file - 要加载的配置文件   
+-config-dir: 指定配置文件目录，定义服务的，默认所有的.json结尾的文件都会读
+-datacenter:数据中心没名称，不设置的话，默认为dc 
+-client:客户端模式  
+-ui: 使用consul自带的界面
+-data-dir consul 存储的目录
+-bootstrap: 用来控制一个server是否在bootstrap模式，在一个datacenter中只能有一个server处于bootstrap模式，当一个server处于bootstrap模式时，可以自己选举为raft leader.
+-boosstrap-expect:在一个datacenter中期望提供的server节点数目，当该值提供的时候，consul一直等到达到指定server数目的时候才会引导整个集群，该标记不能和bootstrap公用。
+
+这两个参数十分重要，二选一，如果两个参数不使用的话，会出现就算你使用join将agent加入集群仍然会报`agent: failed to sync remote state: No cluster leader`
+```
+
+##### 配置文件参数
+
+``` bash
+ui: 相当于-ui 命令行标志。
+acl_token：agent会使用这个token和consul server进行请求
+acl_ttl：控制TTL的cache，默认是30s
+addresses：一个嵌套对象，可以设置以下key：dns、http、rpc
+advertise_addr：等同于-advertise
+bootstrap：等同于-bootstrap
+bootstrap_expect：等同于-bootstrap-expect
+bind_addr：等同于-bindca_file：提供CA文件路径，用来检查客户端或者服务端的链接
+cert_file：必须和key_file一起
+check_update_interval：
+client_addr：等同于-client
+datacenter：等同于-dc
+data_dir：等同于-data-dir
+disable_anonymous_signature：在进行更新检查时禁止匿名签名
+enable_debug：开启debug模式
+enable_syslog：等同于-syslog
+encrypt：等同于-encrypt
+key_file：提供私钥的路径
+leave_on_terminate：默认是false，如果为true，当agent收到一个TERM信号的时候，它会发送leave信息到集群中的其他节点上。
+log_level：等同于-log-level node_name:等同于-node 
+ports：这是一个嵌套对象，可以设置以下key：dns(dns地址：8600)、http(http api地址：8500)、rpc(rpc:8400)、serf_lan(lan port:8301)、serf_wan(wan port:8302)、server(server rpc:8300) 
+protocol：等同于-protocol
+rejoin_after_leave：等同于-rejoin
+retry_join：等同于-retry-join
+retry_interval：等同于-retry-interval 
+server：等同于-server
+syslog_facility：当enable_syslog被提供后，该参数控制哪个级别的信息被发送，默认Local0
+ui_dir：等同于-ui-dir
+```
+
+#### 集群搭建（单机）
+
+> 因为没有资源,只能在一台机器上装伪集群,如果是三台服务器来做的话, 不需要写json配置文件,直接用命令行启动就可以
+
+``` bash
+# 创建节点数据目录$ mkdir -pv ./data/{node1,node2,node3} 
+
+ubuntu@VM-20-13-ubuntu consul.d % mkdir -pv ./data/{node1,node2,node3}                                                                                [0]
+mkdir: created directory './data'
+mkdir: created directory './data/node1'
+mkdir: created directory './data/node2'
+mkdir: created directory './data/node3'
+```
+
+##### 节点1配置
+
+``` bash
+$ vim ./data/node1/basic.json
+{  
+    "datacenter" : "dc1",
+    "data_dir": "./data/node1",
+    "log_level": "INFO",
+    "server": true, 
+    "node_name": "node1",
+    "ui": true, 
+    "bind_addr": "10.0.20.13", 
+    "client_addr": "10.0.20.13",
+    "advertise_addr": "10.0.20.13",
+    "bootstrap_expect": 3, 
+    "ports":{  
+        "http": 8500,
+        "dns": 8600,  
+        "server": 8300,
+        "serf_lan": 8301, 
+        "serf_wan": 8302
+    }
+}
+
+$ nohup /usr/bin/consul agent -config-file=/data/app/consul/node1/basic.json > /data/app/consul/node1/consul.log 2>&1 &
+
+tail -100f ./data/node1/consul.log 
+```
+##### 节点2配置
+``` bash
+$ vim /data/app/consul/node2/basic.json
+{  "datacenter": "dc1",  "data_dir": "/data/app/consul/node2",  "log_level": "INFO",  "server": true,  "node_name": "node2",  "bind_addr": "10.208.1.10",  "client_addr": "10.208.1.10",  "advertise_addr": "10.208.1.10",  "ports":{    "http": 8510,    "dns": 8610,    "server": 8310,    "serf_lan": 8311,    "serf_wan": 8312
+    }
+}
+
+$ nohup ./consul agent -config-file=./data/node2/basic.json  -retry-join=10.0.20.13:8301 > ./data/node2/consul.log 2>&1 &
+
+tail -100f ./data/node2/consul.log 
+```
+
+##### 节点3配置
+``` bash
+$ vim /data/app/consul/node3/basic.json
+{  "datacenter": "dc1",  "data_dir": "/data/app/consul/node3",  "log_level": "INFO",  "server": true,  "node_name": "node3",  "bind_addr": "10.208.1.10",  "client_addr": "10.208.1.10",  "advertise_addr": "10.208.1.10",  "ports":{    "http": 8520,    "dns": 8620,    "server": 8320,    "serf_lan": 8321,    "serf_wan": 8322
+    }
+}
+
+$ nohup ./consul agent -config-file=./data/node3/basic.json  -retry-join=10.0.20.13:8301 > ./data/node3/consul.log 2>&1
+
+$ tail -100f ./data/node3/consul.log
+```
+
+访问UI
+查看集群信息
+``` bash
+$ /usr/bin/consul members -http-addr=10.208.1.10:8500
+Node   Address           Status  Type    Build  Protocol  DC   Segment
+node1  10.208.1.10:8301  alive   server  1.3.1  2         dc1  <all>
+node2  10.208.1.10:8311  alive   server  1.3.1  2         dc1  <all>
+node3  10.208.1.10:8321  alive   server  1.3.1  2         dc1  <all>
+
+$ /usr/bin/consul info -http-addr=10.208.1.10:8500
+agent:
+        check_monitors = 0
+        check_ttls = 0
+        checks = 0
+        services = 0build:
+        prerelease = 
+        revision = f2b13f30
+        version = 1.3.1consul:
+        bootstrap = false
+        known_datacenters = 1
+        leader = true
+        leader_addr = 10.208.1.10:8300
+        server = trueraft:
+        applied_index = 80
+        commit_index = 80
+        fsm_pending = 0
+        last_contact = 0
+        last_log_index = 80
+        last_log_term = 2
+        last_snapshot_index = 0
+        last_snapshot_term = 0
+        latest_configuration = [{Suffrage:Voter ID:faa05ada-4e06-6d5a-f35b-286c57826231 Address:10.208.1.10:8320} {Suffrage:Voter ID:5aee898c-ead4-f844-0d70-37ee7d9e9fb3        Address:10.208.1.10:8300} {Suffrage:Voter ID:be2837bd-3b87-07f9-a776-863ed5966ffb Address:10.208.1.10:8310}]
+        latest_configuration_index = 1
+        num_peers = 2
+        protocol_version = 3
+        protocol_version_max = 3
+        protocol_version_min = 0
+        snapshot_version_max = 1
+        snapshot_version_min = 0
+        state = Leader
+        term = 2runtime:
+        arch = amd64
+        cpu_count = 4
+        goroutines = 104
+        max_procs = 4
+        os = linux
+        version = go1.11.1serf_lan:
+        coordinate_resets = 0
+        encrypted = false
+        event_queue = 0
+        event_time = 2
+        failed = 0
+        health_score = 0
+        intent_queue = 0
+        left = 0
+        member_time = 3
+        members = 3
+        query_queue = 0
+        query_time = 1serf_wan:
+        coordinate_resets = 0
+        encrypted = false
+        event_queue = 0
+        event_time = 1
+        failed = 0
+        health_score = 0
+        intent_queue = 0
+        left = 0
+        member_time = 5
+        members = 3
+        query_queue = 0
+        query_time = 1
+```

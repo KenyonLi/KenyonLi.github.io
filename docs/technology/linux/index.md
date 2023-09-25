@@ -119,3 +119,111 @@ ssh-keygen -t rsa
 ``` bash
  ssh root@192.168.1.1
 ``` 
+
+
+## zip 压缩解压文件  
+
+1、`zip` 压缩文件    
+
+``` bash
+zip -r myfile.zip ./* 将当前目录下的所有文件和文件夹全部压缩成myfile.zip文件,－r表示递归压缩子目录下所有文件.
+
+
+### -r 
+zip -r myfile.zip ./* 将当前目录下的所有文件和文件夹全部压缩成myfile.zip文件,－r表示递归压缩子目录下所有文件.
+
+### -d
+zip -d myfile.zip smart.txt 删除压缩文件中smart.txt文件 zip -m myfile.zip ./rpm_info.txt 向压缩文件中myfile.zip中添加rpm_info.txt文件 ---
+```
+
+2、`unzip` 解压文件  
+
+``` bash
+## 解压zip文件到当前目录
+unzip filename.zip   
+
+unzip
+unzip -o -d /home/sunny myfile.zip
+把myfile.zip文件解压到 /home/sunny/
+-o:不提示的情况下覆盖文件；
+-d:-d /home/sunny 指明将文件解压缩到/home/sunny目录下；
+```
+
+
+|选项|	含义|
+|--- | ---|
+|-d 目录名|	将压缩文件解压到指定目录下。|
+-n	|解压时并不覆盖已经存在的文件。|
+-o	|解压时覆盖已经存在的文件，并且无需用户确认。|
+-v	|查看压缩文件的详细信息，包括压缩文件中包含的文件大小、文件名以及压缩比等，但并不做解压操作。|
+-t	|测试压缩文件有无损坏，但并不解压。|
+-x 文件列表	|解压文件，但不包含文件列表中指定的文件。|
+
+
+## tar 压缩解压文件 
+
+tar 命令详解   
+```bash
+　　-c: 建立压缩档案  
+
+　　-x：解压  
+
+　　-t：查看内容  
+
+　　-r：向压缩归档文件末尾追加文件  
+
+　　-u：更新原压缩包中的文件  
+```
+这五个是独立的命令，压缩解压都要用到其中一个，可以和别的命令连用但只能用其中一个。下面的参数是根据需要在压缩或解压档案时可选的。
+``` bash
+　　-c: 建立压缩档案
+　　-x：解压
+　　-t：查看内容
+　　-r：向压缩归档文件末尾追加文件
+　　-u：更新原压缩包中的文件
+```
+
+下面的参数-f是必须的
+``` bash
+　　-f: 使用档案名字，切记，这个参数是最后一个参数，后面只能接档案名。
+　　# tar -cf all.tar *.jpg
+　　这条命令是将所有.jpg的文件打成一个名为all.tar的包。-c是表示产生新的包，-f指定包的文件名。
+　　# tar -rf all.tar *.gif
+　　这条命令是将所有.gif的文件增加到all.tar的包里面去。-r是表示增加文件的意思。
+　　# tar -uf all.tar logo.gif
+　　这条命令是更新原来tar包all.tar中logo.gif文件，-u是表示更新文件的意思。
+　　# tar -tf all.tar
+　　这条命令是列出all.tar包中所有文件，-t是列出文件的意思
+　　# tar -xf all.tar
+```
+
+ 1、压缩
+ ``` bash
+　　tar –cvf jpg.tar *.jpg //将目录里所有jpg文件打包成tar.jpg
+　　tar –czf jpg.tar.gz *.jpg //将目录里所有jpg文件打包成jpg.tar后，并且将其用gzip压缩，生成一个gzip压缩过的包，命名为jpg.tar.gz
+　　tar –cjf jpg.tar.bz2 *.jpg //将目录里所有jpg文件打包成jpg.tar后，并且将其用bzip2压缩，生成一个bzip2压缩过的包，命名为jpg.tar.bz2
+　　tar –cZf jpg.tar.Z *.jpg //将目录里所有jpg文件打包成jpg.tar后，并且将其用compress压缩，生成一个umcompress压缩过的包，命名为jpg.tar.Z
+　　rar a jpg.rar *.jpg //rar格式的压缩，需要先下载rar for linux
+　　zip jpg.zip *.jpg //zip格式的压缩，需要先下载zip for linux
+```
+　2、解压
+``` bash
+　　tar –xvf file.tar //解压 tar包
+　　tar -xzvf file.tar.gz //解压tar.gz
+　　tar -xjvf file.tar.bz2 //解压 tar.bz2
+　　tar –xZvf file.tar.Z //解压tar.Z
+　　unrar e file.rar //解压rar
+　　unzip file.zip //解压zip
+```
+　　总结
+``` bash
+　　1、*.tar 用 tar –xvf 解压
+　　2、*.gz 用 gzip -d或者gunzip 解压
+　　3、.tar.gz和.tgz 用 tar –xzf 解压
+　　4、*.bz2 用 bzip2 -d或者用bunzip2 解压
+　　5、*.tar.bz2用tar –xjf 解压
+　　6、*.Z 用 uncompress 解压
+　　7、*.tar.Z 用tar –xZf 解压
+　　8、*.rar 用 unrar e解压
+　　9、*.zip 用 unzip 解压
+```
