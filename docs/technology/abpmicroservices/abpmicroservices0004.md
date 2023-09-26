@@ -362,109 +362,162 @@ $ vim ./data/node1/basic.json
     "ports":{  
         "http": 8500,
         "dns": 8600,  
+        "grpc_tls": 8503,
         "server": 8300,
         "serf_lan": 8301, 
         "serf_wan": 8302
     }
 }
 
-$ nohup /usr/bin/consul agent -config-file=/data/app/consul/node1/basic.json > /data/app/consul/node1/consul.log 2>&1 &
+nohup ./consul agent -config-file=./data/node1/basic.json > ./data/node1/consul.log 2>&1 &
 
 tail -100f ./data/node1/consul.log 
 ```
 ##### 节点2配置
 ``` bash
-$ vim /data/app/consul/node2/basic.json
-{  "datacenter": "dc1",  "data_dir": "/data/app/consul/node2",  "log_level": "INFO",  "server": true,  "node_name": "node2",  "bind_addr": "10.208.1.10",  "client_addr": "10.208.1.10",  "advertise_addr": "10.208.1.10",  "ports":{    "http": 8510,    "dns": 8610,    "server": 8310,    "serf_lan": 8311,    "serf_wan": 8312
+vim ./data/node2/basic.json
+
+{ 
+ "datacenter": "dc1",
+ "data_dir": "./data/node2",
+ "log_level": "INFO",
+ "server": true,
+ "node_name": "node2",
+ "bind_addr": "10.0.20.13",
+ "client_addr": "10.0.20.13", 
+ "advertise_addr": "10.0.20.13",
+ "ports":{ 
+     "http": 8510,   
+     "grpc_tls":8513,
+     "dns": 8610,  
+     "server": 8310,
+     "serf_lan": 8311,
+     "serf_wan": 8312
     }
 }
 
-$ nohup ./consul agent -config-file=./data/node2/basic.json  -retry-join=10.0.20.13:8301 > ./data/node2/consul.log 2>&1 &
+
+nohup ./consul agent -config-file=./data/node2/basic.json  -retry-join=10.0.20.13:8301 > ./data/node2/consul.log 2>&1 &
 
 tail -100f ./data/node2/consul.log 
+
 ```
 
 ##### 节点3配置
+
 ``` bash
-$ vim /data/app/consul/node3/basic.json
-{  "datacenter": "dc1",  "data_dir": "/data/app/consul/node3",  "log_level": "INFO",  "server": true,  "node_name": "node3",  "bind_addr": "10.208.1.10",  "client_addr": "10.208.1.10",  "advertise_addr": "10.208.1.10",  "ports":{    "http": 8520,    "dns": 8620,    "server": 8320,    "serf_lan": 8321,    "serf_wan": 8322
+
+vim ./data/node3/basic.json
+
+{  
+    "datacenter": "dc1",
+    "data_dir": "./data/node3",
+    "log_level": "INFO",
+    "server": true, 
+    "node_name": "node3",
+    "bind_addr": "10.0.20.13", 
+    "client_addr": "10.0.20.13",
+    "advertise_addr": "10.0.20.13",
+    "ports":{  
+        "http": 8520,
+        "dns": 8620,  
+        "grpc_tls": 8523,
+        "server": 8320,
+        "serf_lan": 8321, 
+        "serf_wan": 8322
     }
 }
 
-$ nohup ./consul agent -config-file=./data/node3/basic.json  -retry-join=10.0.20.13:8301 > ./data/node3/consul.log 2>&1
+nohup ./consul agent -config-file=./data/node3/basic.json  -retry-join=10.0.20.13:8301 > ./data/node3/consul.log 2>&1 &
 
-$ tail -100f ./data/node3/consul.log
+tail -100f ./data/node3/consul.log
+```
+
+
+查看集群信息
+``` bash
+ubuntu@VM-20-13-ubuntu consul.d % ./consul members -http-addr=10.0.20.13:8500                                                                         [0]
+Node   Address          Status  Type    Build   Protocol  DC   Partition  Segment
+node1  10.0.20.13:8301  alive   server  1.16.2  2         dc1  default    <all>
+node2  10.0.20.13:8311  alive   server  1.16.2  2         dc1  default    <all>
+node3  10.0.20.13:8321  alive   server  1.16.2  2         dc1  default    <all>
+```
+``` bash
+ubuntu@VM-20-13-ubuntu consul.d % ./consul info -http-addr=10.0.20.13:8500                                                                            [0]
+agent:
+	check_monitors = 0
+	check_ttls = 0
+	checks = 0
+	services = 0
+build:
+	prerelease = 
+	revision = 68f81912
+	version = 1.16.2
+	version_metadata = 
+consul:
+	acl = disabled
+	bootstrap = false
+	known_datacenters = 1
+	leader = true
+	leader_addr = 10.0.20.13:8300
+	server = true
+raft:
+	applied_index = 50
+	commit_index = 50
+	fsm_pending = 0
+	last_contact = 0
+	last_log_index = 50
+	last_log_term = 2
+	last_snapshot_index = 0
+	last_snapshot_term = 0
+	latest_configuration = [{Suffrage:Voter ID:a3b66e75-97bd-97c5-1aaa-864679701777 Address:10.0.20.13:8300} {Suffrage:Voter ID:bcd4f567-233b-2388-9862-50c7967c9c83 Address:10.0.20.13:8310} {Suffrage:Voter ID:9743eebc-9536-d39b-fffa-943155976ff3 Address:10.0.20.13:8320}]
+	latest_configuration_index = 0
+	num_peers = 2
+	protocol_version = 3
+	protocol_version_max = 3
+	protocol_version_min = 0
+	snapshot_version_max = 1
+	snapshot_version_min = 0
+	state = Leader
+	term = 2
+runtime:
+	arch = amd64
+	cpu_count = 2
+	goroutines = 190
+	max_procs = 2
+	os = linux
+	version = go1.20.8
+serf_lan:
+	coordinate_resets = 0
+	encrypted = false
+	event_queue = 0
+	event_time = 2
+	failed = 0
+	health_score = 0
+	intent_queue = 0
+	left = 0
+	member_time = 3
+	members = 3
+	query_queue = 0
+	query_time = 1
+serf_wan:
+	coordinate_resets = 0
+	encrypted = false
+	event_queue = 0
+	event_time = 1
+	failed = 0
+	health_score = 0
+	intent_queue = 0
+	left = 0
+	member_time = 4
+	members = 3
+	query_queue = 0
+	query_time = 1
 ```
 
 访问UI
-查看集群信息
-``` bash
-$ /usr/bin/consul members -http-addr=10.208.1.10:8500
-Node   Address           Status  Type    Build  Protocol  DC   Segment
-node1  10.208.1.10:8301  alive   server  1.3.1  2         dc1  <all>
-node2  10.208.1.10:8311  alive   server  1.3.1  2         dc1  <all>
-node3  10.208.1.10:8321  alive   server  1.3.1  2         dc1  <all>
+ 
+ 1、服务搭建成功
+![Alt text](/images/abpmicroservices/micro004/abpmicroservices0004_0005image.png)     
 
-$ /usr/bin/consul info -http-addr=10.208.1.10:8500
-agent:
-        check_monitors = 0
-        check_ttls = 0
-        checks = 0
-        services = 0build:
-        prerelease = 
-        revision = f2b13f30
-        version = 1.3.1consul:
-        bootstrap = false
-        known_datacenters = 1
-        leader = true
-        leader_addr = 10.208.1.10:8300
-        server = trueraft:
-        applied_index = 80
-        commit_index = 80
-        fsm_pending = 0
-        last_contact = 0
-        last_log_index = 80
-        last_log_term = 2
-        last_snapshot_index = 0
-        last_snapshot_term = 0
-        latest_configuration = [{Suffrage:Voter ID:faa05ada-4e06-6d5a-f35b-286c57826231 Address:10.208.1.10:8320} {Suffrage:Voter ID:5aee898c-ead4-f844-0d70-37ee7d9e9fb3        Address:10.208.1.10:8300} {Suffrage:Voter ID:be2837bd-3b87-07f9-a776-863ed5966ffb Address:10.208.1.10:8310}]
-        latest_configuration_index = 1
-        num_peers = 2
-        protocol_version = 3
-        protocol_version_max = 3
-        protocol_version_min = 0
-        snapshot_version_max = 1
-        snapshot_version_min = 0
-        state = Leader
-        term = 2runtime:
-        arch = amd64
-        cpu_count = 4
-        goroutines = 104
-        max_procs = 4
-        os = linux
-        version = go1.11.1serf_lan:
-        coordinate_resets = 0
-        encrypted = false
-        event_queue = 0
-        event_time = 2
-        failed = 0
-        health_score = 0
-        intent_queue = 0
-        left = 0
-        member_time = 3
-        members = 3
-        query_queue = 0
-        query_time = 1serf_wan:
-        coordinate_resets = 0
-        encrypted = false
-        event_queue = 0
-        event_time = 1
-        failed = 0
-        health_score = 0
-        intent_queue = 0
-        left = 0
-        member_time = 5
-        members = 3
-        query_queue = 0
-        query_time = 1
-```
+![Alt text](/images/abpmicroservices/micro004/abpmicroservices0004_0006image.png)     
