@@ -236,3 +236,30 @@ $ git pull origin next
 $ git clone -b 分支名 网址.git 
 $ git clone -b lesson-2 git@e.coding.net:lkn-microservices/LKN-MicroServices.git
 ```
+
+### git 合并分支
+[合并改动 参考](https://www.git-tower.com/learn/git/ebook/cn/command-line/branching-merging/merging)
+
+#### 整合分支-不是简单提交  
+在开始准备合并时，你不必（当然也不能）把那些要整合的改动打包为一个单独的提交。相反，你要告诉git,你想要和那个分支（branch）进行整合，git会从那个分支中判断出哪些提交还没有被整合到你当前工作的HEAD分支中。只有这些提交才能被整合进来。
+
+此外，你不需要去考虑这些改动最终会到了哪里，整合的目标永远是你的当前的 HEAD 分支，也就是你的工作副本
+![Alt text](/images/git/gitindex_001image.png)
+在 Git 中，进行合并是非常简单方便的。它只需要两个步骤：
+
+（1） 切换到那个需要接收改动的分支上。
+（2） 执行 “git merge” 命令，并且在后面加上那个将要合并进来的分支的名称。
+来让我们把 “contact-form” 分支的改动合并到 “master” 中去：
+```bash
+$ git checkout master
+$ git merge contact-form
+```
+
+
+## git创建分支错误提示 fatal: Not a valid object name: 'master'.
+[git创建分支错误提示](https://blog.csdn.net/ion_L/article/details/82686231)
+``` bash
+$ git branch 微服务注册
+fatal: not a valid object name: 'master'
+```
+>究其原因，是由于刚创建的git仓库默认的master分支要在第一次有效的commit之后才会真正建立，否则就像你声明了个对象但没初始化一样。

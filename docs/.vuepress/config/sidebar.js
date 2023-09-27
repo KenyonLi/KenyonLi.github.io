@@ -154,12 +154,16 @@ module.exports = [
           link:'/technology/abpmicroservices/abpmicroservices0002.md'
          },
          {
-          text:'微服务内部网关-Ocelot',
+          text:'微服务网关-Ocelot',
           link:'/technology/abpmicroservices/abpmicroservices0003.md'
          } ,
          {
           text:'微服务注册中心-Consul',
           link:'/technology/abpmicroservices/abpmicroservices0004.md'
+         },
+         {
+          text:'微服务注配置中心-Nacos',
+          link:'/technology/abpmicroservices/abpmicroservices0005.md'
          } 
     ]},
       {
