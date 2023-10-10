@@ -164,7 +164,23 @@ module.exports = [
          {
           text:'微服务注配置中心-Nacos',
           link:'/technology/abpmicroservices/abpmicroservices0005.md'
-         } 
+         },
+         {
+          text:'微服务事件总线-CAP',
+          link:'/technology/abpmicroservices/abpmicroservices0006.md'
+         },
+         {
+          text:'微服务链路监控-skywalking',
+          link:'/technology/abpmicroservices/abpmicroservices0007.md'
+         }, 
+         {
+          text:'微服务日志中心',
+          link:'/technology/abpmicroservices/abpmicroservices0008.md'
+         },
+         {
+          text:'微服务分布式事务',
+          link:'/technology/abpmicroservices/abpmicroservices0009.md'
+         }    
     ]},
       {
         text: 'c/c++',
