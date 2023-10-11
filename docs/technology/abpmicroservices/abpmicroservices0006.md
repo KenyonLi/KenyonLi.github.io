@@ -240,7 +240,7 @@ Nuget DotNetCore.CAP.MySql
 
 ​ 数据库中多了两张表   
 
-​ 1589706447269    
+![Alt text](/images/abpmicroservices/micro006/abpmicroservices0006_0001image.png)   
 
 ​ 当业务执行成功，发送消息时，聚合微服务宕机，消息被持久化到数据库  
 
@@ -294,7 +294,7 @@ Nuget DotNetCore.CAP.MySql
 
 ​ 数据库多了两张表   
 
-1589706483154
+![Alt text](/images/abpmicroservices/micro006/abpmicroservices0006_0001image.png)     
 
 ​ 2.3 原理   
 
@@ -302,8 +302,9 @@ Nuget DotNetCore.CAP.MySql
 
 ​ 2、幂等性 一个函数每次都是相同的结果，状态只有一个   
 
-消息重试完还是消费失败情况   
-使用人工干预实现  
+ 3、消息重试完还是消费失败情况 ，使用人工干预实现    
+
+
 
 条件  
 
@@ -340,15 +341,60 @@ x.UseRabbitMQ(rb => {
     x.UseDashboard();
 });
 ```
-​ 2.2 运行打开cap后台监控页面   
+​ 2.2 运行打开`cap`后台监控页面
 
 ​    http://localhost:5007/cap   
+   ![Alt text](/images/abpmicroservices/micro006/abpmicroservices0006_0002image.png)     
 
 ​ 对于发送失败的消息进行重复发送     
 
 ​ 对于消费失败的消息进行重复消费   
 
-CAP如何在微服务中实现高并发/高可用   
+### 订阅消息队列  
+
+实现类需要继承cap的`ICapSubscribe`接口,并在该实现类中的方法，添加特性`[CapSubscribe("OrderService.#")]`
+``` C# 
+ /// <summary>
+    /// 订单服务实现
+    /// </summary>
+    [RemoteService(IsEnabled = false)]
+    public class OrderAppService : CrudAppService<
+                                            Orders,
+                                            OrderDto,
+                                            Guid,
+                                            PagedAndSortedResultRequestDto,
+                                            CreateOrderDto,
+                                            UpdateOrderDto>,IOrderAppService, ICapSubscribe
+    {
+        public IOrderRepository _OrderRepository;
+
+        public OrderAppService(IOrderRepository repository)
+            : base(repository)
+        {
+            this._OrderRepository = repository;
+        }
+
+        /// <summary>
+        /// 接受创建订单的事件
+        /// </summary>
+        /// <param name="createOrderDto"></param>
+        // [CapSubscribe("OrderService.CreateOrder")]
+        // OrderService.# === OrderService.CreateOrder / OrderService.123 / OrderService.4546
+        [CapSubscribe("OrderService.#")]
+        public void CreateOrderEvent(CreateOrderDto createOrderDto)
+        {
+            Console.WriteLine($"创建订单：{createOrderDto}");
+            // throw new Exception("创建订单失败");
+            var orderDto = this.CreateAsync(createOrderDto).Result;
+            Console.WriteLine($"创建成功：{createOrderDto}");
+        }
+
+```
+
+
+
+
+### CAP如何在微服务中实现高并发/高可用   
 条件   
 
 1、RabbitMQ集群  
@@ -357,7 +403,7 @@ CAP如何在微服务中实现高并发/高可用
 
 1、安装Rabbitmq集群  
 
-CAP集群如何在微服务中实现负载均衡    
+### CAP集群如何在微服务中实现负载均衡    
 条件   
 
 1、Nginx    
@@ -366,7 +412,7 @@ CAP集群如何在微服务中实现负载均衡
 
 1、Nginx 层负载均衡配置  
 
-CAP集群如何在微服务中实现动态伸缩  
+#### CAP集群如何在微服务中实现动态伸缩  
 条件  
 
 1、Docker 或者 k8S  
