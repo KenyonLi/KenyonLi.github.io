@@ -119,8 +119,7 @@ categories:
 
   4、Elasticsearch启动，如图所示：
 ### apache-skywalking-apm-bin-es7准备
- 1、下载地址：https://archive.apache.org/dist/skywalking/8.7.0/apache-skywalking-apm-8.7.0.tar.gz
-
+ 1、下载地址：https://archive.apache.org/dist/skywalking/8.7.0/apache-skywalking-apm-es7-8.7.0.tar.gz
 ​ 如图所示：
 
 ![Alt text](/images/abpmicroservices/micro007/abpmicroservices0007_0005image.png)   
