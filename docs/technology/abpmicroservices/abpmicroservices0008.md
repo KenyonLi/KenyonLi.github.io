@@ -84,7 +84,7 @@ Kibana:日志可视化分析器（webui）
 ```bash
 network.host: 0.0.0.0
 增加
-thread_pool.bulk.queue_size: 1000
+ // thread_pool.bulk.queue_size: 1000    6.0版本的配置，7.0已经去掉   参考配置：  https://discuss.elastic.co/t/unknown-setting-thread-pool-bulk-queue-size/180120
 
 ```
 
@@ -387,12 +387,12 @@ Nlog.RabbitMQ.Target
       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
      autoReload="true"
        internalLogLevel="Warn"
-       internalLogFile="internal-nlog.txt">
-  <!--define various log targets-->
-  <targets>
+       internalLogFile="log/internal-nlog.txt">
 <extensions>
 			<add assembly="Nlog.RabbitMQ.Target" />
-		</extensions>
+</extensions>
+ <!--define various log targets-->
+<targets>
 		<!---最小配置-->
 		<target name="RabbitMQTarget"
 					  xsi:type="RabbitMQ"
@@ -420,7 +420,6 @@ Nlog.RabbitMQ.Target
 ``` yml
 input {
     rabbitmq {
-            
         # 队列的主机
             host => "localhost"
             # 默认为guest
@@ -444,15 +443,15 @@ input {
             # 默认值为false
             durable => true
             # 队列的交换器信息
-            exchange => "aggregateservice-log2"
+            exchange => "orderservice"
             # 队列的交换器信息
-            exchange_type => "direct"
+            exchange_type => "topic"
             # 默认值为false
             exclusive => false
             # 没有默认值，但是不指定的时候未60秒，秒为单位
             heartbeat => 60
             # 默认值为logstash，路由键
-            key => logstash
+            key => "orderservicekey"
             # 默认值为false，启动此功能保存元数据会影响性能
             metadata_enabled => false
             # 默认值为false，当设置true的时候表明为被动队列，则在消息服务器上，此队列已经存在
@@ -461,7 +460,7 @@ input {
             prefetch_count => 256
             # 下面是公共配置
             # 设置了type为system
-            type => "system" 
+            type => "orderservice" 
             # 默认line
             codec => "json"
             # 默认值为true
@@ -472,9 +471,9 @@ input {
             add_field => {
               "key" => "value"
             }
-    },
+    }
+    
     rabbitmq {
-            
         # 队列的主机
             host => "localhost"
             # 默认为guest
@@ -486,7 +485,7 @@ input {
             # 默认值为true
             ack => true
             # 默认值为{}
-            arguments => {}
+            arguments => { "x-ha-policy" => "all" }
             # 默认值为false
             auto_delete => false
             # 默认值为true
@@ -498,7 +497,7 @@ input {
             # 默认值为false
             durable => true
             # 队列的交换器信息
-            exchange => "aggregateservice-log10"
+            exchange => "internalgateway"
             # 队列的交换器信息
             exchange_type => "topic"
             # 默认值为false
@@ -506,7 +505,7 @@ input {
             # 没有默认值，但是不指定的时候未60秒，秒为单位
             heartbeat => 60
             # 默认值为logstash，路由键
-            key => "productservice"
+            key => "internalgatewaykey"
             # 默认值为false，启动此功能保存元数据会影响性能
             metadata_enabled => false
             # 默认值为false，当设置true的时候表明为被动队列，则在消息服务器上，此队列已经存在
@@ -515,45 +514,50 @@ input {
             prefetch_count => 256
             # 下面是公共配置
             # 设置了type为system
-            type => "productservice" 
+            type => "internalgateway" 
             # 默认line
             codec => "json"
             # 默认值为true
             enable_metric => false
             # 指定此数据输入id为input1
-            id => input2           
+            id => input2
+            # 添加了键位key值为value的数据到时间
+            add_field => {
+              "key" => "value"
+            }
     }
 }
     
 output {
-  elasticsearch { 
-        hosts => ["http://localhost:9200"]
-        index => "microservice-%{+YYYY.MM.dd}"
-		document_id => "%{@timestamp}"
+   # elasticsearch { 
+  #      hosts => ["http://localhost:9200"]
+   #     index => "microservice-%{+YYYY.MM.dd}"
+		#document_id => "%{@timestamp}"
 		#user => "elastic"
 		#password => "changeme"
-  }
-}
+  #}
 
-if [type] == "productservice" {
-    elasticsearch { 
-        hosts => ["http://localhost:9200"]
-        index => "productservice-%{+YYYY.MM.dd}"
-        document_id => "%{@timestamp}"
-        #user => "elastic"
-        #password => "changeme"
-     }
-  }
-  
   if [type] == "orderservice" {
     elasticsearch { 
         hosts => ["http://localhost:9200"]
-        index => "orderservice-1-%{+YYYY.MM.dd}"
+        index => "orderservice-%{+YYYY.MM.dd}"
         document_id => "%{@timestamp}"
         #user => "elastic"
         #password => "changeme"
      }
   }
+
+  if [type] == "internalgateway" {
+    elasticsearch { 
+        hosts => ["http://localhost:9200"]
+        index => "internalgateway-%{+YYYY.MM.dd}"
+        document_id => "%{@timestamp}"
+        #user => "elastic"
+        #password => "changeme"
+     }
+  }
+}
+
   ```
 ## 扩展
 kibana直接操作Elasticsearch 7
