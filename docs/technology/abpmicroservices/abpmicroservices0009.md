@@ -211,7 +211,7 @@ java -D"spring.profiles.active=prd" -D"spring.datasource.url=jdbc:postgresql://l
 
 ​ 2、 在plugins文件夹内部添加mysql驱动
 
-​ mysql-connector-java-8.0.15.jar
+​ [mysql-connector-java-8.0.15.jar](/file/mysql/mysql-connector-java-8.0.15.jar)
 
 ​ 3、mysql下启动ServiceComb Pack
 
@@ -257,11 +257,21 @@ java -D"spring.profiles.active=mysql" -D"loader.path=./plugins" -D"spring.dataso
 
 ![Alt text](/images/abpmicroservices/micro009/abpmicroservices0009_0003image.png)     
 
- 3、在AggregateService,OrderService,ProductService下分别引入
+ 3、在LKN.OrderDetailsServices,LKN.OrderService,LKN.ProductService下分别引入
 
 ![Alt text](/images/abpmicroservices/micro009/abpmicroservices0009_0004image.png)     
+ 4、在LKN.OrderDetailsServices,LKN.OrderService,LKN.ProductService中从Servicecomb.Saga.Omega.Core中复制AssemblyInfo.cs 到根目录下
 
-![Alt text](/images/abpmicroservices/micro009/abpmicroservices0009_0004image.png)     
+​ AssemblyInfo.cs   
+
+![Alt text](/images/abpmicroservices/micro009/abpmicroservices0009_0005image.png)  
 
 
-![Alt text](image.png)
+​ 5、在LKN.OrderDetailsServices,LKN.OrderService,LKN.ProductService项目startup.cs引入
+
+ 引入MethodDecorator.Fody程序集 编译时植入
+
+![Alt text](/images/abpmicroservices/micro009/abpmicroservices0009_0006image.png)     
+
+
+ 
