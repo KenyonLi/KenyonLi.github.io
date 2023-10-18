@@ -112,6 +112,8 @@ abp已经封装好IdentityServer4,只需对应模块引用即可。
 项目`LKN.AuthMicroService.HttpApi.Host` 中 AuthMircoServiceHttpApiHostModule 类中 OnApplicationInitialization 方法 ，添加  app.UseIdentityServer(); // 增加IdentityServer4
 
 
+EF  Volo.Abp.Identity.EntityFrameworkCore
+
 ## 分布式权限微服务落地
 
 ## 单点登录
