@@ -249,7 +249,7 @@ java -D"spring.profiles.active=mysql" -D"loader.path=./plugins" -D"spring.dataso
 
 ​ 3.2 omega配置
 
-​ 1、在RuanMou.MicroService下面创建解决方案文件夹
+​ 1、在LKN.MicroService下面创建解决方案文件夹
 
 ​ omega文件夹
 
@@ -260,9 +260,10 @@ java -D"spring.profiles.active=mysql" -D"loader.path=./plugins" -D"spring.dataso
  3、在LKN.OrderDetailsServices,LKN.OrderService,LKN.ProductService下分别引入
 
 ![Alt text](/images/abpmicroservices/micro009/abpmicroservices0009_0004image.png)     
+
  4、在LKN.OrderDetailsServices,LKN.OrderService,LKN.ProductService中从Servicecomb.Saga.Omega.Core中复制AssemblyInfo.cs 到根目录下
 
-​ AssemblyInfo.cs   
+​ `AssemblyInfo.cs ` 
 
 ![Alt text](/images/abpmicroservices/micro009/abpmicroservices0009_0005image.png)  
 
@@ -273,5 +274,288 @@ java -D"spring.profiles.active=mysql" -D"loader.path=./plugins" -D"spring.dataso
 
 ![Alt text](/images/abpmicroservices/micro009/abpmicroservices0009_0006image.png)     
 
+``` c# 
+ public void ConfigureServices(IServiceCollection services)
+        {
+            // 7、注册saga分布式事务
+            services.AddOmegaCore(option =>
+            {
+                option.GrpcServerAddress = "localhost:8080"; // 1、协调中心地址
+                option.InstanceId = "AggregateService-1";// 2、服务实例Id
+                option.ServiceName = "AggregateService";// 3、服务名称
+            });
+        }
+```
 
- 
+​ 6、在LKN.OrderDetailsServices项目OrderDetailsController.cs文件中添加`SagaStart`
+
+``` c# 
+
+        /// <summary>
+        /// 创建订单
+        /// </summary>
+        /// <returns></returns>
+        // [HttpPost("CreateOrder"), SagaStart]
+        [HttpPost("CreateOrder"), SagaStart(TimeOut=3)] // 开启分布式事务 
+        public OrderDto CreateOrder(CreateOrderDto createOrderDto)
+        {
+            // 1、创建订单
+            createOrderDto.Id = Guid.NewGuid();
+            OrderDto orderDto = _OrderAppService.CreateAsync(createOrderDto).Result;
+
+            // 2、扣减库存
+            string guid = "3a0dbecd-d8bc-b847-4c93-82f82bc0d608";
+            UpdateProductDto updateProductDto = new UpdateProductDto();
+            updateProductDto.ProductStock = 2;
+            updateProductDto.Id = Guid.Parse(guid);
+            var productDto = _ProductAppService.UpdateAsync(updateProductDto.Id, updateProductDto).Result;
+
+            // 3、执行失败
+            // throw new Exception("执行异常");
+            return orderDto;
+        }
+
+```
+
+
+​ 7、在OrdersService项目中LKN.Order.HttpApi.cs文件下添加
+
+​ 引入MethodDecorator.Fody 编译时植入   
+ ​添加 `AssemblyInfo.cs `    
+
+``` c#
+ /// <summary>
+    /// 1、删除订单方法
+    /// 抛出了，会进行重复的执行，直到成功，使用的是幂等机制
+    /// </summary>
+    /// <param name="input"></param>
+    void DeleteOrder(CreateOrderDto input)
+    {
+        _logger.LogInformation("删除订单");
+        //throw new Exception("21221");
+        //使用数据库本地事务
+        // UnitofWork
+        // cap是异步请求，同步
+        _OrderAppService.DeleteAsync(input.Id).Wait();
+    }
+
+    /// <summary>
+    /// 异步创建订单
+    /// </summary>
+    /// <param name="input"></param>
+    /// <returns></returns>
+    [NonAction]
+    public async Task<OrderDto> CreateOrder(CreateOrderDto input)
+    {
+        Console.WriteLine("异步创建订单");
+        return await _OrderAppService.CreateAsync(input);
+    }
+
+```
+
+
+​ 8、在ProductService项目中LKN.Product.HttpApi.cs文件下添加
+
+​ 引入MethodDecorator.Fody 编译时植入
+ ​添加 `AssemblyInfo.cs `    
+
+``` c# 
+/// <summary>
+        /// 更新方法接受
+        /// </summary>
+        /// <param name="id"></param>
+        /// <param name="input"></param>
+        /// <returns></returns>
+        [HttpPut, Compensable(nameof(RecoverStock))]
+        public async Task<ProductDto> UpdateAsync(Guid id, UpdateProductDto input)
+        {
+            return await _ProductAppService.UpdateAsync(id, input);
+        }
+        /// <summary>
+        /// 恢复库存
+        /// </summary>
+        /// <param name="id"></param>
+        /// <param name="input"></param>
+        void RecoverStock(UpdateProductDto input)
+        {
+            Console.WriteLine("恢复商品库存");
+            input.ProductStock = 10;
+            _ProductAppService.UpdateAsync(input.Id, input).Wait();
+        }
+
+```
+**正常情况**
+
+全部执行成功的情况下面  
+
+![Alt text](/images/abpmicroservices/micro009/abpmicroservices0009_0007image.png)     
+
+
+**异常情况**
+
+![Alt text](/images/abpmicroservices/micro009/abpmicroservices0009_0008image.png)     
+
+异常时Command表会记录请求信息，便于补偿重试。
+
+![Alt text](/images/abpmicroservices/micro009/abpmicroservices0009_0009image.png)     
+
+
+
+## ServiceComb Pack(Saga)集群
+
+步骤    
+
+``` bash
+1、先启动一个master节点
+
+java -D"spring.profiles.active=mysql" -D"loader.path=./plugins" -D"alpha.cluster.master.enabled=true"  -jar alpha-server-0.5.0-exec.jar
+
+2、然后进入application.yaml
+
+修改alpha.server.port
+
+修改server.port
+
+3、然后启动slaver节点
+
+java -D"spring.profiles.active=mysql" -D"loader.path=./plugins" -D"alpha.cluster.master.enabled=true" -jar alpha-server-0.5.0-exec.jar
+```
+
+1、ServiceComb Pack (Saga)实例1
+
+切换到什么目录 D:\apache-servicecomb-pack-distribution-0.5.0-bin 使用cmd
+
+``` bash
+然后进入application.yaml
+修改alpha.server.port=8080
+修改server.port=8090
+java -D"spring.profiles.active=mysql" -D"loader.path=./plugins" -D"alpha.cluster.master.enabled=true"  -jar alpha-server-0.5.0-exec.jar
+
+或者不修改application.yaml配置文件直接启动
+java -D"spring.profiles.active=mysql" -D"loader.path=./plugins" -D"spring.datasource.url=jdbc:mysql://localhost:3306/saga?useSSL=false&serverTimezone=Asia/Shanghai" -D"spring.datasource.username=root" -D"spring.datasource.password=root" -D"alpha.cluster.master.enabled=true"  -D"alpha.server.port=8081" -D"server.port=8091"  -jar alpha-server-0.5.0-exec.jar
+```
+
+
+2、ServiceComb Pack(Saga) 实例2
+
+切换到什么目录 D:\apache-servicecomb-pack-distribution-0.5.0-bin 使用cmd
+``` bash
+然后进入application.yaml
+修改alpha.server.port=8081
+修改server.port=8091
+java -D"spring.profiles.active=mysql" -D"loader.path=./plugins" -D"alpha.cluster.master.enabled=true"  -jar alpha-server-0.5.0-exec.jar
+
+或者不修改application.yaml配置文件直接启动
+java -D"spring.profiles.active=mysql" -D"loader.path=./plugins" -D"spring.datasource.url=jdbc:mysql://localhost:3306/saga?useSSL=false&serverTimezone=Asia/Shanghai" -D"spring.datasource.username=root" -D"spring.datasource.password=root" -D"alpha.cluster.master.enabled=true" -D"alpha.server.port=8081" -D"server.port=8091"  -jar alpha-server-0.5.0-exec.jar
+```
+3、ServiceComb Pack(Saga)实例3
+
+切换到什么目录 D:\apache-servicecomb-pack-distribution-0.5.0-bin 使用cmd
+``` bash
+然后进入application.yaml
+修改alpha.server.port=8082
+修改server.port=8092
+java -D"spring.profiles.active=mysql" -D"loader.path=./plugins" -D"alpha.cluster.master.enabled=true"  -jar alpha-server-0.5.0-exec.jar
+
+或者不修改application.yaml配置文件直接启动
+java -D"spring.profiles.active=mysql" -D"loader.path=./plugins" -D"spring.datasource.url=jdbc:mysql://localhost:3306/saga?useSSL=false&serverTimezone=Asia/Shanghai" -D"spring.datasource.username=root" -D"spring.datasource.password=root" -D"alpha.cluster.master.enabled=true" -D"alpha.server.port=8082" -D"server.port=8092"  -jar alpha-server-0.5.0-exec.jar
+```
+4、分别连接到不同的集群进行操作数据库
+
+## ServiceComb Pack(Saga)协调器集群如何实现负载均衡
+条件
+
+1、Nginx
+
+步骤
+``` bash
+1、先进入nginx/conf目录
+配置
+server {
+        listen       8089 http2;
+        server_name  localhost;
+        location / {
+            grpc_pass grpc://grpcservers;
+        }
+}
+
+upstream grpcservers {
+  server localhost:8080; #后端 8080 地址
+  server localhost:8081; #后端 8081 地址
+ }
+# 支持的不是很好，
+# https方式可以解决
+# openssl搞定
+```
+
+## ServiceComb Pack (saga)注册到consul
+条件
+
+1、consul
+
+步骤
+
+``` bash
+1、先进入到bootstrap.yaml文件
+
+修改spring.cloud.consul.enabled=true
+
+2、然后进入application.yaml
+
+修改spring.cloud.consul.host=localhost
+
+修改spring.cloud.consul.port=8500
+
+3、然后启动consul服务器
+
+consul agent -dev
+
+单个实例启动
+java -D"spring.profiles.active=mysql" -D"loader.path=./plugins" -jar alpha-server-0.5.0-exec.jar
+
+或者不修改bootstrap.yaml和application.yaml配置文件，直接启动
+java -D"spring.profiles.active=mysql" -D"loader.path=./plugins" -D"spring.datasource.url=jdbc:mysql://localhost:3306/saga?useSSL=false&serverTimezone=Asia/Shanghai" -D"spring.datasource.username=root" -D"spring.datasource.password=root" -D"spring.cloud.consul.host=http://127.0.0.1" -D"spring.cloud.consul.port=8500" -D"spring.cloud.consul.enabled=true" -jar alpha-server-0.5.0-exec.jar
+
+集群启动
+先启动Master节点
+java -D"spring.profiles.active=mysql" -D"loader.path=./plugins" -D"alpha.cluster.master.enabled=true"  -jar alpha-server-0.5.0-exec.jar
+
+然后启动Slaver节点
+```   
+注意细节：注册consul时 实例名称过长，默认的数据库表字段长度36过短，修改100长度即可，否则会报错。
+![Alt text](/images/abpmicroservices/micro009/abpmicroservices0009_00010image.png)  
+
+2、consul客户端查看
+
+## Saga协调器集群如何在微服务里面进行通用封装
+条件
+
+1、DistributedTransactionServiceCollectionExtensions
+
+步骤
+
+创建DistributedTransactionServiceCollectionExtensions类
+``` c#
+public static class DistributedTransactionServiceCollectionExtensions
+    {
+        public static IServiceCollection AddOmegaCoreCluster(this IServiceCollection services, string omegaServiceName, string ServiceName)
+        {
+            // 1、注册Omega服务发现
+            services.AddSingleton<OmegaConsulServiceDiscovery>();
+            ServiceProvider serviceProvider = services.BuildServiceProvider();
+            // 2、获取Omega服务发现
+            OmegaConsulServiceDiscovery omega = serviceProvider.GetService<OmegaConsulServiceDiscovery>();
+            IList<ServiceUrl> serviceUrls = omega.Discovery(omegaServiceName).Result;
+            // 3、获取负载均衡
+            ILoadBalance loadBalance = serviceProvider.GetService<ILoadBalance>();
+            ServiceUrl serviceUrl = loadBalance.Select(serviceUrls);
+            services.AddOmegaCore(option =>
+            {
+                option.GrpcServerAddress = serviceUrl.Url; // 1、协调中心地址
+                option.InstanceId = ServiceName + Guid.NewGuid().ToString();// 2、服务实例Id
+                option.ServiceName = ServiceName;// 3、服务名称
+            });
+            return services;
+        }
+    }
+```

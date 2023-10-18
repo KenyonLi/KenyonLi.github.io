@@ -180,7 +180,11 @@ module.exports = [
          {
           text:'微服务分布式事务',
           link:'/technology/abpmicroservices/abpmicroservices0009.md'
-         }    
+         },  
+         {
+          text:'微服务分布式权限',
+          link:'/technology/abpmicroservices/abpmicroservices0010.md'
+         }   
     ]},
       {
         text: 'c/c++',
