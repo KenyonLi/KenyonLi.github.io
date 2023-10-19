@@ -109,24 +109,213 @@ abp已经封装好IdentityServer4,只需对应模块引用即可。
 
 
 ## 分布式权限-IdentityServer4集成  
-项目`LKN.AuthMicroService.HttpApi.Host` 中 AuthMircoServiceHttpApiHostModule 类中 OnApplicationInitialization 方法 ，添加  app.UseIdentityServer(); // 增加IdentityServer4
 
+项目模块`LKN.AuthMicroService.Domain`、 `LKN.AuthMicroService.Domain.Shared`、`LKN.AuthMicroService.EntityFrameworkCore` 集成 IdentityServer4 ，使用nuget修改包之后,分别在Module文件中依赖注册id4的module文件。
 
-EF  Volo.Abp.Identity.EntityFrameworkCore
+![Alt text](/images/abpmicroservices/micro010/abpmicroservices0010_0012image.png)  
+
+1、`LKN.AuthMicroService.Domain`中的`AuthMicroServiceDomainModule` 文件添加 ` typeof(AbpIdentityServerDomainModule)`
+
+``` c# 
+[DependsOn(
+    typeof(AbpDddDomainModule),
+    typeof(AuthMicroServiceDomainSharedModule),
+    typeof(AbpIdentityServerDomainModule)
+)]
+public class AuthMicroServiceDomainModule : AbpModule
+{
+
+}
+```
+
+2、`LKN.AuthMicroService.Domain.Shared`中的 `AuthMicroServiceDomainSharedModule` 添加 `typeof(AbpIdentityServerDomainSharedModule)`  
+
+``` c# 
+[DependsOn(
+    typeof(AbpValidationModule),
+    typeof(AbpDddDomainSharedModule),
+    typeof(AbpIdentityServerDomainSharedModule)
+)]
+public class AuthMicroServiceDomainSharedModule : AbpModule
+{
+```
+
+3、`LKN.AuthMicroService.EntityFrameworkCore`中的 `AbpIdentityServerEntityFrameworkCoreModule` 添加 ` typeof(AbpIdentityServerEntityFrameworkCoreModule)`
+
+``` c#
+[DependsOn(
+    typeof(AuthMicroServiceDomainModule),
+    typeof(AbpEntityFrameworkCoreModule),
+    typeof(AbpIdentityServerEntityFrameworkCoreModule)// 集成
+)]
+public class AuthMicroServiceEntityFrameworkCoreModule : AbpModule
+{
+    public override void ConfigureServices(ServiceConfigurationContext context)
+    {
+        context.Services.AddAbpDbContext<AuthMicroServiceDbContext>(options =>
+        {
+                /* Add custom repositories here. Example:
+                 * options.AddRepository<Question, EfCoreQuestionRepository>();
+                 */
+        });
+    }
+}
+
+```
 
 ## 分布式权限微服务落地
 
-## 单点登录
-## 分布式权限校验
-## 全微服务校验
+分布式权限微服务项目已经创建成功，并且集成了identiytserver4,现在我们根据自己的需求实现`ApiResources`的添加服务。
 
+![Alt text](/images/abpmicroservices/micro010/abpmicroservices0010_0013image.png)    
+
+IdentityServer4 EFCore 上下文对象的`IIdentityServerDbContext`设置，之前我们在自己的`AuthMicroServiceDbContext`类，已经继承`IIdentityServerDbContext`接口，并已经实现，
+但是运行调用接口时:
+1、报错异常：  
+
+![Alt text](/images/abpmicroservices/micro010/abpmicroservices0010_0014image.png)  
+
+1.1、解决方式在`appsettings.json`  添加 数据库连接`AbpIdentityServer`。
  
-![Alt text](c9b96c8bbb622873e3ec32328528ed4.png)
+![Alt text](/images/abpmicroservices/micro010/abpmicroservices0010_0015image.png)  
+
+为什么是这个名称呢，需要查看源码。
+
+![Alt text](/images/abpmicroservices/micro010/abpmicroservices0010_0016image.png)  
+![Alt text](/images/abpmicroservices/micro010/abpmicroservices0010_0017image.png)  
+
+1.2、解决方式基于原有数据库连接字符串，可以`AuthMicroServiceDbContext`添加特替换`IIdentityServerDbContext`
+
+``` c#
+[ConnectionStringName(AuthMicroServiceDbProperties.ConnectionStringName)]
+[ReplaceDbContext(typeof(IIdentityServerDbContext))] // 替换IIdentityServerDbContext
+public class AuthMicroServiceDbContext : AbpDbContext<AuthMicroServiceDbContext>, IAuthMicroServiceDbContext, IIdentityServerDbContext
+{
+   ....
+}
+```
+2、异常
+调用接口时，发现数据库表名称不存在，仔细观察发现多个前缀`IdentityServer`
+![Alt text](/images/abpmicroservices/micro010/abpmicroservices0010_0018image.png)  
+
+解决方式去掉`IdentityServer`的前缀，我们需要在`LKN.AuthMicroService.HttpApi.Host`模块中，找到`AuthMicroServiceHttpApiHostModule`文件，并在`ConfigureServices` 添加 `AbpIdentityServerDbProperties.DbTablePrefix = "";`  即可
+
+![Alt text](/images/abpmicroservices/micro010/abpmicroservices0010_0019image.png)  
+
+修改以问题，调用接口执行成功   
+
+![Alt text](/images/abpmicroservices/micro010/abpmicroservices0010_0020image.png)  
 
 
-![Alt text](image-5.png)
+## 单点登录
+
+## 分布式权限校验
+
+## 微服务校验
+分布式权限校验分析图
+![Alt text](/images/abpmicroservices/micro010/abpmicroservices0010_0000image.png)  
 
 
-1、api作用域   
+## 分布式权限AuthMicoService落地
 
-![Alt text](image-6.png)
+检查IdentityServer4是否可以成功访问`https://localhost:44386/.well-known/openid-configuration`
+                                  
+
+![Alt text](/images/abpmicroservices/micro010/abpmicroservices0010_0021image.png)  
+
+不能访问，表示配置没有成功。
+
+1、需要引用身份模块`identity`集成到项目中： `Volo.Abp.Identity.EntityFrameworkCore`、`Volo.Abp.Identity.Application.Contracts`   
+可以按模块引用，也可以单独在`LKN.AuthMicroService.HttpApi.Host`模块项目引用（也可以通过nuget包添加）。  
+
+``` c# 
+	  <PackageReference Include="Volo.Abp.Identity.EntityFrameworkCore" Version="7.3.0" />
+	  <PackageReference Include="Volo.Abp.Identity.Application.Contracts" Version="7.3.0" />
+	  <PackageReference Include=" Volo.Abp.PermissionManagement.Domain.Identity" Version="7.3.0" />
+```
+在`AuthMicroServiceHttpApiHostModule` 依赖注入 `typeof(AbpIdentityEntityFrameworkCoreModule)`,    `typeof(AbpIdentityApplicationContractsModule)`,`  typeof(AbpPermissionManagementDomainIdentityModule)`
+``` c#
+[DependsOn(
+ ....
+    typeof(AbpIdentityEntityFrameworkCoreModule),
+    typeof(AbpIdentityApplicationContractsModule),
+    typeof(AbpPermissionManagementDomainIdentityModule),
+  ....
+    )]
+public class AuthMicroServiceHttpApiHostModule : AbpModule
+{
+   ...
+}
+```
+2、需要引用账号模块`account`集成到项目中,主要功能登录、注册、退出，集成项目`Volo.Abp.Account.Web.IdentityServer` 、`Volo.Abp.Account.Application`
+ 在`LKN.AuthMicroService.HttpApi.Host`模块项目引用（也可以通过nuget包添加）
+ ```c#
+ 	  <PackageReference Include="Volo.Abp.Account.Web.IdentityServer" Version="7.3.0" />
+	  <PackageReference Include="Volo.Abp.Account.Application" Version="7.3.0" />
+ ```
+在`AuthMicroServiceHttpApiHostModule` 依赖注入 `typeof(AbpAccountWebIdentityServerModule)`,    `typeof(AbpAccountApplicationModule)`
+``` c#
+[DependsOn(
+ ....
+    typeof(AbpAccountWebIdentityServerModule),
+    typeof(AbpAccountApplicationModule),
+  ....
+    )]
+public class AuthMicroServiceHttpApiHostModule : AbpModule
+{
+   ...
+}
+```
+注意：`AuthMicroServiceHttpApiHostModule` 中需要添加 `app.UseIdentityServer()`,`app.UseAuthentication()`,` app.UseAuthorization()` 否则启动 identityServer4会失败。  
+
+``` c#
+ 
+    public override void OnApplicationInitialization(ApplicationInitializationContext context)
+    {
+        var app = context.GetApplicationBuilder();
+        var env = context.GetEnvironment();
+
+        if (env.IsDevelopment())
+        {
+            app.UseDeveloperExceptionPage();
+        }
+        else
+        {
+            app.UseHsts();
+        }
+
+        app.UseHttpsRedirection();
+        app.UseCorrelationId();
+        app.UseStaticFiles();
+        app.UseRouting();
+        app.UseCors();
+        app.UseAuthentication();
+        //if (MultiTenancyConsts.IsEnabled)
+        //{
+        //    app.UseMultiTenancy();
+        //}
+        //app.UseAbpRequestLocalization();
+        app.UseIdentityServer(); // 增加IdentityServer4
+        app.UseAuthorization();
+        app.UseSwagger();
+        app.UseAbpSwaggerUI(options =>
+        {
+            options.SwaggerEndpoint("/swagger/v1/swagger.json", "Support APP API");
+
+            var configuration = context.GetConfiguration();
+            options.OAuthClientId(configuration["AuthServer:SwaggerClientId"]);
+            options.OAuthScopes("AuthMicroService");
+        });
+        app.UseAuditing();
+        app.UseAbpSerilogEnrichers();
+        app.UseConfiguredEndpoints();
+    }
+
+```
+``` bash
+ 启用identityserver4成功   https://localhost:44386/.well-known/openid-configuration
+```
+![Alt text](image-1.png)
+![Alt text](/images/abpmicroservices/micro010/abpmicroservices0010_0022image.png)  
+
+## 分布式权限AuthMicoService应用
