@@ -523,7 +523,8 @@ java -D"spring.profiles.active=mysql" -D"loader.path=./plugins" -D"alpha.cluster
 然后启动Slaver节点
 ```   
 注意细节：注册consul时 实例名称过长，默认的数据库表字段长度36过短，修改100长度即可，否则会报错。
-![Alt text](/images/abpmicroservices/micro009/abpmicroservices0009_00010image.png)  
+
+![Alt text](/images/abpmicroservices/micro009/abpmicroservices0009_0010image.png)  
 
 2、consul客户端查看
 
