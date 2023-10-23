@@ -207,9 +207,6 @@ public class AuthMicroServiceDbContext : AbpDbContext<AuthMicroServiceDbContext>
 ![Alt text](/images/abpmicroservices/micro010/abpmicroservices0010_0020image.png)  
 
 
-## 单点登录
-
-## 分布式权限校验
 
 
 ## 分布式权限AuthMicoService落地
@@ -577,11 +574,233 @@ ApiResource 中没有注册订单微服务资源，我们需要在AuthMicroServe
 
 即可添加
 
-![Alt text](/images/abpmicroservices/micro010/abpmicroservices0010_00333image.png)     
+![Alt text](/images/abpmicroservices/micro010/abpmicroservices0010_0033image.png)     
 
 ### 总结认证中心的思路
 
 ![Alt text](/images/abpmicroservices/micro010/abpmicroservices0010_0000image.png)
+
+
+## 分布式权限-自定义策略权限   
+根据订单详情聚合微服务的订单查询业务，我们已经对订单微服务进行了身份验证，同时也创建了AuthMicroServive认证中心，也把权限认证做在AuthMicroServive微服务（这样做是不合理，应该做到各自的微服务中进行管理并授权），现在我们需要调整这块授权移到订单微服务中，自己的授权自己服务管理。
+
+步骤  
+1、OrderService 对应领域集成 abp  PermissionManagement 服务 源码进行集成。并在 Module类中添加相对应的依赖注入特性。 
+``` c# 
+  // LKN.Order.Domain
+ <PackageReference Include="Volo.Abp.PermissionManagement.Domain" Version="7.3.0" />
+ <PackageReference Include="Volo.Abp.PermissionManagement.Domain.IdentityServer" Version="7.3.0" />
+ <PackageReference Include="Volo.Abp.PermissionManagement.Domain.Identity" Version="7.3.0" />
+ // LKN.Order.Domain.Shared
+ 
+ <PackageReference Include="Volo.Abp.PermissionManagement.Domain.Shared" Version="7.3.0" />
+ <PackageReference Include="Volo.Abp.Identity.Domain.Shared" Version="7.3.0" />
+
+ // LKN.Order.EntityFrameworkCore
+ <PackageReference Include="Volo.Abp.PermissionManagement.EntityFrameworkCore" Version="7.3.0" />
+ <PackageReference Include="Volo.Abp.Identity.EntityFrameworkCore" Version="7.3.0" />
+
+```
+2、OrederService微服务 OrderDomainModule、OrderDomainSharedModule,OrderEntityFrameworkCoreModule 添加特性
+
+OrderDomainModule添加  typeof(AbpPermissionManagementDomainModule)，typeof(AbpPermissionManagementDomainIdentityModule)， typeof(AbpPermissionManagementDomainIdentityServerModule) 特性
+``` c#
+using Volo.Abp.Domain;
+using Volo.Abp.Modularity;
+using Volo.Abp.PermissionManagement;
+using Volo.Abp.PermissionManagement.Identity;
+using Volo.Abp.PermissionManagement.IdentityServer;
+
+namespace LKN.Order;
+[DependsOn(
+    typeof(AbpDddDomainModule),
+    typeof(OrderDomainSharedModule),
+    typeof(AbpPermissionManagementDomainModule),
+    typeof(AbpPermissionManagementDomainIdentityModule),
+    typeof(AbpPermissionManagementDomainIdentityServerModule)
+)]
+public class OrderDomainModule : AbpModule
+{
+
+}
+```
+如果缺少 `Volo.Abp.PermissionManagement.Domain.Identity` 引用会报以下错误  
+
+![Alt text](/images/abpmicroservices/micro010/abpmicroservices0010_0035image.png)      
+
+OrderDomainSharedModule 添加  typeof(AbpPermissionManagementDomainSharedModule)
+``` c# 
+namespace LKN.Order;
+[DependsOn(
+   ...
+    typeof(AbpPermissionManagementDomainSharedModule)
+)]
+public class OrderDomainSharedModule : AbpModule
+{
+    public override void ConfigureServices(ServiceConfigurationContext context)
+    {
+        ....
+    }
+}
+
+``` 
+
+OrderEntityFrameworkCoreModule 添加  typeof(AbpPermissionManagementEntityFrameworkCoreModule) 特性
+
+``` c# 
+ using Microsoft.Extensions.DependencyInjection;
+using Volo.Abp.EntityFrameworkCore;
+using Volo.Abp.EntityFrameworkCore.MySQL;
+using Volo.Abp.Modularity;
+using Volo.Abp.PermissionManagement.EntityFrameworkCore;
+
+namespace LKN.Order.EntityFrameworkCore;
+
+[DependsOn(
+    typeof(OrderDomainModule),
+    typeof(AbpEntityFrameworkCoreMySQLModule),
+    typeof(AbpPermissionManagementEntityFrameworkCoreModule),
+    typeof(AbpEntityFrameworkCoreModule)
+)]
+public class OrderEntityFrameworkCoreModule : AbpModule
+{
+    public override void ConfigureServices(ServiceConfigurationContext context)
+    {
+        context.Services.AddAbpDbContext<OrderDbContext>(options =>
+        {
+                /* Add custom repositories here. Example:
+                 * options.AddRepository<Question, EfCoreQuestionRepository>();
+                 */
+        });
+    }
+}
+
+```
+
+
+3、实现权限服务应用层 OrderServicePermissionsAppService类、IOrderServicePermissionsAppService接口 
+
+![Alt text](/images/abpmicroservices/micro010/abpmicroservices0010_0034image.png)      
+
+OrderServicePermissionsAppService  实现
+```c# 
+using LKN.Order.Orders;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using Volo.Abp.Application.Dtos;
+using Volo.Abp.Authorization.Permissions;
+using Volo.Abp.PermissionManagement;
+
+namespace LKN.Order.Permissions
+{
+    public class OrderServicePermissionsAppService : OrderAppService, IOrderServicePermissionsAppService
+    {
+        private readonly IPermissionManager _permissionManager;
+
+        public OrderServicePermissionsAppService(IPermissionManager permissionManager)
+        {
+            _permissionManager = permissionManager;
+        }
+
+
+        public async Task AddRolePermissionAsync(string roleName, string permission)
+        {
+            await _permissionManager.SetAsync(permission, RolePermissionValueProvider.ProviderName, roleName, true);
+        }
+
+        public async Task AddUserPermissionAsync(Guid userId, string permission)
+        {
+            await _permissionManager.SetAsync(permission, UserPermissionValueProvider.ProviderName, userId.ToString(), true);
+        }
+        public async Task AddClientPermissionAsync(string ClientName, string permission)
+        {
+            await _permissionManager.SetAsync(permission, ClientPermissionValueProvider.ProviderName, ClientName, true);
+        }
+    }
+}
+
+```
+IOrderServicePermissionsAppService 定义接口
+
+```c#
+  /// <summary>
+    /// 授权接口
+    /// </summary>
+    public interface IOrderServicePermissionsAppService
+    {
+        public Task AddRolePermissionAsync(string roleName, string permission);
+
+        public Task AddUserPermissionAsync(Guid userId, string permission);
+
+        public Task AddClientPermissionAsync(string ClientName, string permission);
+    }
+```
+OrderPermissionDefinitionProvider 添加权限类型
+``` c# 
+using LKN.Order.Localization;
+using Volo.Abp.Authorization.Permissions;
+using Volo.Abp.Localization;
+
+namespace LKN.Order.Permissions;
+
+public class OrderPermissionDefinitionProvider : PermissionDefinitionProvider
+{
+    public override void Define(IPermissionDefinitionContext context)
+    {
+        //var myGroup = context.AddGroup(OrderPermissions.GroupName, L("Permission:Order"));
+        var myGroup = context.AddGroup(OrderPermissions.GroupName);
+
+        var permissionDefinition = myGroup.AddPermission(OrderPermissions.Orders.Default);
+        permissionDefinition.AddChild(OrderPermissions.Orders.Update);
+        permissionDefinition.AddChild(OrderPermissions.Orders.Create);
+        permissionDefinition.AddChild(OrderPermissions.Orders.Delete);
+        permissionDefinition.AddChild(OrderPermissions.Orders.Select);
+
+        permissionDefinition.AddChild("select");
+    }
+
+    private static LocalizableString L(string name)
+    {
+        return LocalizableString.Create<OrderResource>(name);
+    }
+}
+```
+
+![Alt text](image.png)
+
+
+
+## 分布式权限-动态C#客户端权限  
+
+## 分布式权限-分布式登录   
+## 分布式权限-其他微服务权限  
+## 分布式权限-网关权限  
+
+
+## 查询添加一个Select权限   
+1、定义权限    
+   1.1、给接口授权      
+2、添加客户权限     
+   2.1、生成迁移文件     
+   2.2、创建权限表      
+3、创建权限添加接口      
+4、校验分两步完成     
+   4.1 先校验是否登录，Authorize（认证）     
+        委托：AuthMicroService     
+   4.2 然后校验权限 select(鉴权)     
+        委托：OrderService     
+        abp:Volo.Abp.Authorization   
+
+## 总结：   
+1、认证中心     
+2、订单微服务身份证    
+3、订单微服务权限校验   
+4、C#动态Client 权限校验    
+5、场景  
+
 
 
 ![Alt text](image.png)
@@ -591,3 +810,10 @@ ApiResource 中没有注册订单微服务资源，我们需要在AuthMicroServe
 ![Alt text](image-2.png)
 
 ![Alt text](image-3.png)
+
+
+
+
+## 单点登录
+
+## 分布式权限校验
