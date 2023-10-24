@@ -586,6 +586,8 @@ ApiResource 中没有注册订单微服务资源，我们需要在AuthMicroServe
 
 步骤  
 1、OrderService 对应领域集成 abp  PermissionManagement 服务 源码进行集成。并在 Module类中添加相对应的依赖注入特性。 
+
+项目引用，也可以nuget修改包添加。
 ``` c# 
   // LKN.Order.Domain
  <PackageReference Include="Volo.Abp.PermissionManagement.Domain" Version="7.3.0" />
@@ -768,6 +770,8 @@ public class OrderPermissionDefinitionProvider : PermissionDefinitionProvider
     }
 }
 ```
+
+
 
 ![Alt text](image.png)
 
