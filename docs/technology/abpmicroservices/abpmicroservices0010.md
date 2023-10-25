@@ -1,6 +1,6 @@
 ---
 title: '微服务分布式权限'
-date: 2023-10-17  
+date: 2023-10-24 
 tags:
 - '微服务分布式权限'
 - 'abp'
@@ -553,6 +553,20 @@ OrderDetailsService 微服务，调用获取token接口,并成功生成了token
 2、然后注册订单详情客户信息
 3、然后生成订单详情客户的身份证
 
+## 查询添加一个Select权限   
+1、定义权限    
+   1.1、给接口授权      
+2、添加客户权限     
+   2.1、生成迁移文件     
+   2.2、创建权限表      
+3、创建权限添加接口      
+4、校验分两步完成     
+   4.1 先校验是否登录，Authorize（认证）     
+        委托：AuthMicroService     
+   4.2 然后校验权限 select(鉴权)     
+        委托：OrderService     
+        abp:Volo.Abp.Authorization   
+
 ## 用token 访问接口
  token获取成功，根据订单id,查询订单详情聚合接口，报错异常  
 
@@ -684,7 +698,7 @@ public class OrderEntityFrameworkCoreModule : AbpModule
 
 ![Alt text](/images/abpmicroservices/micro010/abpmicroservices0010_0034image.png)      
 
-OrderServicePermissionsAppService  实现
+OrderServicePermissionsAppService  实现    
 ```c# 
 using LKN.Order.Orders;
 using System;
@@ -725,7 +739,8 @@ namespace LKN.Order.Permissions
 }
 
 ```
-IOrderServicePermissionsAppService 定义接口
+
+IOrderServicePermissionsAppService 定义接口   
 
 ```c#
   /// <summary>
@@ -740,7 +755,9 @@ IOrderServicePermissionsAppService 定义接口
         public Task AddClientPermissionAsync(string ClientName, string permission);
     }
 ```
-OrderPermissionDefinitionProvider 添加权限类型
+
+OrderPermissionDefinitionProvider 添加权限类型   
+
 ``` c# 
 using LKN.Order.Localization;
 using Volo.Abp.Authorization.Permissions;
@@ -771,53 +788,557 @@ public class OrderPermissionDefinitionProvider : PermissionDefinitionProvider
 }
 ```
 
+代码实现已经到这里了，运行订单详情聚合微服务和订单微服务，我们再次通过订单详情聚合微服务查询订单详情接口，看看能否能查询到订单详情信息。
+通过浏览器直接访问     
 
+![Alt text](/images/abpmicroservices/micro010/abpmicroservices0010_0036image.png)    
 
-![Alt text](image.png)
+如果订单微服务中没有对该客户端授权的话，就会报以下错误。
 
+![Alt text](/images/abpmicroservices/micro010/abpmicroservices0010_0037image.png)    
 
+需要在订单微服务端给指定的客户账号（OrderDetailsServices-Client）给予授权（select权限）。
+ 
+![Alt text](/images/abpmicroservices/micro010/abpmicroservices0010_0038image.png)   
+
+此时，再访问`LKN.OrderDetailsServices` 聚合服务微服务，调用订单详情接口，认证和授权通过。
+ 
+![Alt text](/images/abpmicroservices/micro010/abpmicroservices0010_0039image.png)    
+
+### 总结：分布式流程分析
+
+![Alt text](/images/abpmicroservices/micro010/abpmicroservices0010_0040image.png)    
 
 ## 分布式权限-动态C#客户端权限  
+动态c#客户端权限，就是通过反向代理的原理，来实现客户调用接口是时，动态添加token。  
+我们基于abp 架构来实现，自己的实现动态C#客户端权限。代码如下：
+步骤：
+1、创建abp console 项目 
+``` bash
+abp new LKN.Mircroservices.ClientHttps -t console -o ./LKN.Mircroservices.ClientHttps -v 7.3.0 
+```
+nuget/项目 添加 
+``` c#
+	  <PackageReference Include="Volo.Abp.Http.Client.IdentityModel" Version="7.3.0" />
+```
+Module的文件添加  `ClientHttpsModule` 
+``` c#
+[DependsOn(
+   ...
+    typeof(AbpHttpClientIdentityModelModule) // 配置AbpIdentityModel
+  ...
+)]
+public class ClientHttpsModule : AbpModule
+{
+    ...
+}
+```
+appsettings.json 配置文件，需要添加 IdentityClients 节点信息，需要在微服务网站端配置。
+``` json
+"IdentityClients": {
+    //"Default": {
+    //  /*"GrantType": "client_credentials",*/
+    //  "GrantType": "password",
+    //  "ClientId": "OrderDetailService-Client-password",
+    //  "ClientSecret": "123456",
+    //  "Authority": "https://localhost:44315",
+    //  "UserName": "Regex2",
+    //  "UserPassword": "zjh123WTR!"
+    //},
+    "Default": {
+      "GrantType": "client_credentials", //类型
+      "ClientId": "OrderDetailsServices-Client",// 客户id
+      "ClientSecret": "12345",
+      "Authority": "https://localhost:44386"
+    },
+    "OrderService": {
+      "GrantType": "client_credentials",
+      "ClientId": "OrderDetailService-Client",
+      "ClientSecret": "123456",
+      "Authority": "https://localhost:44315"
+    },
+    "ProductService": {
+      "GrantType": "client_credentials",
+      "ClientId": "OrderDetailService-Client",
+      "ClientSecret": "123456",
+      "Authority": "https://localhost:44315"
+    }
+  },
 
-## 分布式权限-分布式登录   
-## 分布式权限-其他微服务权限  
+```
+
+2、添加聚合微服务端，C#动态客户服务，Module文件 添加注册。如： LKN.OrderDetailsServices订单聚合微服务中OrderDetailsServicesModule添加 typeof(ClientHttpsModule) 特性。
+
+``` c# 
+    ....
+    [DependsOn(typeof(ClientHttpsModule))]// 配置AbpIdentityModel
+    public class OrderDetailsServicesModule: AbpModule
+    {
+        .....
+    }
+
+```
+
+RemoteServiceHttpClientAuthenticator 代码实现
+
+```c# 
+using Microsoft.Extensions.DependencyInjection;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Net.Http;
+using System.Text;
+using System.Threading.Tasks;
+using Volo.Abp.DependencyInjection;
+using Volo.Abp.Http.Client.Authentication;
+using Volo.Abp.IdentityModel;
+
+namespace LKN.Microservices.ClientHttps.Https
+{
+    /// <summary>
+    /// 动态C#客户端设置请求头
+    /// </summary>
+    [Dependency(ServiceLifetime.Singleton)]
+    public class RemoteServiceHttpClientAuthenticator : IRemoteServiceHttpClientAuthenticator, ISingletonDependency
+    {
+        private string accessToken { set; get; }
+        public IIdentityModelAuthenticationService _authenticator { set; get; }
+        public Task Authenticate(RemoteServiceHttpClientAuthenticateContext context)
+        {
+            HttpClient httpClient = context.Client;
+            //bool flag = _authenticator.TryAuthenticateAsync(httpClient, "OrderService").Result;
+            bool flag = _authenticator.TryAuthenticateAsync(httpClient).Result;
+
+            // 2、使用accessToken
+            //context.Client.SetBearerToken(accessToken);
+            // 1、创建accessToken
+            /*if (string.IsNullOrEmpty(accessToken))
+            {
+                IdentityClientConfiguration identityClient = new IdentityClientConfiguration();
+                identityClient.Authority = "https://localhost:44315";
+                identityClient.ClientId = "OrderDetailService-Client";
+                identityClient.ClientSecret = "123456";
+                identityClient.GrantType = "client_credentials";
+                accessToken = _authenticator.GetAccessTokenAsync(identityClient).Result;
+            }*/
+            IdentityClientConfiguration identityClient = new IdentityClientConfiguration();
+            return Task.CompletedTask;
+        }
+    }
+}
+
+```
+
+3、接口端就可以按照平的调用了，不需要额外重新获取token,然后在接口中再通过`HttpClient`，设置请求token了。
+
+实例代码：
+``` c#
+/// <summary>
+        /// 获取订单详情
+        /// </summary>
+        /// <returns></returns>
+        [HttpGet("{id}")]
+        public async Task<OrderDto> Get(Guid id, string AccessToken)
+        {
+            //原有的方式：
+
+            //HttpClient apiClient = new HttpClient();
+            //apiClient.SetBearerToken(AccessToken); // 1、设置token到请求头
+            //HttpResponseMessage response = await apiClient.GetAsync("https://localhost:44397/api/OrderService/order/" + id);
+            //if (!response.IsSuccessStatusCode)
+            //{
+            //    throw new Exception($"API Request Error, StatusCode is : {response.StatusCode} + {response.Content}");
+            //}
+            //else
+            //{
+            //    string content = await response.Content.ReadAsStringAsync();
+            //    return JsonConvert.DeserializeObject<OrderDto>(content);
+            //}
+
+
+            //正常调用的方式  动态客户端实现token获取与传输
+            // 1、查询订单
+            OrderDto orderDto = await _OrderAppService.GetAsync(id);
+
+            // 2、查询商品
+            OrderItemDto[] orderItemDtos = orderDto.OrderItems;
+            foreach (var orderItem in orderItemDtos)
+            {
+                ProductDto productDto = await _ProductAppService.GetAsync(orderItem.ProductId);
+
+                //3、设置商品名称
+                orderItem.ProductName = productDto.ProductTitle;
+            }
+            // 2、查询商品
+            return orderDto;
+        }
+```
+
+![Alt text](/images/abpmicroservices/micro010/abpmicroservices0010_0041image.png)    
+
+## 分布式权限-分布式登录（单点登录）
+
+分布式登录，需要创建网站项目。我们创建一个`LKN.EbusinessWebSite` ,并修改AuthMircoService 认证中心服务，添加单点登录页面。
+
+步骤
+1、修改AuthMircoService、添加单点登录页面
+2、创建 LKN.EbusinessWebSite 网站  
+
+落地
+
+认证中心，添加单点登录页面
+添加引用 apb 的 Identity 模块、Account模块、AspNetCore.Mvc.UI模块的包
+``` C# 
+//B:LKN.AuthMicroService.HttpApi.Host
+//Identity 模块
+<PackageReference Include="Volo.Abp.Identity.EntityFrameworkCore" Version="7.3.0" />
+<PackageReference Include="Volo.Abp.Identity.Application.Contracts" Version="7.3.0" />
+<PackageReference Include="Volo.Abp.Identity.HttpApi" Version="7.3.0" />
+//Acount模块
+<PackageReference Include="Volo.Abp.Account.HttpApi" Version="7.3.0" />
+<PackageReference Include="Volo.Abp.Account.Web.IdentityServer" Version="7.3.0" />
+<PackageReference Include="Volo.Abp.Account.Application" Version="7.3.0" />
+//UI 模块（单点登录界面）
+<PackageReference Include="Volo.Abp.AspNetCore.Mvc" Version="7.3.0" />
+<PackageReference Include="Volo.Abp.AspNetCore.Mvc.UI" Version="7.3.0" />
+<PackageReference Include="Volo.Abp.AspNetCore.Mvc.UI.Bootstrap" Version="7.3.0" />
+<PackageReference Include="Volo.Abp.AspNetCore.Mvc.UI.Bundling" Version="7.3.0" />
+<PackageReference Include="Volo.Abp.AspNetCore.Mvc.UI.Theme.Basic" Version="7.3.0" />
+//E:LKN.AuthMicroService.HttpApi.Host
+
+//B:LKN.AuthMicroService.EntityFrameworkCore 下需要添加
+<PackageReference Include="Volo.Abp.Identity.EntityFrameworkCore" Version="7.3.0" />
+//E:LKN.AuthMicroService.EntityFrameworkCore
+```
+在项目中找Module文件，添加引用 AuthMicroServiceHttpApiHostModule
+```c#
+
+[DependsOn(
+    typeof(AuthMicroServiceApplicationModule),
+    typeof(AuthMicroServiceEntityFrameworkCoreModule),
+    typeof(AuthMicroServiceHttpApiModule),
+
+    typeof(AbpAutofacModule),
+    typeof(AbpEntityFrameworkCoreMySQLModule),
+    typeof(AbpPermissionManagementEntityFrameworkCoreModule),
+    //Identiy模块 
+    typeof(AbpIdentityApplicationModule),
+    typeof(AbpIdentityEntityFrameworkCoreModule),
+    typeof(AbpIdentityApplicationContractsModule),
+    //账号模块
+
+    typeof(AbpAccountWebIdentityServerModule),
+    typeof(AbpAccountApplicationModule),
+
+    typeof(AbpAspNetCoreSerilogModule),
+    typeof(AbpSwashbuckleModule),
+
+    typeof(AbpAspNetCoreMvcModule),
+    typeof(AbpAspNetCoreMvcUiBasicThemeModule)
+    
+    )]
+public class AuthMicroServiceHttpApiHostModule : AbpModule
+{
+    ....
+}
+``` 
+并在EntityFrameworkCore文件目录中找到 AuthMicroServiceHttpApiHostMigrationsDbContext 添加用户 "ConfigureIdentity" 表，生成迁移文件创建用表。
+```c#
+using Microsoft.EntityFrameworkCore;
+using Volo.Abp.EntityFrameworkCore;
+using Volo.Abp.Identity;
+using Volo.Abp.Identity.EntityFrameworkCore;
+using Volo.Abp.IdentityServer;
+using Volo.Abp.PermissionManagement;
+using Volo.Abp.PermissionManagement.EntityFrameworkCore;
+
+namespace LKN.AuthMicroService.EntityFrameworkCore;
+
+public class AuthMicroServiceHttpApiHostMigrationsDbContext : AbpDbContext<AuthMicroServiceHttpApiHostMigrationsDbContext>
+{
+    public AuthMicroServiceHttpApiHostMigrationsDbContext(DbContextOptions<AuthMicroServiceHttpApiHostMigrationsDbContext> options)
+        : base(options)
+    {
+    }
+
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    {
+        // 1、去掉IdentityServer4前缀
+        AbpIdentityServerDbProperties.DbTablePrefix = "";
+        // 去掉
+        AbpIdentityDbProperties.DbTablePrefix = "";
+       // AbpPermissionManagementDbProperties.DbTablePrefix = "";
+
+        base.OnModelCreating(modelBuilder);
+
+        // 2、创建用户表
+        modelBuilder.ConfigureAuthMicroService();
+        //创建用户表
+        modelBuilder.ConfigureIdentity(); 
+        //权限表
+       // modelBuilder.ConfigurePermissionManagement();
+    }
+}
+
+```
+
+LKN.AuthMicroService.EntityFrameworkCore 模块, `AuthMicroServiceEntityFrameworkCoreModule`类中添加
+` typeof(AbpIdentityEntityFrameworkCoreModule)`
+```c#
+using Microsoft.Extensions.DependencyInjection;
+using Volo.Abp.EntityFrameworkCore;
+using Volo.Abp.Identity;
+using Volo.Abp.Identity.EntityFrameworkCore;
+using Volo.Abp.IdentityServer.EntityFrameworkCore;
+using Volo.Abp.Modularity;
+
+namespace LKN.AuthMicroService.EntityFrameworkCore;
+
+[DependsOn(
+    typeof(AuthMicroServiceDomainModule),
+    typeof(AbpEntityFrameworkCoreModule),
+    typeof(AbpIdentityServerEntityFrameworkCoreModule),// 集成 IdentityServer
+    typeof(AbpIdentityEntityFrameworkCoreModule) // 集成权限管理
+)]
+public class AuthMicroServiceEntityFrameworkCoreModule : AbpModule
+{
+    public override void ConfigureServices(ServiceConfigurationContext context)
+    {
+        context.Services.AddAbpDbContext<AuthMicroServiceDbContext>(options =>
+        {
+                /* Add custom repositories here. Example:
+                 * options.AddRepository<Question, EfCoreQuestionRepository>();
+                 */
+        });
+    }
+}
+
+```
+
+2、创建 LKN.EbusinessWebSite Mvc 网站
+身份认证器 ` Microsoft.AspNetCore.Authentication.OpenIdConnect` 进行页面跳转
+``` c# 
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.OpenIdConnect" Version="7.0.12" />
+    // abp  
+    <PackageReference Include="Volo.Abp.AspNetCore.Mvc" Version="7.3.0" />
+    <PackageReference Include="Volo.Abp.Autofac" Version="7.3.0" />
+```
+添加 EbusinessWebSiteModule
+
+``` c# 
+using LKN.Microservices.ClientHttps;
+using LKN.Order;
+using LKN.Product;
+using Microsoft.IdentityModel.Protocols.OpenIdConnect;
+using Volo.Abp;
+using Volo.Abp.AspNetCore.Mvc;
+using Volo.Abp.Autofac;
+using Volo.Abp.Modularity;
+
+namespace LKN.EbusinessWebSite
+{
+    [DependsOn(typeof(AbpAspNetCoreMvcModule))]
+    [DependsOn(typeof(AbpAutofacModule))]
+    [DependsOn(typeof(ClientHttpsModule))]
+
+    [DependsOn(typeof(OrderHttpApiClientModule))]
+    [DependsOn(typeof(ProductHttpApiClientModule))]
+    public class EbusinessWebSiteModule: AbpModule
+    {
+        public override void ConfigureServices(ServiceConfigurationContext context)
+        {
+            var configuration = context.Services.GetConfiguration();
+            context.Services.AddControllersWithViews();
+
+            context.Services.AddAuthentication(options =>
+            {
+                options.DefaultScheme = "Cookies";
+                options.DefaultChallengeScheme = "oidc";
+            })
+                .AddCookie("Cookies", options =>
+                {
+                    options.ExpireTimeSpan = TimeSpan.FromDays(365);
+                })
+                .AddOpenIdConnect("oidc", options =>
+                {
+                    options.Authority = "https://localhost:44386";
+                    options.ClientId = "EbusinessWebSite-Client";
+                    options.ClientSecret = "12345";
+                    options.RequireHttpsMetadata = false;
+                    options.ResponseType = OpenIdConnectResponseType.Code;
+                    options.SaveTokens = true;// Token（身份证）
+                    options.Scope.Add("openid");
+                    options.Scope.Add("profile");
+                    options.Scope.Add("OrderService");
+                    options.Scope.Add("InternalGateway");
+                });
+        }
+
+        public override void OnApplicationInitialization(ApplicationInitializationContext context)
+        {
+            var app = context.GetApplicationBuilder();
+            var env = context.GetEnvironment();
+
+            if (env.IsDevelopment())
+            {
+                app.UseDeveloperExceptionPage();
+            }
+            else
+            {
+                app.UseExceptionHandler("/Home/Error");
+                // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
+                app.UseHsts();
+            }
+            app.UseHttpsRedirection();
+            app.UseStaticFiles();
+
+            app.UseRouting();
+            // 2、开启身份验证(开启登录认证)
+            app.UseAuthentication();
+            app.UseAuthorization();
+
+            app.UseEndpoints(endpoints =>
+            {
+                endpoints.MapControllerRoute(
+                    name: "default",
+                    pattern: "{controller=Home}/{action=Index}/{id?}");
+            });
+        }
+
+    }
+}
+
+```
+
+
+3、在AuthMicroService认证中心配置Client客户信息 、ApiScopes作用域、ApiResources的API资源信息，同时需要添加用户信息。  
+添加Client客户端json数据   
+  
+![Alt text](/images/abpmicroservices/micro010/abpmicroservices0010_0042image.png)     
+```json
+{
+  "clientName": "EbusinessWebSite-Client",
+  "secret": "12345",
+  "redirectUri": "https://localhost:7132/signin-oidc",
+  "postLogoutRedirectUri": "https://localhost:7132/signout-callback-oidc",
+  "scopes": [
+    "openid",
+    "profile",
+    "OrderService",
+    "InternalGateway",
+  ],
+  "grantTypes": [
+    "authorization_code"
+  ]
+}
+```
+
+添加 ApiScopes 作用域json 数据   
+ 
+![Alt text](/images/abpmicroservices/micro010/abpmicroservices0010_0043image.png)     
+``` json
+//第二个作用域 openid
+{
+  "name": "openid",
+  "displayName": "openid"
+}
+//第二个作用域 profile
+{
+  "name": "profile",
+  "displayName": "profile"
+}
+```
+
+添加 ApiResources的API资源信息
+ 
+![Alt text](/images/abpmicroservices/micro010/abpmicroservices0010_0044image.png)    
+``` json
+//第一个api资源 openid  name名称 必须 跟作用域名称一样 
+{
+  "name": "openid",
+  "displayName": "openid",
+  "description": "openid",
+  "claims": [
+    "admin"
+  ]
+}
+//第二个api资源 profile  name名称 必须 跟作用域名称一样 
+{
+  "name": "profile",
+  "displayName": "profile",
+  "description": "profile",
+  "claims": [
+    "admin"
+  ]
+}
+```
+**当网站转到AuthMicorService认证中心登录时**，一直在报错`[500] invalid_scope`信息时:  
+第一种解决方案：注意检查客户端配置的作用域信息，是否在ApiScopes表和ApiResouces表有对应的配置，如果没有需要添加，即可解决。
+
+![Alt text](/images/abpmicroservices/micro010/abpmicroservices0010_0048image.png)   
+
+第二种解决方案： 在IdentityService4生成的IdentityResources表中，需要添加`openid`、`profile` 认证资源，这里功能也是在AuthMicroService认证中心实现 `IdentityResourcesAppService` 服务。参考【ApiResourceAppService】实现，同基于 abp identiytService源码来实现。
+
+![Alt text](/images/abpmicroservices/micro010/abpmicroservices0010_0049image.png)   
+
+
+
+账号注册，便于单点登录   
+Account   
+![Alt text](/images/abpmicroservices/micro010/abpmicroservices0010_0045image.png)      
+
+``` json
+{
+  "userName": "kenyonli",
+  "emailAddress": "kenyonli@example.com",
+  "password": "Lkn12345.",
+  "appName": "string"
+}
+```
+### 单点登录流程分析
+1、访问网站首页时，诺没有登录，就转到认证中心登录页面。
+ 
+![Alt text](/images/abpmicroservices/micro010/abpmicroservices0010_0046image.png)    
+
+2、登录成功后，即跳转到网站首页。
+
+![Alt text](/images/abpmicroservices/micro010/abpmicroservices0010_0047image.png)    
+
+### 网站中调用OrderService接口时，报异常
+以下异常，属于认证中心的授权问题，请检查客户端的作用域及接口授权问题。     
+如：案例中的 EbusinessWebSite-Client客户端作用域没有配置OrderServer报错，配置好后需求退出登录后，再次登录。  
+
+![Alt text](/images/abpmicroservices/micro010/abpmicroservices0010_0050image.png)  
+
+如：案例中的 LKN.EbusinessWebSite网站，前端和后端错误信息，从错误日志中根据找不到真正的原因，需要在调用OrderService微服务端找原因。    
+
+前端：
+
+![Alt text](/images/abpmicroservices/micro010/abpmicroservices0010_0051image.png)  
+
+后台：
+
+![Alt text](/images/abpmicroservices/micro010/abpmicroservices0010_0052image.png)   
+
+OrderService微服务端日志中看到` Authorization failed. These requirements were not met` ，意思说：授权失败。未满足这些要求   
+
+![Alt text](/images/abpmicroservices/micro010/abpmicroservices0010_0053image.png)  
+
+## 登录 分析  
+1、id_token 登录 token   
+    下次登录全验证  
+2、access_token 访问微服务token    
+     访问微服务token
+
+
+
 ## 分布式权限-网关权限  
-
-
-## 查询添加一个Select权限   
-1、定义权限    
-   1.1、给接口授权      
-2、添加客户权限     
-   2.1、生成迁移文件     
-   2.2、创建权限表      
-3、创建权限添加接口      
-4、校验分两步完成     
-   4.1 先校验是否登录，Authorize（认证）     
-        委托：AuthMicroService     
-   4.2 然后校验权限 select(鉴权)     
-        委托：OrderService     
-        abp:Volo.Abp.Authorization   
-
-## 总结：   
-1、认证中心     
-2、订单微服务身份证    
-3、订单微服务权限校验   
-4、C#动态Client 权限校验    
-5、场景  
+网关权限，需要认证中心，先配置API资源和作用域相关信息,以及添加扩展方法，需要注意的是，客户端中添加的作用域名称，也要跟ApiScope、ApiResources的名称一样才行。   
+应用场景：以订单微服务中查询订单业务为例，网站通过内部网关访问订单微服务，来实现查询服务。
+步骤   
+1、在AuthMicroService认证中心微服务，通过接口添加作用域和API资源信息
+2、IRemoteServiceHttpClientAuthenticator 接口实现C#动态客户端调用
+3、网站中EbusinessWebSiteModule类中需要添加作用域
 
 
 
-![Alt text](image.png)
-
-![Alt text](image-1.png)
-
-![Alt text](image-2.png)
-
-![Alt text](image-3.png)
-
-
-
-
-## 单点登录
-
-## 分布式权限校验
