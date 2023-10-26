@@ -184,7 +184,15 @@ module.exports = [
          {
           text:'微服务分布式权限',
           link:'/technology/abpmicroservices/abpmicroservices0010.md'
-         }   
+         },
+         {
+          text:'微服务分布式文件系统、分布式缓存、分布式锁',
+          link:'/technology/abpmicroservices/abpmicroservices0011.md'
+         },
+         {
+          text:'微服务大数据库MongoDB、任务调度Hangfire',
+          link:'/technology/abpmicroservices/abpmicroservices0012.md'
+         }
     ]},
       {
         text: 'c/c++',

@@ -227,3 +227,11 @@ tar 命令详解
 　　8、*.rar 用 unrar e解压
 　　9、*.zip 用 unzip 解压
 ```
+
+## 使用netdiscover和fping进行探测局域网络中的机器 
+主动
+netdiscover -i eht0 -r 192.168.2.0/34  
+被动
+netdiscover -p
+
+fping -ag 192.168.1.0/24 > fping.txt
