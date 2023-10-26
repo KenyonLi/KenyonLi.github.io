@@ -1337,8 +1337,202 @@ OrderService微服务端日志中看到` Authorization failed. These requirement
 应用场景：以订单微服务中查询订单业务为例，网站通过内部网关访问订单微服务，来实现查询服务。
 步骤   
 1、在AuthMicroService认证中心微服务，通过接口添加作用域和API资源信息
-2、IRemoteServiceHttpClientAuthenticator 接口实现C#动态客户端调用
-3、网站中EbusinessWebSiteModule类中需要添加作用域
+2、在内部网关配置权限验证
+3、网站中EbusinessWebSiteModule类中需要添加作用域，IRemoteServiceHttpClientAuthenticator 接口实现C#动态客户端调用
+
+落地实现
+
+1、AuthMircoService 认证中心接口添加 API资源、作用域   
+
+ApiResource  接口添加数据
+``` json
+//ApiResource
+{
+  "name": "InternalGateway",
+  "displayName": "InternalGateway",
+  "description": "InternalGateway",
+  "claims": [
+    "ad"
+  ]
+}
+```
+ 
+![Alt text](/images/abpmicroservices/micro010/abpmicroservices0010_0054image.png)  
+
+ApiScope  接口添加数据
+``` json
+//ApiScope
+{
+  "name": "InternalGateway",
+  "displayName": "InternalGateway"
+}
+```
+![Alt text](/images/abpmicroservices/micro010/abpmicroservices0010_0054image.png)  
 
 
+客户端需要修改一下作用域信息
+
+Client
+``` json
+{
+  "clientName": "EbusinessWebSite-Client",
+  "secret": "12345",
+  "redirectUri": "https://localhost:7132/signin-oidc",
+  "postLogoutRedirectUri": "https://localhost:7132/signout-callback-oidc",
+  "scopes": [
+    "openid",
+    "profile",
+    "OrderService",
+    "InternalGateway", //新添加的
+  ],
+  "grantTypes": [
+    "authorization_code"
+  ]
+}
+```
+
+![Alt text](/images/abpmicroservices/micro010/abpmicroservices0010_0056image.png)  
+
+查看认证中心数据库表结果：
+
+![Alt text](/images/abpmicroservices/micro010/abpmicroservices0010_0057image.png)  
+![Alt text](/images/abpmicroservices/micro010/abpmicroservices0010_0058image.png)  
+![Alt text](/images/abpmicroservices/micro010/abpmicroservices0010_0059image.png)  
+
+ 关于网关的信息已经添加成功    
+ 
+
+
+2、内部网关微服务实现权限验证   
+
+基于之前的内部网关微服务，在`InternalGatewayHostModule` 类中添加如下代码
+
+``` c#
+     // 1、添加添加身份验证
+        public override void ConfigureServices(ServiceConfigurationContext context)
+        {
+            .....
+            // 1、添加添加身份验证
+            context.Services.AddAuthentication(options => {
+                                options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                                options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+                            })
+                            .AddJwtBearer(options =>
+                            {
+                                options.Authority = configuration["AuthServer:Authority"];// 1、认证中心地址
+                                options.Audience = "InternalGateway"; //2、api名称(项目具体名称)
+                                // 3、https元数据，不需要
+                                options.RequireHttpsMetadata = Convert.ToBoolean(configuration["AuthServer:RequireHttpsMetadata"]);
+                            });
+            ....
+        }
+      //2、开启权限验证
+        public override void OnApplicationInitialization(ApplicationInitializationContext context)
+        {
+            var app = context.GetApplicationBuilder();
+
+            ....
+            app.UseAuthentication();//2、开启权限验证
+            ....
+        }
+```
+
+3、在网站中配置C#动态客户端调用远程连参数 `appsettings.json`
+
+``` json
+"RemoteServices": {
+    /*"Order": {
+      "BaseUrl": "https://localhost:44397/"
+    },*/
+    //内部网关调用
+    "Order": {
+      "BaseUrl": "https://localhost:7171/"
+    },
+    "Product": {
+      "BaseUrl": "https://localhost:44370/"
+    },
+    "Payment": {
+      "BaseUrl": "https://localhost:44357/"
+    }
+  }
+```
+
+并引用C#动态客户端扩展方法类`RemoteServiceHttpClientAuthenticator`  
+
+```c#
+namespace LKN.Microservices.ClientHttps.Https
+{
+    /// <summary>
+    /// 动态C#客户端设置请求头
+    /// </summary>
+    [Dependency(ServiceLifetime.Singleton)]
+    public class RemoteServiceHttpClientAuthenticator : IRemoteServiceHttpClientAuthenticator, ISingletonDependency
+    {
+        private string accessToken { set; get; }
+        public IIdentityModelAuthenticationService _authenticator { set; get; }
+        public IHttpContextAccessor _accessor { set; get; }
+        public Task Authenticate(RemoteServiceHttpClientAuthenticateContext context)
+        {
+
+            HttpClient httpClient = context.Client;
+
+            //1、使用accessToken
+            try
+            {
+                accessToken = _accessor.HttpContext.GetTokenAsync("access_token").Result;
+            }
+            catch (Exception)
+            {
+                // 不作异常处理
+                accessToken = "";
+            }
+
+            if (!string.IsNullOrEmpty(accessToken))
+            {
+                httpClient.SetBearerToken(accessToken);
+                return Task.CompletedTask;
+            }
+            //Task.WaitAll();
+            //1、使用 配置文件获取token
+            //bool flag = _authenticator.TryAuthenticateAsync(httpClient, "OrderService").Result;
+            bool flag = _authenticator.TryAuthenticateAsync(httpClient).Result;
+
+            return Task.CompletedTask;
+        }
+    }
+}
+
+```
+
+在`EbusinessWebSiteModule`中添加 ` [DependsOn(typeof(ClientHttpsModule))]` 引用，并在 `ConfigureServices` 配置 网关作用域信息。
+
+
+``` c#
+
+            context.Services.AddAuthentication(options =>
+            {
+                options.DefaultScheme = "Cookies";
+                options.DefaultChallengeScheme = "oidc";
+            })
+                .AddCookie("Cookies", options =>
+                {
+                    options.ExpireTimeSpan = TimeSpan.FromDays(365);
+                })
+                .AddOpenIdConnect("oidc", options =>
+                {
+                    options.Authority = "https://localhost:44386";
+                    options.ClientId = "EbusinessWebSite-Client";
+                    options.ClientSecret = "12345";
+                    options.RequireHttpsMetadata = false;
+                    options.ResponseType = OpenIdConnectResponseType.Code;
+                    options.SaveTokens = true;// Token（身份证）
+                    options.Scope.Add("openid");
+                    options.Scope.Add("profile");
+                    options.Scope.Add("OrderService");
+                    options.Scope.Add("InternalGateway");// 添加网关信息
+                });
+```
+
+
+需要注意一下，所有微服务（根据业务场景，这里用到的订单微服务、内部网关、认证微服务、网站）都启动成功后，访问时还会出现访问不成功的情况，请清除浏览器的缓存，重新登录试试看。
 
