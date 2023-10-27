@@ -263,14 +263,14 @@ ProductMongoDBRepository
 
  步骤  
  1、准备OrderService微服务  
- 2、使用abp 的`Volo.Abp.BackgroundJobs.HangFire`
+ 2、使用abp 的`Volo.Abp.BackgroundWorkers.Hangfire`
  
  实现：
-    1、 在订单微服务应用层上引用`Volo.Abp.BackgroundJobs.HangFire`
+    1、 在订单微服务应用层上引用`Volo.Abp.BackgroundWorkers.Hangfire`
     ``` c# 
-     <PackageReference Include="Volo.Abp.BackgroundJobs.HangFire" Version="7.3.0" />
+     <PackageReference Include="Volo.Abp.BackgroundWorkers.Hangfire" Version="7.3.0" />
     ```
-    2、OrderApplicationModule 添加 依赖注入    `typeof(AbpBackgroundJobsHangfireModule),`
+    2、OrderApplicationModule 添加 依赖注入    `typeof(AbpBackgroundWorkersHangfireModule),`
 
     ``` c#
     [DependsOn(
@@ -278,7 +278,7 @@ ProductMongoDBRepository
     typeof(OrderApplicationContractsModule),
     typeof(AbpDddApplicationModule),
     typeof(AbpPermissionManagementApplicationModule),
-       typeof(AbpBackgroundJobsHangfireModule),
+       typeof(AbpBackgroundWorkersHangfireModule),
     typeof(AbpAutoMapperModule)
     )]
 public class OrderApplicationModule : AbpModule
@@ -287,4 +287,34 @@ public class OrderApplicationModule : AbpModule
 }
  ```
 
+ 任务添加`OrderStackWorker` 并实现`HangfireBackgroundWorkerBase`
+
+ ``` c# 
+
+    /// <summary>
+    /// 自动回收库存任务
+    /// </summary>
+    public class OrderStackWorker : HangfireBackgroundWorkerBase
+    {
+        public ILogger<OrderStackWorker> _logger { get; set; } //efcore
+        public OrderStackWorker()
+        {
+            RecurringJobId = nameof(OrderStackWorker);
+            CronExpression = Cron.MinuteInterval(1);
+        }
+        public override Task DoWorkAsync(CancellationToken cancellationToken = default)
+        {
+            _logger.LogInformation("Executed OrderStackWorker。。。。");
+            //1、遍历订单表
+            //2、判断订单是否过期。根据时间字段
+            //3、过期的订单，直接回复库存
+
+            return Task.CompletedTask;
+        }
+    }
+ ```
+
+## Hanfire 与 ScheduleMaster 的区别是什么  
+Hanfire 是单体  
+ScheduleMaster 任务调度中心
 

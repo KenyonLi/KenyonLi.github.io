@@ -235,3 +235,47 @@ netdiscover -i eht0 -r 192.168.2.0/34
 netdiscover -p
 
 fping -ag 192.168.1.0/24 > fping.txt
+
+
+## linux   文件目录  
+核心文件结构   
+bin 执行文件  ——  执行软件    
+etc 存储配置地方 ——   软件配置    
+home 用户目录  ——  用户操作的目录
+root根用户目录   ——  超级用户名称
+sbin 系统管理的执行命令  ——    存储软件执行软件  
+usr 安装软件地方  ——  安装软件存储的位置
+var 日志文件    ——   存储软件日志   
+
+## 添加`useradd`用户
+``` bash
+useradd kenyonli  
+```
+## 修改用户权限 
+``` bash
+```
+## 给用户添加密码  `password` 
+``` bash
+password
+```
+## 查看 用户信息 
+``` bash
+id kenyonli   
+```
+## 切换用户 `su` 
+``` bash
+su - kenyonli  
+```
+
+## 修改用户组  
+
+``` bash
+usermod -g <组名 > <用户>
+```   
+
+## 修改文件使用的用户权限和组   
+``` bash  
+chown -R <用户名称> : <组> <文件>   读写权限   
+
+``` 
+
