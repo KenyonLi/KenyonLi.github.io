@@ -316,5 +316,5 @@ public class OrderApplicationModule : AbpModule
 
 ## Hanfire 与 ScheduleMaster 的区别是什么  
 Hanfire 是单体  
-ScheduleMaster 任务调度中心
+ScheduleMaster 是分布式任务调度中心
 

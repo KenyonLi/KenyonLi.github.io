@@ -251,21 +251,37 @@ var 日志文件    ——   存储软件日志
 ``` bash
 useradd kenyonli  
 ```
-## 修改用户权限 
+## 删除用户
+```bash
+userdel 用户名
+``` 
+## 查询用户信息
 ``` bash
+id 用户名
 ```
-## 给用户添加密码  `password` 
-``` bash
-password
-```
-## 查看 用户信息 
-``` bash
-id kenyonli   
-```
+
 ## 切换用户 `su` 
 ``` bash
 su - kenyonli  
 ```
+注：从权限高的切换到权限低的不需要密码，反之需要输入密码。   
+## 查看当前用户  
+``` bash
+whoami 或者 who am i
+```
+
+## 给用户添加密码  `passwd` 
+``` bash
+passwd 
+```
+给指定用户修改密码   
+注：pwd 命令可以西安市当前用户所在目录。 
+
+## 查看 用户信息 
+``` bash
+id kenyonli   
+```
+
 
 ## 修改用户组  
 
@@ -273,9 +289,22 @@ su - kenyonli
 usermod -g <组名 > <用户>
 ```   
 
+## 文件授权 
+ 
 ## 修改文件使用的用户权限和组   
 ``` bash  
 chown -R <用户名称> : <组> <文件>   读写权限   
 
 ``` 
 
+## groupdel 用户组  
+
+``` bash 
+groupdel test
+```
+
+## 添加用户到组
+
+``` bash
+useradd -g test tony11
+```
