@@ -1,8 +1,8 @@
 ---
-title: 'donet core基础'
+title: 'dotnet core基础'
 date: 2023-06-25
 tags:
-- 'donet core'
+- 'dotnet core'
 - 'C#'
 categories:
 - 'C#'

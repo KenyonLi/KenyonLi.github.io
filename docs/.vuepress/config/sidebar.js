@@ -10,14 +10,18 @@ module.exports = [
         text: 'dotnet core',
         collapsible: true,
         children: [
-        {
+          {
+            text: 'EF Core',
+            link: '/technology/dotnetcore/dotnet01.md',
+          },
+         {
           text: 'EF Core',
           link: '/technology/dotnetcore/index.md',
-        },
-        {
+         },
+         {
           text: 'Socket网络编程',
           link: '/technology/dotnetcore/socket001.md',
-        }]
+         }]
       },
       {
         text: 'ABP vNnext',
