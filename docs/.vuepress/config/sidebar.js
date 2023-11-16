@@ -11,11 +11,11 @@ module.exports = [
         collapsible: true,
         children: [
           {
-            text: 'EF Core',
+            text: 'dotnet 安装 CLI/SDK',
             link: '/technology/dotnetcore/dotnet01.md',
           },
          {
-          text: 'EF Core',
+          text: 'EFCore数据库迁移命令',
           link: '/technology/dotnetcore/index.md',
          },
          {

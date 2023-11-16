@@ -1,5 +1,5 @@
 ---
-title: 'dotnet 安装 sdk '
+title: 'dotnet 安装 CLI/SDK '
 date: 2023-06-25
 tags:
 - 'dotnet 安装 sdk'
@@ -11,7 +11,15 @@ categories:
 ## 目录
 [[toc]]
 
-## dotnet 安装 sdk   
+
+
+
+## dotnet 安装 CLI/SDK   
+
+## 安装 .NET CLI 
+``` bash
+dotnet tool install --global dotnet-ef --version 5.0
+```
 
 ["dotnet 下载官网"](https://learn.microsoft.com/zh-cn/dotnet/core/install/linux-centos)
 
@@ -48,3 +56,42 @@ sudo dnf install aspnetcore-runtime-7.0
 sudo dnf install dotnet-runtime-7.0
 ```
 
+## centos9 安装 dotnet sdk 失败  
+
+异常问题：  `Error when install dotnet/core/aspnet:3.1 on CentOS 8 - Folder [/usr/share/dotnet/host/fxr] does not contain any version-numbered child folders`    
+
+[参考地址](https://stackoverflow.com/questions/65422998/error-when-install-dotnet-core-aspnet3-1-on-centos-8-folder-usr-share-dotne)     
+
+
+如果dotnet sdk是7.0版
+
+步骤1.-删除sdk
+
+``` bash
+sudo dnf remove dotnet-sdk-7.0
+```
+
+步骤2.-删除文件夹
+
+``` bash
+sudo rm -rf /usr/share/dotnet
+sudo rm -rf /usr/bin/dotnet
+sudo rm -rf /etc/yum.repos.d/microsoft-prod.repo
+```
+步骤4.-清洁和升级
+
+``` bash
+sudo dnf clean all
+sudo dnf upgrade
+```
+
+步骤5.- Reboot system
+
+``` bash
+sudo init 6
+```
+步骤6.-最后
+
+``` bash
+sudo dnf install dotnet-sdk-7.0
+```

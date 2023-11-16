@@ -13,6 +13,12 @@ categories:
 [[toc]]
 ## 一、 EFCore数据库迁移命令
 
+## dotnet 安装 CLI 
+
+``` bash
+dotnet tool install --global dotnet-ef --version 5.0
+```
+
 [EFCore数据库迁移命令](https://blog.csdn.net/az44yao/article/details/111399857)
 ::: tip 前言
  因为现在用.net core 开发新项目，过程中需要经常涉及到数据命令的迁移，今天分别整EFCore 的两种迁移数据库的方式 

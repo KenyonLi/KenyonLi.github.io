@@ -171,7 +171,20 @@ docker概念介绍
   trust       Manage trust on Docker images 管理信任
   volume      Manage volumes 管理数据挂载(数据持久化 === 永久保存)
 ```
+ ### Centos9 安装异常处理
+ #### 1、Emulate Docker CLI using podman. Create /etc/containers/nodocker to quiet msg. Error: open /proc/sel
+ [Centos8参考](https://blog.csdn.net/marc_chen/article/details/117869572)
+ contos9 卸载 重新安装
+ ``` bash
+ yum remove docker 
+ ```
  
+ #### 2、ERROR: Cannot connect to the Docker daemon at unix:///var/run/docker.sock. Is the docker daemon runn
+ [Centos7参考](http://www.manongjc.com/detail/64-yincbyewmhuovor.html)
+``` bash
+ systemctl daemon-reload && systemctl start docker
+```
+
 ## docker基本使用  
 查看 docker 是否安装成功  
 docker version/docker -version/docker-v   
@@ -952,7 +965,7 @@ COPY publish/ /publish
 ENTRYPOINT [“dotnet”, “ydt.microservice.productservice.dll”]
 
 1、把一个项目生成一个镜像
-
+![Alt text](image.png)
 思路
 
 1、父镜像(基础镜像)
