@@ -21,7 +21,12 @@ module.exports = [
          {
           text: 'Socket网络编程',
           link: '/technology/dotnetcore/socket001.md',
-         }]
+         },
+         {
+          text: 'Net 后台代码模拟浏览器请求 Get、Post、Put的扩展方法',
+          link: '/technology/dotnetcore/dotnet02.md',
+         }
+        ]
       },
       {
         text: 'ABP vNnext',
@@ -323,6 +328,18 @@ module.exports = [
         children: [{
           text: 'css 基础',
           link: '/technology/css/index.html',
+        }],
+        // 该元素在当前路由路径是 /foo/ 开头时激活
+        // 支持正则表达式
+        activeMatch: "/",
+      },
+      {
+        text: "EA建模工具",
+        //link: "/technology/markdown/",
+        collapsible: true,
+        children: [{
+          text: 'EA 工具 UML、类图、顺序图 ',
+          link: '/technology/enterprise_architect/ea001.md',
         }],
         // 该元素在当前路由路径是 /foo/ 开头时激活
         // 支持正则表达式
