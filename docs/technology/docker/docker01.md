@@ -211,7 +211,7 @@ WORKDIR /publish
 EXPOSE 80
 EXPOSE 443
 COPY publish/ /publish
-ENTRYPOINT ["dotnet", "ydt.microservice.productservice.dll"]
+ENTRYPOINT ["dotnet", "lkn.microservice.productservice.dll"]
 ```
 5、生成商品微服务镜像  
 输入命令：
@@ -266,7 +266,7 @@ docker build -t productservice_micro .
 
 7、镜像设置标签,也叫镜像设置版本
 
-	docker image tag ydtproductservice ydtproductservice:1.0.0
+	docker image tag lknproductservice lknproductservice:1.0.0
 
 8、镜像历史（了解镜像的操作记录）
 
@@ -689,8 +689,8 @@ yml文件类似于json文件，将所有的命令通过配置文件配置起来�
 ``` yml
 version: '3'
 services:
-  ydtnginx:
-    image: ydtnginx
+  lknnginx:
+    image: lknnginx
     ports:
      - 8088:80
   productservice:
@@ -715,12 +715,12 @@ services:
 version: '3'
 services:
   rmcore1:
-    build: /root/ydt/nginx
+    build: /root/lkn/nginx
     ports:
      - 8088:80
      - 8089:443
   nginx2:
-    build: /root/ydt/productservice
+    build: /root/lkn/productservice
     ports:
      - 8090:80	
 docker-compose up -d
@@ -773,14 +773,14 @@ docker network create -d bridge microservice
 ``` yml
 version: '3'
 services:
-  ydtnginx:
-    build: /root/ydt/nginx
+  lknnginx:
+    build: /root/lkn/nginx
     ports:
      - 8088:80
     networks:
      - microservice
   productservice:
-    build: /root/ydt/productservice
+    build: /root/lkn/productservice
     ports:
      - 8090:80
     networks:
@@ -865,16 +865,16 @@ server {
 ``` bash
 version: '3'
 services:
-  ydtnginx:
-    build: /root/ydt/nginx
+  lknnginx:
+    build: /root/lkn/nginx
     ports:
      - 8088:80
     networks:
      - microservice
     volumes:
-     - /root/ydt/compose/nginx.conf:/usr/local/nginx/conf/nginx.conf
+     - /root/lkn/compose/nginx.conf:/usr/local/nginx/conf/nginx.conf
   productservice:
-    build: /root/ydt/productservice
+    build: /root/lkn/productservice
     ports:
      - 8090:80
     networks:
@@ -888,7 +888,7 @@ networks:
 
 1、volumes：数据卷指令
 
-2、/root/ydt/compose/nginx.conf ：Linux主机nginx.conf文件地址
+2、/root/lkn/compose/nginx.conf ：Linux主机nginx.conf文件地址
 
 3、/usr/local/nginx/conf/nginx.conf ：nginx容器nginx.conf地址
 
@@ -962,10 +962,9 @@ WORKDIR /publish
 EXPOSE 80
 EXPOSE 443
 COPY publish/ /publish
-ENTRYPOINT [“dotnet”, “ydt.microservice.productservice.dll”]
+ENTRYPOINT [“dotnet”, “lkn.microservice.productservice.dll”]
 
 1、把一个项目生成一个镜像
-![Alt text](image.png)
 思路
 
 1、父镜像(基础镜像)
@@ -986,7 +985,7 @@ ENTRYPOINT [“dotnet”, “ydt.microservice.productservice.dll”]
 
 3、运行应用：
 
-​ dotnet ydt.microservice.productservice.dll
+​ dotnet lkn.microservice.productservice.dll
 
 Docker
 
@@ -1000,7 +999,7 @@ WORKDIR /publish
 EXPOSE 80
 EXPOSE 443
 COPY publish/ /publish
-ENTRYPOINT [“dotnet”, “ydt.microservice.productservice.dll”]
+ENTRYPOINT [“dotnet”, “lkn.microservice.productservice.dll”]
 
 思考问题：
 
