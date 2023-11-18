@@ -146,9 +146,41 @@ module.exports = [
       collapsible:true,
       children:[
         {
-        text:'创建微服务项目结构',
+        text:'微服务电商项目落地',
         link:'/technology/abpmicroservices/abpmicroservices0001.md'
-       } 
+        },
+        {
+          text:'微服务通信',
+          link:'/technology/abpmicroservices/abpmicroservices0002.md'
+         },
+         {
+          text:'微服务网关-Ocelot',
+          link:'/technology/abpmicroservices/abpmicroservices0003.md'
+         } ,
+         {
+          text:'微服务注册中心-Consul',
+          link:'/technology/abpmicroservices/abpmicroservices0004.md'
+         },
+         {
+          text:'微服务注配置中心-Nacos',
+          link:'/technology/abpmicroservices/abpmicroservices0005.md'
+         },
+         {
+          text:'微服务事件总线-CAP',
+          link:'/technology/abpmicroservices/abpmicroservices0006.md'
+         },
+         {
+          text:'微服务链路监控-skywalking',
+          link:'/technology/abpmicroservices/abpmicroservices0007.md'
+         }, 
+         {
+          text:'微服务日志中心',
+          link:'/technology/abpmicroservices/abpmicroservices0008.md'
+         },
+         {
+          text:'微服务分布式事务',
+          link:'/technology/abpmicroservices/abpmicroservices0009.md'
+         }    
     ]},
       {
         text: 'c/c++',
