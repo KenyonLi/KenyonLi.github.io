@@ -1,8 +1,8 @@
 ---
-title: 'donet core基础'
+title: 'dotnet core基础'
 date: 2023-06-25
 tags:
-- 'donet core'
+- 'dotnet core'
 - 'C#'
 categories:
 - 'C#'
@@ -12,6 +12,12 @@ categories:
 ## 目录
 [[toc]]
 ## 一、 EFCore数据库迁移命令
+
+## dotnet 安装 CLI 
+
+``` bash
+dotnet tool install --global dotnet-ef --version 5.0
+```
 
 [EFCore数据库迁移命令](https://blog.csdn.net/az44yao/article/details/111399857)
 ::: tip 前言

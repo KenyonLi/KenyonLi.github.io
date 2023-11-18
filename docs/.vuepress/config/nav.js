@@ -148,6 +148,20 @@ module.exports = [
         // 支持正则表达式
         activeMatch: "/",
       },
+      {
+        text: "Docker",
+        link: "/technology/docker/docker01.md",
+        // 该元素在当前路由路径是 /foo/ 开头时激活
+        // 支持正则表达式
+        activeMatch: "/",
+      },
+      {
+        text: "EA建模工具",
+        link: "/technology/enterprise_architect/ea001.md",
+        // 该元素在当前路由路径是 /foo/ 开头时激活
+        // 支持正则表达式
+        activeMatch: "/",
+      }
   ]},
   {
     text: "阅读",

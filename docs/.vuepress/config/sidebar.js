@@ -10,14 +10,23 @@ module.exports = [
         text: 'dotnet core',
         collapsible: true,
         children: [
-        {
-          text: 'EF Core',
+          {
+            text: 'dotnet 安装 CLI/SDK',
+            link: '/technology/dotnetcore/dotnet01.md',
+          },
+         {
+          text: 'EFCore数据库迁移命令',
           link: '/technology/dotnetcore/index.md',
-        },
-        {
+         },
+         {
           text: 'Socket网络编程',
           link: '/technology/dotnetcore/socket001.md',
-        }]
+         },
+         {
+          text: 'Net 后台代码模拟浏览器请求 Get、Post、Put的扩展方法',
+          link: '/technology/dotnetcore/dotnet02.md',
+         }
+        ]
       },
       {
         text: 'ABP vNnext',
@@ -180,8 +189,33 @@ module.exports = [
          {
           text:'微服务分布式事务',
           link:'/technology/abpmicroservices/abpmicroservices0009.md'
-         }    
-    ]},
+         },  
+         {
+          text:'微服务分布式权限',
+          link:'/technology/abpmicroservices/abpmicroservices0010.md'
+         },
+         {
+          text:'微服务分布式文件系统、分布式缓存、分布式锁',
+          link:'/technology/abpmicroservices/abpmicroservices0011.md'
+         },
+         {
+          text:'微服务大数据库MongoDB、任务调度Hangfire',
+          link:'/technology/abpmicroservices/abpmicroservices0012.md'
+         }
+        ]},
+        {
+          text: 'Docker',
+          collapsible: true,
+          children: [{
+            text: '微服务部署Docker',
+            link: '/technology/docker/docker01.md',
+          },
+          {
+            text: 'Docker集群',
+            link: '/technology/docker/docker02.md',
+          }
+          ],
+      },
       {
         text: 'c/c++',
         //link: '/technology/cppreference/',
@@ -294,6 +328,18 @@ module.exports = [
         children: [{
           text: 'css 基础',
           link: '/technology/css/index.html',
+        }],
+        // 该元素在当前路由路径是 /foo/ 开头时激活
+        // 支持正则表达式
+        activeMatch: "/",
+      },
+      {
+        text: "EA建模工具",
+        //link: "/technology/markdown/",
+        collapsible: true,
+        children: [{
+          text: 'EA 工具 UML、类图、顺序图 ',
+          link: '/technology/enterprise_architect/ea001.md',
         }],
         // 该元素在当前路由路径是 /foo/ 开头时激活
         // 支持正则表达式

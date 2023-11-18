@@ -227,3 +227,86 @@ tar 命令详解
 　　8、*.rar 用 unrar e解压
 　　9、*.zip 用 unzip 解压
 ```
+
+## 使用netdiscover和fping进行探测局域网络中的机器 
+主动
+netdiscover -i eht0 -r 192.168.2.0/34  
+被动
+netdiscover -p
+
+fping -ag 192.168.1.0/24 > fping.txt
+
+
+## linux   文件目录  
+核心文件结构   
+bin 执行文件  ——  执行软件    
+etc 存储配置地方 ——   软件配置    
+home 用户目录  ——  用户操作的目录
+root根用户目录   ——  超级用户名称
+sbin 系统管理的执行命令  ——    存储软件执行软件  
+usr 安装软件地方  ——  安装软件存储的位置
+var 日志文件    ——   存储软件日志   
+
+## 添加`useradd`用户
+``` bash
+useradd kenyonli  
+```
+## 删除用户
+```bash
+userdel 用户名
+``` 
+## 查询用户信息
+``` bash
+id 用户名
+```
+
+## 切换用户 `su` 
+``` bash
+su - kenyonli  
+```
+注：从权限高的切换到权限低的不需要密码，反之需要输入密码。   
+## 查看当前用户  
+``` bash
+whoami 或者 who am i
+```
+
+## 给用户添加密码  `passwd` 
+``` bash
+passwd 
+```
+给指定用户修改密码   
+注：pwd 命令可以西安市当前用户所在目录。 
+
+## 查看 用户信息 
+``` bash
+id kenyonli   
+```
+
+
+## 修改用户组  
+
+``` bash
+usermod -g <组名 > <用户>
+```   
+
+## 文件授权 
+ 
+## 修改文件使用的用户权限和组   
+``` bash  
+chown -R <用户名称> : <组> <文件>   读写权限   
+
+``` 
+
+## groupdel 用户组  
+
+``` bash 
+groupdel test
+```
+
+## 添加用户到组
+
+``` bash
+useradd -g test tony11
+```
+
+## 
