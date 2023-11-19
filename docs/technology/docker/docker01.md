@@ -172,6 +172,96 @@ sudo docker run hello-world
   trust       Manage trust on Docker images 管理信任
   volume      Manage volumes 管理数据挂载(数据持久化 === 永久保存)
 ```
+
+## docker 删除镜像 命令 
+[参考](https://blog.51cto.com/u_16213322/7576793)
+
+
+### Docker 删除镜像命令详解
+Docker是一种流行的容器化平台，它允许开发者打包、分发和运行应用程序及其依赖项。在使用Docker进行开发和测试时，我们可能会创建许多镜像，有时我们需要删除不再使用的镜像以释放磁盘空间。本文将详细介绍如何使用Docker删除镜像的命令。
+
+### Docker 删除镜像的命令
+Docker提供了多个命令来删除镜像，以下是一些常用的命令：
+
+`docker rmi`：用于删除一个或多个本地镜像。
+`docker image prune`：删除未被任何容器使用的镜像。
+`docker image prune -a`：删除所有未被使用的镜像，包括标签为none的镜像。
+接下来我们将逐个介绍这些命令的使用方法。
+
+1. docker rmi命令
+使用docker rmi命令可以删除一个或多个本地镜像。其基本语法为：
+```bash
+docker rmi [OPTIONS] IMAGE [IMAGE...]
+
+```
+1.
+其中，IMAGE为要删除的镜像的名称或ID，可以一次指定多个。
+
+以下是一些常见的docker rmi命令的示例：
+
+删除单个镜像：
+```bash
+docker rmi ubuntu:latest
+```
+
+1.
+删除多个镜像：
+```bash 
+docker rmi ubuntu:latest nginx:1.19.0
+```
+
+1.
+注意：如果删除的镜像正在被容器使用，则会出现错误。如果确实需要强制删除镜像，请添加-f选项。
+```bash
+docker rmi -f ubuntu:latest
+```
+1.
+2. docker image prune命令
+使用docker image prune命令可以删除未被任何容器使用的镜像。其基本语法为：
+```bash
+docker image prune [OPTIONS]
+```
+1.
+以下是一些常见的docker image prune命令的示例：
+
+删除未被任何容器使用的镜像：
+```bash
+docker image prune
+```
+1.
+删除所有未被使用的镜像，包括标签为none的镜像：
+```bash
+docker image prune -a
+```
+
+1.
+3. docker container prune命令
+使用`docker container prune`命令可以删除未运行的容器。其基本语法为：
+```bash
+docker container prune [OPTIONS]
+```
+
+1.
+以下是一些常见的docker container prune命令的示例：
+
+删除所有未运行的容器：
+```bash
+docker container prune
+```
+1.
+删除所有未运行的容器，并同时删除关联的网络：
+```bash
+docker container prune --volumes
+```
+ 
+ 
+ 镜像的常用命令，包括docker rmi、docker image prune和docker container prune。根据实际 来删除镜像以释放磁盘空间。在使用这些命令时，务必小心，以免误删重要的镜像或容器。
+
+
+ 
+
+
+
  ### Centos9 安装异常处理
  #### 1、Emulate Docker CLI using podman. Create /etc/containers/nodocker to quiet msg. Error: open /proc/sel
  [Centos8参考](https://blog.csdn.net/marc_chen/article/details/117869572)
