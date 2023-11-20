@@ -1,6 +1,6 @@
 ---
 title: '微服务部署Docker'
-date: '2023-10-27' 
+date: '2023-11-20' 
 tags:
 - '微服务部署Docker'
 - 'abp'
@@ -110,7 +110,7 @@ docker概念介绍
 
 3、linux安装
 
-	1、centos7.0 以上的版本
+	1、centos9.0 以上的版本
 
 	2、安装docker 版本仓库 docker版本
 
@@ -140,7 +140,8 @@ o yum install -y yum-utils device-mapper-persistent-data lvm2
                     docker-ce.x86_64  18.06.1.ce-3.el7                    docker-ce-stable
                     docker-ce.x86_64  18.06.0.ce-3.el7                    docker-ce-stable
 ```
-                2、通过其完整的软件包名称安装特定版本，该软件包名称是软件包名称（docker-ce）加上版本字符串（第二列），                     从第一个冒号（:）一直到第一个连字符，并用连字符（-）分隔。例如：docker-ce-18.09.1。
+    2、通过其完整的软件包名称安装特定版本，该软件包名称是软件包名称（docker-ce）加上版本字符串（第二列），        
+从第一个冒号（:）一直到第一个连字符，并用连字符（-）分隔。例如：docker-ce-18.09.1。
 ``` bash
       sudo yum install docker-ce-<VERSION_STRING> docker-ce-cli-<VERSION_STRING> containerd.io
 ```
@@ -148,7 +149,6 @@ o yum install -y yum-utils device-mapper-persistent-data lvm2
 ```bash
      sudo systemctl start docker
 ```
-
 	5、docker 运行(判断是否安装成功)
 ```bash
 sudo docker run hello-world
@@ -258,10 +258,6 @@ docker container prune --volumes
  镜像的常用命令，包括docker rmi、docker image prune和docker container prune。根据实际 来删除镜像以释放磁盘空间。在使用这些命令时，务必小心，以免误删重要的镜像或容器。
 
 
- 
-
-
-
  ### Centos9 安装异常处理
  #### 1、Emulate Docker CLI using podman. Create /etc/containers/nodocker to quiet msg. Error: open /proc/sel
  [Centos8参考](https://blog.csdn.net/marc_chen/article/details/117869572)
@@ -297,12 +293,12 @@ docker
 3、然后创建Dockerfile文件  
 4、然后配置Dockerfile
 ``` yml
-FROM mcr.microsoft.com/dotnet/aspnet:6.0
+FROM mcr.microsoft.com/dotnet/aspnet:7.0
 WORKDIR /publish
 EXPOSE 80
 EXPOSE 443
 COPY publish/ /publish
-ENTRYPOINT ["dotnet", "lkn.microservice.productservice.dll"]
+ENTRYPOINT ["dotnet", "lkn.microservice.productservice.dl.dll"]
 ```
 5、生成商品微服务镜像  
 输入命令：
@@ -310,6 +306,50 @@ ENTRYPOINT ["dotnet", "lkn.microservice.productservice.dll"]
 docker build -t productservice_micro . 
 
 ```
+6、启动镜像  
+``` bash
+ docker run   productservice_micro 
+```
+第一种：启动成功，但是外网是不无法访问
+![Alt text](/images/docker/01/docker01_0002.png)
+
+```bash
+[root@localhost ~]# curl  http://192.168.3.61:80
+curl: (7) Failed to connect to 192.168.3.61 port 80: 拒绝连接
+```
+第二种：启动方法，但报错。
+``` bash
+[root@localhost microservice]# docker run -P  productservice_micro 
+docker: Error response from daemon: driver failed programming external connectivity on endpoint nifty_ganguly (d07bad7f448bfa562865ac781a0a21e20724489d30b8e94596233d556ab1a9e9):  (iptables failed: iptables --wait -t nat -A DOCKER -p tcp -d 0/0 --dport 32797 -j DNAT --to-destination 172.17.0.2:443 ! -i docker0: iptables: No chain/target/match by that name.
+ (exit status 1)).
+ERRO[0000] error waiting for container:  
+```
+处理方法，只需重启docke
+``` bash
+[root@localhost microservice]# service docker restart
+Redirecting to /bin/systemctl restart docker.service
+```
+
+再次运行,可以启动成功
+``` bash
+[root@localhost microservice]# docker run -P  productservice_micro 
+warn: Microsoft.AspNetCore.DataProtection.Repositories.FileSystemXmlRepository[60]
+      Storing keys in a directory '/root/.aspnet/DataProtection-Keys' that may not be persisted outside of the container. Protected data will be unavailable when container is destroyed.
+warn: Microsoft.AspNetCore.DataProtection.KeyManagement.XmlKeyManager[35]
+      No XML encryptor configured. Key {99a9343f-aeab-4107-801c-a72adc920a7d} may be persisted to storage in unencrypted form.
+info: Microsoft.Hosting.Lifetime[14]
+      Now listening on: http://[::]:80
+info: Microsoft.Hosting.Lifetime[0]
+      Application started. Press Ctrl+C to shut down.
+info: Microsoft.Hosting.Lifetime[0]
+      Hosting environment: Production
+info: Microsoft.Hosting.Lifetime[0]
+```
+
+
+
+
+
 ## Docker镜像使用
 首先我们必须知道镜像如何使用  
 ``` bash
