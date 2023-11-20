@@ -1894,6 +1894,17 @@ stream {
 ```
 ### 5 切换到/usr/local/nginx/sbin
 >	执行 ./nginx 启动nginx
+```bash
+./nginx
+```
+### 6 禁用 nginx
+``` bash
+./nginx  -s stop
+```
+### 7 重启 nginx
+``` bash
+./nginx -s reload
+```
 
 ### yum方式安装
 >3、然后配置分别将秒杀项目部署到Nginx中
@@ -1928,7 +1939,7 @@ systemctl restart keepalived.service
 >3、然后在192.168.44.4配置Keepalive
 
 >进入到cd /etc/keepalived/keepalived.conf配置文件
-```bash
+```yml
  global_defs {
 
    notification_email { # keepalived服务宕机异常出现的时候，发送通知邮件 可以是多个   acassen@firewall.loc  #  收件人邮箱1
@@ -1984,7 +1995,7 @@ virtual_ipaddress { # 自定义虚拟IP
 >3、然后在192.168.44.3配置Keepalive
 
 >进入到cd /etc/keepalived/keepalived.conf配置文件
-```bash
+```yml
  global_defs {
 
    notification_email { # keepalived服务宕机异常出现的时候，发送通知邮件 可以是多个   acassen@firewall.loc  #  收件人邮箱1

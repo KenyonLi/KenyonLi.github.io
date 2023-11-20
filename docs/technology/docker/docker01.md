@@ -347,115 +347,124 @@ info: Microsoft.Hosting.Lifetime[0]
 ```
 
 
-
-
-
 ## Docker镜像使用
 首先我们必须知道镜像如何使用  
-``` bash
-1、镜像管理命令介绍
-		docker image
 
+1、镜像管理命令介绍
+``` bash
+		docker image
+   ```
 2、镜像获取
 	2.1 先搜索镜像
-
+```bash
 		docker search <镜像>
-
+```
 	2.2 然后下载镜像
-
+``` bash
         docker image pull 
-
+```
 3、镜像列表
-
+``` bash
 	docker image ls
-
+```
 4、镜像列表基本状态解析
-
 	各个选项说明:
-
 - **REPOSITORY：**表示镜像的仓库源
 - **TAG：**镜像的标签
 - **IMAGE ID：**镜像ID
 - **CREATED：**镜像创建时间
 - **SIZE：**镜像大小
-
 5、镜像详细
-
+```bash
 	docker image inspect <镜像id>
-
+```
 6、镜像删除
-
+``` bash
 	docker image rm <镜像id>
-
+```
 7、镜像删除构建失败的镜像
-
+``` bash
 	docker image prune
-
+```
 	7.1 清理未使用的镜像
-
+``` bash
 		docker image prune -a
-
+```
+    7.2 强制删除镜像
+``` bash
+	docker rmi -f <镜像id>
+```
 8、镜像设置标签,也叫镜像设置版本
-
-	docker image tag lknproductservice lknproductservice:1.0.0
+``` bash
+	docker image tag productservice_micro  productservice_micro:1.0.0
+```
+``` bash
+[root@localhost microservice]# docker image tag productservice_micro  productservice_micro:1.0.0
+## 查看镜像 修改版本
+[root@localhost microservice]# docker image
+image   images  
+[root@localhost microservice]# docker images
+REPOSITORY             TAG       IMAGE ID       CREATED        SIZE
+productservice_micro   1.0.0     0dbf03c78b79   28 hours ago   220MB ## 已经修改的版本
+productservice_micro   latest    0dbf03c78b79   28 hours ago   220MB
+hello-world            latest    9c7a54a9a43c   6 months ago   13.3kB
+```
 
 9、镜像历史（了解镜像的操作记录）
-
+``` bash
 	docker image history [OPTIONS] <IMAGEid>
-
+```
  10、导出镜像导入导出
 
       10.1 镜像导入
-
+``` bash
 	docker image import [OPTIONS] file|URL|- [REPOSITORY[:TAG]]
-
+```
        10.2 镜像导入
-
+``` bash
 	docker image load [OPTIONS]
 
        Options:
                -i, --input string   Read from tar archive file, instead of STDIN
               -q, --quiet          Suppress the load output	
-
+```
 	 10.3 镜像导出，备份
-
-		docker image save [OPTIONS] IMAGE [IMAGE...]
-
-```   
-刚才我大概介绍了一些主要命令操作和基本信息   
-对于一些其他的命令，百度
-## docker容器使用  
 ``` bash
+		docker image save [OPTIONS] IMAGE [IMAGE...]
+``` 
+
+## docker容器使用  
+
 1、容器命令介绍
+``` bash
+		docker container   
+```
+   容器的修改和增删
 
-		docker container
-
-		容器的修改和增删
-
-	2、运行容器rmcore
-
-		docker run rmcore
-
+	2、运行容器rmcore  
+``` bash
+		docker run rmcore  
+```
 	3、查看容器列表
-
+``` bash
 		docker ps -a
-
+```
 	3、后台运行rmcore
-
+``` bash
 		docker  run -d rmcore
 
 		-d 后台执行
-
+```
 	4、暴露rmcore端口
-
+``` bash
 		docker run -d -P rmcore
-
+```
 		4.1 自定义端口暴露
-
+``` bash
 		docker run -d -p 2020:80 2021:443 rmcore
-
+```
 	 5、进入容器
-
+``` bash
 		docker exec -it rmcore /bin/bash
 
 		-i :交互式操作
@@ -463,21 +472,21 @@ info: Microsoft.Hosting.Lifetime[0]
 		 t : 终端
 
 		/bin/bash 放在镜像名后的是命令，这里我们希望有个交互式 Shell，因此用的是 /bin/bash，就好比xshell一样
-
+```
 	 6、退出容器
-
+``` bash
 		exit
-
+```
 	7、停止容器
-
+``` bash
 		docker stop rmcore
-
+```
 	 8、启动容器
-
+``` bash
 		docker start rmcore
-
+```
  解压命令
-
+``` bash
  unrar x asp.tar
 ```
 
@@ -673,18 +682,26 @@ mkdir nginx
 vim Dockerfile  
 3、配置Dockerfile  
  3.1 nginx安装命令  
-``` yml
 1 安装 nginx需要工具
+``` bash
 	 yum -y install gcc make pcre-devel zlib-devel tar zlib
+```
 2 下载nginx
+``` bash
 	 wget  http://nginx.org/download/nginx-1.15.2.tar.gz
+```
 3 nginx解压/nginx目录
+``` bash
 	tar -zxvf  nginx-1.15.2.tar.gz
+```
 4 切换到/nginx/nginx-1.15.2
+``` bash
 	执行./configure
 		make
 		make install 进行安装
+```
 5 切换到/usr/local/nginx/sbin
+``` bash
 	执行 ./nginx 启动nginx	
 ```
 3.2 Nginx 脚本文件 nginx.sh   
@@ -811,11 +828,11 @@ yml文件类似于json文件，将所有的命令通过配置文件配置起来�
 ``` bash
 ​ docker-compose –version
 ```
-2、创建rmcore镜像和nginx镜像
+2、创建`rmcore`镜像和`nginx`镜像
 
 ​ 课程已经准备好
 
-3、docker-compose.yml文件配置
+3、`docker-compose.yml`文件配置
 
 ``` yml
 version: '3'
@@ -829,9 +846,9 @@ services:
     ports:
      - 8090:80
 ```
-4、运行docker-compose.yml文件
+4、运行`docker-compose.yml`文件
 
-​ 1、切换docker-compose.yml目录
+​ 1、切换`docker-compose.yml`目录
 
 ​ 2、运行yml文件
 ``` bash
@@ -841,7 +858,7 @@ services:
 ``` bash
 ​ curl 访问链接即可
 ```
-使用docker-compose构建镜像   
+使用`docker-compose`构建镜像   
 ``` yml
 version: '3'
 services:
@@ -992,7 +1009,7 @@ server {
    }
  }
 ```
-3、然后在docker-compose.yml 文件中配置  
+3、然后在`docker-compose.yml`文件中配置  
 ``` bash
 version: '3'
 services:
@@ -1028,7 +1045,7 @@ networks:
 
 总结
 
-docker部署微服务思路
+### docker部署微服务思路
 
 1、项目发布
 
@@ -1038,7 +1055,7 @@ docker部署微服务思路
 
 4、镜像运行
 
-商品列表查询过程原理
+### 商品列表查询过程原理
 
 浏览器—>Linux—->Docker—–>容器—->应用
 
@@ -1052,7 +1069,7 @@ docker部署微服务思路
 
 镜像 ：没有启动Linux
 
-常识
+### 常识
 
 1、一个项目一个镜像，一 一对应关系。
 
@@ -1060,7 +1077,7 @@ docker部署微服务思路
 
 容器 ：启动的Linux
 
-镜像和容器区别
+### 镜像和容器区别
 
 1、镜像不可改变，容器可以修改。
 
@@ -1082,19 +1099,19 @@ docker部署微服务思路
 
 ​ 1、容器之间互相隔离的
 
-容器操作
+### 容器操作
 
-dockerfile
+`dockerfile`
 
 作用：生成镜像。
-
-FROM mcr.microsoft.com/dotnet/aspnet:6.0
-WORKDIR /publish
+``` bash
+FROM mcr.microsoft.com/dotnet/aspnet:7.0
+WORKDIR /publish  //工作目录 相当于站点根据目录
 EXPOSE 80
 EXPOSE 443
 COPY publish/ /publish
-ENTRYPOINT [“dotnet”, “lkn.microservice.productservice.dll”]
-
+ENTRYPOINT ["dotnet", "lkn.microservice.productservice.dl.dll"] //运行指令的位置，是要工作目录下运行
+```
 1、把一个项目生成一个镜像
 思路
 
@@ -1108,20 +1125,21 @@ ENTRYPOINT [“dotnet”, “lkn.microservice.productservice.dll”]
 
 1、准备Linux主机
 
-2、安装.Net6 环境
+2、安装.Net7 环境
 
 3、发布应用
 
 ​ publish
 
 3、运行应用：
+``` bash
+​ dotnet lkn.microservice.productservice.dl.dll
+```
 
-​ dotnet lkn.microservice.productservice.dll
-
-Docker
+`Docker` 运行环境
 
 1、Linux运行。
-
+``` bash
 FROM mcr.microsoft.com/dotnet/aspnet:6.0
 
 (Linux镜像+.NetSDK镜像)
@@ -1130,9 +1148,9 @@ WORKDIR /publish
 EXPOSE 80
 EXPOSE 443
 COPY publish/ /publish
-ENTRYPOINT [“dotnet”, “lkn.microservice.productservice.dll”]
-
-思考问题：
+ENTRYPOINT ["dotnet", "lkn.microservice.productservice.dl.dll"]
+```
+### 思考问题：
 
 1、根基础镜像是谁？
 
@@ -1142,13 +1160,13 @@ ENTRYPOINT [“dotnet”, “lkn.microservice.productservice.dll”]
 
 1、可以复用
 
-使用Dockerfile 自定义一个Nginx镜像
+### 使用Dockerfile 自定义一个Nginx镜像
 
 1、步骤
 
-Nginx运行需要的步骤
+### Nginx运行需要的步骤
 
-基本步骤阶段
+#### 基本步骤阶段
 
 1、Linux主机
 
@@ -1180,9 +1198,9 @@ make install 进行安装
 ``` bash
 执行 ./nginx 启动nginx
 ```
-改造阶段
+#### 改造阶段
 ``` yml
-FROM centos:7
+FROM centos:9
 RUN yum -y install gcc make pcre-devel zlib-devel tar zlib
 WORKDIR /nginx
 COPY nginx-1.15.2.tar.gz /nginx
