@@ -264,21 +264,21 @@ docker build -t productservice_micro .
 
 		docker image prune -a
 
-7、镜像设置标签,也叫镜像设置版本
+8、镜像设置标签,也叫镜像设置版本
 
 	docker image tag ydtproductservice ydtproductservice:1.0.0
 
-8、镜像历史（了解镜像的操作记录）
+9、镜像历史（了解镜像的操作记录）
 
 	docker image history [OPTIONS] <IMAGEid>
 
- 9、导出镜像导入导出
+ 10、导出镜像导入导出
 
-      8.1 镜像导入
+      10.1 镜像导入
 
 	docker image import [OPTIONS] file|URL|- [REPOSITORY[:TAG]]
 
-       8.2 镜像导入
+       10.2 镜像导入
 
 	docker image load [OPTIONS]
 
@@ -286,7 +286,7 @@ docker build -t productservice_micro .
                -i, --input string   Read from tar archive file, instead of STDIN
               -q, --quiet          Suppress the load output	
 
-	8.3 镜像导出，备份
+	 10.3 镜像导出，备份
 
 		docker image save [OPTIONS] IMAGE [IMAGE...]
 

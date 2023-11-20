@@ -309,4 +309,13 @@ groupdel test
 useradd -g test tony11
 ```
 
-## 
+## centos 9 stream  关闭防火墙  
+``` bash
+
+```
+
+## 查看 网络端口
+```  bash
+lsof -i:8099  
+netstat -anp|grep 8099 
+```
