@@ -280,24 +280,24 @@ stack是什么？
 ```
 ​ 2.5、查看服务运行在哪个节点
 ``` bash
-​ docker service ps ydtnginx_service
+​ docker service ps lknnginx_service
 ```
 ​ 2.6、查看服务部署详细信息
 ``` bash
-​ docker service inspect –pretty ydtnginx_service
+​ docker service inspect –pretty lknnginx_service
 ```
 ​ 2.7、服务动态伸缩（向其他节点添加服务副本）
 ``` bash
-​ docker service scale ydtnginx_service=2
+​ docker service scale lknnginx_service=2
 ```
 ​ 2.8、删除服务
 ``` bash
-​ docker service rm ydtnginx_service
+​ docker service rm lknnginx_service
 ```
 ​ 2.9、服务如何进行外部访问
 ``` bash
 
-​ docker service create –replicas 1 – name –publish 6066:80 ydtnginx_service
+​ docker service create –replicas 1 – name –publish 6066:80 lknnginx_service
 
 ​ –publish 发布端口例如 8088:80
 ```
@@ -376,8 +376,8 @@ stack是什么？
 ``` bash
 version: '3.7'
 services:
-  ydtnginx:
-    image: ydtnginx
+  lknnginx:
+    image: lknnginx
     ports:
      - 8088:80
     deploy:
@@ -412,8 +412,8 @@ services:
 ``` yml
 version: '3.7'
 services:
-  ydtnginx:
-    image: ydtnginx
+  lknnginx:
+    image: lknnginx
     ports:
      - 8088:80
     deploy:
@@ -421,7 +421,7 @@ services:
        replicated
       replicas: 2
     configs:
-      - source: ydtnginx_config_3
+      - source: lknnginx_config_3
         target: /usr/local/nginx/conf/nginx.conf
   productservice:
     image: productservice_micro
@@ -432,12 +432,12 @@ services:
        replicated
       replicas: 2
 configs:
-  ydtnginx_config_3:
-    file: /root/ydt/compose/nginx.conf
+  lknnginx_config_3:
+    file: /root/lkn/compose/nginx.conf
 ```
 2、运行stack
 ``` bash
-docker stack deploy -c docker-compose.yml ydtmicroservice
+docker stack deploy -c docker-compose.yml lknmicroservice
 ``` 
 ### docker swarm config实战
 1、创建config
@@ -455,7 +455,7 @@ je21ykql9tzebr0j2v7ep0kat   conf                5 minutes ago       5 minutes ag
 3、使用config
 ``` bash
 在conf配置中，将nginx的监听端口改成了88，替换掉nginx中的默认80端口的配置文件，创建service时，将容器内部端口88端口映射成主机上90端口
- [root@lvultr  lkn] service create --replicas 1 --name ydtnginx_nginx --publish 6066:80 --config source=ydtnginx_config,target=/usr/local/nginx/conf/nginx.conf ydtnginx
+ [root@lvultr  lkn] service create --replicas 1 --name lknnginx_nginx --publish 6066:80 --config source=lknnginx_config,target=/usr/local/nginx/conf/nginx.conf lknnginx
 pocy3ph88gy7ng9g2lbq9jvnw
 overall progress: 1 out of 1 tasks 
 1/1: running   [==================================================>] 

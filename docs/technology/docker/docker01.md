@@ -93,7 +93,6 @@ docker概念介绍
 
 ### Docker下载安装  
 
-``` yml
 1、Docker版本 20.03版本之后
 	1、CE（Community Edition: 社区版） ---- 免费
 	2、EE（Enterprise Edition: 企业版）---- 收费
@@ -116,44 +115,46 @@ docker概念介绍
 	2、安装docker 版本仓库 docker版本
 
 		2.1 设置仓库
-
-            sudo yum install -y yum-utils device-mapper-persistent-data lvm2	
-
+``` bash
+o yum install -y yum-utils device-mapper-persistent-data lvm2	
+```
 		2.2  稳定仓库
-
+``` bash
           sudo yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo 
-
+```
 	3、安装docker(默认安装最新版本)
 
+```bash
       sudo yum install docker-ce docker-ce-cli containerd.io
+```
+### 如果要安装其他版本
 
-      如果要安装其他版本
+ 要安装特定版本的 Docker Engine-Community，请在存储库中列出可用版本，然后选择并安装：
 
-           要安装特定版本的 Docker Engine-Community，请在存储库中列出可用版本，然后选择并安装：
-
-           1、列出并排序您存储库中可用的版本。此示例按版本号（从高到低）对结果进行排序。
-
+  1、列出并排序您存储库中可用的版本。此示例按版本号（从高到低）对结果进行排序。
+```bash
               yum list docker-ce --showduplicates | sort -r
 
                     docker-ce.x86_64  3:18.09.1-3.el7                     docker-ce-stable
                     docker-ce.x86_64  3:18.09.0-3.el7                     docker-ce-stable
                     docker-ce.x86_64  18.06.1.ce-3.el7                    docker-ce-stable
                     docker-ce.x86_64  18.06.0.ce-3.el7                    docker-ce-stable
-
+```
                 2、通过其完整的软件包名称安装特定版本，该软件包名称是软件包名称（docker-ce）加上版本字符串（第二列），                     从第一个冒号（:）一直到第一个连字符，并用连字符（-）分隔。例如：docker-ce-18.09.1。
-
+``` bash
       sudo yum install docker-ce-<VERSION_STRING> docker-ce-cli-<VERSION_STRING> containerd.io
-
+```
 	4、docker启动
-
+```bash
      sudo systemctl start docker
+```
 
 	5、docker 运行(判断是否安装成功)
-
-      sudo docker run hello-world
-	  
-
+```bash
+sudo docker run hello-world
+```
 4、docker 管理命令介绍
+``` bash
   builder     Manage builds 管理构建
   config      Manage Docker configs 管理配置
   container   Manage containers 管理容器
@@ -171,6 +172,96 @@ docker概念介绍
   trust       Manage trust on Docker images 管理信任
   volume      Manage volumes 管理数据挂载(数据持久化 === 永久保存)
 ```
+
+## docker 删除镜像 命令 
+[参考](https://blog.51cto.com/u_16213322/7576793)
+
+
+### Docker 删除镜像命令详解
+Docker是一种流行的容器化平台，它允许开发者打包、分发和运行应用程序及其依赖项。在使用Docker进行开发和测试时，我们可能会创建许多镜像，有时我们需要删除不再使用的镜像以释放磁盘空间。本文将详细介绍如何使用Docker删除镜像的命令。
+
+### Docker 删除镜像的命令
+Docker提供了多个命令来删除镜像，以下是一些常用的命令：
+
+`docker rmi`：用于删除一个或多个本地镜像。
+`docker image prune`：删除未被任何容器使用的镜像。
+`docker image prune -a`：删除所有未被使用的镜像，包括标签为none的镜像。
+接下来我们将逐个介绍这些命令的使用方法。
+
+1. docker rmi命令
+使用docker rmi命令可以删除一个或多个本地镜像。其基本语法为：
+```bash
+docker rmi [OPTIONS] IMAGE [IMAGE...]
+
+```
+1.
+其中，IMAGE为要删除的镜像的名称或ID，可以一次指定多个。
+
+以下是一些常见的docker rmi命令的示例：
+
+删除单个镜像：
+```bash
+docker rmi ubuntu:latest
+```
+
+1.
+删除多个镜像：
+```bash 
+docker rmi ubuntu:latest nginx:1.19.0
+```
+
+1.
+注意：如果删除的镜像正在被容器使用，则会出现错误。如果确实需要强制删除镜像，请添加-f选项。
+```bash
+docker rmi -f ubuntu:latest
+```
+1.
+2. docker image prune命令
+使用docker image prune命令可以删除未被任何容器使用的镜像。其基本语法为：
+```bash
+docker image prune [OPTIONS]
+```
+1.
+以下是一些常见的docker image prune命令的示例：
+
+删除未被任何容器使用的镜像：
+```bash
+docker image prune
+```
+1.
+删除所有未被使用的镜像，包括标签为none的镜像：
+```bash
+docker image prune -a
+```
+
+1.
+3. docker container prune命令
+使用`docker container prune`命令可以删除未运行的容器。其基本语法为：
+```bash
+docker container prune [OPTIONS]
+```
+
+1.
+以下是一些常见的docker container prune命令的示例：
+
+删除所有未运行的容器：
+```bash
+docker container prune
+```
+1.
+删除所有未运行的容器，并同时删除关联的网络：
+```bash
+docker container prune --volumes
+```
+ 
+ 
+ 镜像的常用命令，包括docker rmi、docker image prune和docker container prune。根据实际 来删除镜像以释放磁盘空间。在使用这些命令时，务必小心，以免误删重要的镜像或容器。
+
+
+ 
+
+
+
  ### Centos9 安装异常处理
  #### 1、Emulate Docker CLI using podman. Create /etc/containers/nodocker to quiet msg. Error: open /proc/sel
  [Centos8参考](https://blog.csdn.net/marc_chen/article/details/117869572)
@@ -211,7 +302,7 @@ WORKDIR /publish
 EXPOSE 80
 EXPOSE 443
 COPY publish/ /publish
-ENTRYPOINT ["dotnet", "ydt.microservice.productservice.dll"]
+ENTRYPOINT ["dotnet", "lkn.microservice.productservice.dll"]
 ```
 5、生成商品微服务镜像  
 输入命令：
@@ -266,7 +357,7 @@ docker build -t productservice_micro .
 
 8、镜像设置标签,也叫镜像设置版本
 
-	docker image tag ydtproductservice ydtproductservice:1.0.0
+	docker image tag lknproductservice lknproductservice:1.0.0
 
 9、镜像历史（了解镜像的操作记录）
 
@@ -689,8 +780,8 @@ yml文件类似于json文件，将所有的命令通过配置文件配置起来�
 ``` yml
 version: '3'
 services:
-  ydtnginx:
-    image: ydtnginx
+  lknnginx:
+    image: lknnginx
     ports:
      - 8088:80
   productservice:
@@ -715,12 +806,12 @@ services:
 version: '3'
 services:
   rmcore1:
-    build: /root/ydt/nginx
+    build: /root/lkn/nginx
     ports:
      - 8088:80
      - 8089:443
   nginx2:
-    build: /root/ydt/productservice
+    build: /root/lkn/productservice
     ports:
      - 8090:80	
 docker-compose up -d
@@ -773,14 +864,14 @@ docker network create -d bridge microservice
 ``` yml
 version: '3'
 services:
-  ydtnginx:
-    build: /root/ydt/nginx
+  lknnginx:
+    build: /root/lkn/nginx
     ports:
      - 8088:80
     networks:
      - microservice
   productservice:
-    build: /root/ydt/productservice
+    build: /root/lkn/productservice
     ports:
      - 8090:80
     networks:
@@ -865,16 +956,16 @@ server {
 ``` bash
 version: '3'
 services:
-  ydtnginx:
-    build: /root/ydt/nginx
+  lknnginx:
+    build: /root/lkn/nginx
     ports:
      - 8088:80
     networks:
      - microservice
     volumes:
-     - /root/ydt/compose/nginx.conf:/usr/local/nginx/conf/nginx.conf
+     - /root/lkn/compose/nginx.conf:/usr/local/nginx/conf/nginx.conf
   productservice:
-    build: /root/ydt/productservice
+    build: /root/lkn/productservice
     ports:
      - 8090:80
     networks:
@@ -888,7 +979,7 @@ networks:
 
 1、volumes：数据卷指令
 
-2、/root/ydt/compose/nginx.conf ：Linux主机nginx.conf文件地址
+2、/root/lkn/compose/nginx.conf ：Linux主机nginx.conf文件地址
 
 3、/usr/local/nginx/conf/nginx.conf ：nginx容器nginx.conf地址
 
@@ -962,10 +1053,9 @@ WORKDIR /publish
 EXPOSE 80
 EXPOSE 443
 COPY publish/ /publish
-ENTRYPOINT [“dotnet”, “ydt.microservice.productservice.dll”]
+ENTRYPOINT [“dotnet”, “lkn.microservice.productservice.dll”]
 
 1、把一个项目生成一个镜像
-![Alt text](image.png)
 思路
 
 1、父镜像(基础镜像)
@@ -986,7 +1076,7 @@ ENTRYPOINT [“dotnet”, “ydt.microservice.productservice.dll”]
 
 3、运行应用：
 
-​ dotnet ydt.microservice.productservice.dll
+​ dotnet lkn.microservice.productservice.dll
 
 Docker
 
@@ -1000,7 +1090,7 @@ WORKDIR /publish
 EXPOSE 80
 EXPOSE 443
 COPY publish/ /publish
-ENTRYPOINT [“dotnet”, “ydt.microservice.productservice.dll”]
+ENTRYPOINT [“dotnet”, “lkn.microservice.productservice.dll”]
 
 思考问题：
 
