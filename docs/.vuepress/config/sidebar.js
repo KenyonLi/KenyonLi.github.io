@@ -240,6 +240,10 @@ module.exports = [
         {
           text: 'Ubuntu20.4 搭建vpn服务器',
           link: '/technology/linux/vpn.md',
+        },
+        {
+          text: 'yum及yum-config-manager命令详解',
+          link: '/technology/linux/linux001.md',
         }
        ]
       },

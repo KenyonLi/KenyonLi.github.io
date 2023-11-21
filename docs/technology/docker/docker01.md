@@ -116,11 +116,11 @@ docker概念介绍
 
 		2.1 设置仓库
 ``` bash
-o yum install -y yum-utils device-mapper-persistent-data lvm2	
+      sudo yum install -y yum-utils device-mapper-persistent-data lvm2	
 ```
 		2.2  稳定仓库
 ``` bash
-          sudo yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo 
+      sudo yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo 
 ```
 	3、安装docker(默认安装最新版本)
 

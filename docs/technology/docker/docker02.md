@@ -1,6 +1,6 @@
 ---
 title: 'Docker-集群'
-date: '2023-11-20' 
+date: '2023-11-21' 
 tags:
 - 'Docker-集群'
 - 'abp'
@@ -48,7 +48,7 @@ categories:
 总结
 
 1、docker集群是非对称集群
-
+![Alt text](/public/images/docker/02/docker02_0001.png)
 ​ 见图进行解析
 
 为什么要使用docker集群
