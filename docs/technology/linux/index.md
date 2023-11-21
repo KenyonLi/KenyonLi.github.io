@@ -310,9 +310,19 @@ useradd -g test tony11
 ```
 
 ## centos 9 stream  关闭防火墙  
+### 只关闭此次
 ``` bash
-
+systemctl stop firewalld.service
 ```
+### 关闭防火墙  
+``` bash
+systemctl disable firewalld.service
+```
+### 查看firewalld服务状态，active为dead，则表示已经永久关闭
+``` bash
+systemctl status firewalld
+```
+**可以看到是绿色的，就是运行中**
 
 ## 查看 网络端口
 ```  bash

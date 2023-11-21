@@ -43,12 +43,11 @@ categories:
 ​ 定位：数据存储
 
 ### 什么是docker集群
-接下来，考一下大家，大家认为docker集群是个什么集群
 
 总结
 
 1、docker集群是非对称集群
-![Alt text](/public/images/docker/02/docker02_0001.png)
+![Alt text](/images/docker/02/docker02_0001.png)
 ​ 见图进行解析
 
 为什么要使用docker集群
@@ -395,9 +394,9 @@ services:
 ```
 ​ 6、进行网络访问
 ``` bash
-​ 192.168.44.4:6066
+192.168.3.62 主节点
 
-​ 192.168.44.6:6066
+​ 192.168.3.61 子节点
 ```
 ### docker swarm service之间通信
 条件
@@ -460,4 +459,74 @@ pocy3ph88gy7ng9g2lbq9jvnw
 overall progress: 1 out of 1 tasks 
 1/1: running   [==================================================>] 
 verify: Service converged 
+```
+
+## 笔记
+
+## 一、主节点部署
+
+## 查linux 安装的docker 信息 
+``` bash
+docker info
+```
+![Alt text](/images/docker/02/docker02_0002.png)  
+
+看当前docker Swarm状态 inactive 不是集群状态  
+
+``` bash
+[root@localhost ~]# docker swarm  init --advertise-addr 192.168.3.62
+Swarm initialized: current node (dho9rzjfgyubig5qvyb5e35bg) is now a manager.
+
+To add a worker to this swarm, run the following command:
+
+    docker swarm join --token SWMTKN-1-5fcwmt9yenjdfagt96o3l101p7nqg63z2uz3w4er9kwejb6kue-c61kc6cquf67lj9qspbf01wn0 192.168.3.62:2377
+
+To add a manager to this swarm, run 'docker swarm join-token manager' and follow the instructions.
+
+```
+
+根据 docker node ls  查看是否启动成功
+
+``` bash 
+[root@localhost ~]# docker node  ls
+ID                            HOSTNAME                STATUS    AVAILABILITY   MANAGER STATUS   ENGINE VERSION
+dho9rzjfgyubig5qvyb5e35bg *   localhost.localdomain   Ready     Active         Leader           24.0.7
+
+```
+
+通过 docker info,查看集群节点  
+
+``` bash
+
+Swarm: active
+  NodeID: dho9rzjfgyubig5qvyb5e35bg
+  Is Manager: true
+  ClusterID: 7crzflf8x2ma218wfg9oou8ke
+  Managers: 1
+  Nodes: 1
+  Default Address Pool: 10.0.0.0/8  
+  SubnetSize: 24
+  Data Path Port: 4789
+
+```
+
+## 二、子节点部署
+
+1、在子节服务器，输入主节点docker join 连接地址，执行
+``` bash
+docker swarm join --token SWMTKN-1-5fcwmt9yenjdfagt96o3l101p7nqg63z2uz3w4er9kwejb6kue-c61kc6cquf67lj9qspbf01wn0 192.168.3.62:2377
+```
+2、查看  docker info ，只能在主节点操作。
+``` bash
+[root@localhost ~]# docker node ls
+ID                            HOSTNAME                STATUS    AVAILABILITY   MANAGER STATUS   ENGINE VERSION
+dho9rzjfgyubig5qvyb5e35bg *   localhost.localdomain   Ready     Active         Leader           24.0.7
+dpasxse42lnrudsd2dm0cdka9     localhost.localdomain   Ready     Active                          24.0.7
+```
+
+3、子节点是不能操作 node 的,只能在主节点上进行操作。
+
+``` bash
+[root@localhost compose]# docker node ls
+Error response from daemon: This node is not a swarm manager. Use "docker swarm init" or "docker swarm join" to connect this node to swarm and try again.
 ```
