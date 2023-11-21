@@ -319,3 +319,20 @@ useradd -g test tony11
 lsof -i:8099  
 netstat -anp|grep 8099 
 ```
+
+## 当前系统的版本
+
+``` bash
+[root@localhost ~]# cat /etc/redhat-release
+CentOS Stream release 9
+
+
+[root@localhost ~]# uname -r
+5.14.0-350.el9.x86_64
+[root@localhost ~]# uname -a
+Linux localhost.localdomain 5.14.0-350.el9.x86_64 #1 SMP PREEMPT_DYNAMIC Fri Aug 4 12:40:09 UTC 2023 x86_64 x86_64 x86_64 GNU/Linux
+
+
+[root@localhost ~]# cat /proc/version
+Linux version 5.14.0-350.el9.x86_64 (mockbuild@x86-05.stream.rdu2.redhat.com) (gcc (GCC) 11.4.1 20230605 (Red Hat 11.4.1-2), GNU ld version 2.35.2-42.el9) #1 SMP PREEMPT_DYNAMIC Fri Aug 4 12:40:09 UTC 2023
+```

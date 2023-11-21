@@ -324,10 +324,13 @@ docker: Error response from daemon: driver failed programming external connectiv
  (exit status 1)).
 ERRO[0000] error waiting for container:  
 ```
-处理方法，只需重启docke
+#### 处理方法，只需重启docke
 ``` bash
 [root@localhost microservice]# service docker restart
 Redirecting to /bin/systemctl restart docker.service
+
+## 查看 docker 状态
+systemctl status docker.service 
 ```
 
 再次运行,可以启动成功
@@ -775,10 +778,11 @@ yml文件类似于json文件，将所有的命令通过配置文件配置起来�
 ```
 
 ### docker-compose核心配置  
-``` yml
+
 1、参考地址  
      https://docs.docker.com/compose/compose-file/
 2 核心配置
+``` yml
     version 指定compose版本 最好是3.0以上版本 目前最新是3.8版本
     services 配置容器[容器列表]
         nginx： #配置容器标识(唯一编号)
@@ -810,23 +814,21 @@ yml文件类似于json文件，将所有的命令通过配置文件配置起来�
 
 ​ 1、下载地址
 ``` bash 
-​ sudo curl -L “https://github.com/docker/compose/releases/download/1.24.1/docker-compose-$(uname -s)-$(uname -m)” -o /usr/local/bin/docker-compose
-```
-​ 另一个下载地址
-``` bash
-​ sudo curl -L https://github.com/docker/compose/releases/download/1.16.1/docker-compose-`uname -s-uname -m` -o /usr/local/bin/docker-compose
+sudo curl -L "https://github.com/docker/compose/releases/download/1.24.1/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
 ```
 ​ 2、增加Compose权限
 ``` bash
-​ sudo chmod +x /usr/local/bin/docker-compose
+ ​sudo chmod +x /usr/local/bin/docker-compose
 ```
 ​ 3、创建compose快捷方式
 ``` bash
 ​ sudo ln -s /usr/local/bin/docker-compose /usr/bin/docker-compose
 ``` 
-​ 4、测试安装是否成功
+​ 4、测试安装是否成功 ​ `docker-compose --version`
 ``` bash
-​ docker-compose –version
+
+[root@localhost bin]# docker-compose --version
+docker-compose version 1.24.1, build 4667896b
 ```
 2、创建`rmcore`镜像和`nginx`镜像
 
@@ -854,94 +856,439 @@ services:
 ``` bash
 ​ docker-compose up -d
 ```
+​ 3、批量删除容器
+``` bash
+​ docker-compose down
+```
+
 5、运行是否搭建成功
 ``` bash
 ​ curl 访问链接即可
 ```
 使用`docker-compose`构建镜像   
+//指定端口，它的缺陷是不能自由的动态伸缩。
 ``` yml
 version: '3'
 services:
-  rmcore1:
-    build: /root/lkn/nginx
+  lknnginx:
+    image: mynginx
     ports:
-     - 8088:80
-     - 8089:443
-  nginx2:
-    build: /root/lkn/productservice
+      - 8088:80
+  lknproductservice:
+    image: productservice_micro
     ports:
-     - 8090:80	
-docker-compose up -d
+      - 8090:80
+```
+
+在compose目录当中，直接加载 `docker-compose.yml` ,运行容器 `docker-compose up -d`
+``` bash
+[root@localhost compose]# docker-compose up -d
+Creating network "compose_default" with the default driver
+Creating compose_lknproductservice_1 ... done
+Creating compose_lknnginx_1          ... done
+
+#批量 停止
+[root@localhost compose]# docker-compose stop
+Stopping compose_lknnginx_1          ... done
+Stopping compose_lknproductservice_1 ... done
+
+```
+
+## docker-compose 动态伸缩 scale 
+``` bash
+[root@localhost compose]# docker-compose scale lknnginx=3  # lknnginx 这里是指docker-compose中的服务名称
+WARNING: The scale command is deprecated. Use the up command with the --scale flag instead.
+WARNING: The "lknnginx" service specifies a port on the host. If multiple containers for this service are created on a single host, the port will clash.
+Starting compose_lknnginx_1 ... done
+Creating compose_lknnginx_2 ... error
+Creating compose_lknnginx_3 ... error
+
+ERROR: for compose_lknnginx_3  Cannot start service lknnginx: driver failed programming external connectivity on endpoint compose_lknnginx_3 (ea584e2230e67dde0516ddc8779c3ca1fa575f86e3b3c357298c5416819b6f87): Bind for 0.0.0.0:8088 failed: port is already allocated
+
+ERROR: for compose_lknnginx_2  Cannot start service lknnginx: driver failed programming external connectivity on endpoint compose_lknnginx_2 (76341f073a8fb8af0bf37779e68ecf88d4e904e460eb9acd483444d8fba71468): Bind for 0.0.0.0:8088 failed: port is already allocated
+ERROR: Cannot start service lknnginx: driver failed programming external connectivity on endpoint compose_lknnginx_3 (ea584e2230e67dde0516ddc8779c3ca1fa575f86e3b3c357298c5416819b6f87): Bind for 0.0.0.0:8088 failed: port is already allocated
+[root@localhost compose]# docker-compose scale lkn_nginx=3
+WARNING: The scale command is deprecated. Use the up command with the --scale flag instead.
+ERROR: No such service: lkn_nginx
+//异常信息，说明端口被占用，需要修改docker-compose.yml配置文件
+```
+动态伸缩，创建容器
+```yml
+version: '3'
+services:
+  lknnginx:
+    image: mynginx
+  lknproductservice:
+    image: productservice_micro
+    ports:
+      - 8090:80
+```
+之前已经创建了3个容器，现在删除2个。
+``` bash
+docker-compose scale lknnginx=1
+[root@localhost compose]# docker-compose  scale lknnginx=1
+WARNING: The scale command is deprecated. Use the up command with the --scale flag instead.
+Stopping and removing compose_lknnginx_2 ... done
+Stopping and removing compose_lknnginx_3 ... done
+
+```
+## 启动 docker-compose 的日志
+``` bash
+[root@localhost compose]# docker-compose  -f /root/microservice/compose/docker-compose.yml logs
+Attaching to compose_lknproductservice_1, compose_lknnginx_1
+lknproductservice_1  | warn: Microsoft.AspNetCore.DataProtection.Repositories.FileSystemXmlRepository[60]
+lknproductservice_1  |       Storing keys in a directory '/root/.aspnet/DataProtection-Keys' that may not be persisted outside of the container. Protected data will be unavailable when container is destroyed.
+lknproductservice_1  | warn: Microsoft.AspNetCore.DataProtection.KeyManagement.XmlKeyManager[35]
+lknproductservice_1  |       No XML encryptor configured. Key {25e80828-d97b-4e6f-8a58-a81766746b6c} may be persisted to storage in unencrypted form.
+lknproductservice_1  | info: Microsoft.Hosting.Lifetime[14]
+lknproductservice_1  |       Now listening on: http://[::]:80
+lknproductservice_1  | info: Microsoft.Hosting.Lifetime[0]
+lknproductservice_1  |       Application started. Press Ctrl+C to shut down.
+lknproductservice_1  | info: Microsoft.Hosting.Lifetime[0]
+lknproductservice_1  |       Hosting environment: Production
+lknproductservice_1  | info: Microsoft.Hosting.Lifetime[0]
+lknproductservice_1  |       Content root path: /publish
+
 ```
 ## Docker network  网络  
-### 什么是network 
-network 类型  
-brigde类似虚拟机桥接模式NAT模式   
-host类似虚拟机桥接模式  
-none 无网络模式，只能和主机通信类似于虚拟机仅主机模式   
+### 什么是network  
+`network` 类型   
+`brigde`类似虚拟机桥接模式NAT模式    
+`host`类似虚拟机桥接模式   
+`none` 无网络模式，只能和主机通信类似于虚拟机仅主机模式     
+
+![Alt text](/images/docker/01/docker01_0003.png)
+
+### 容器中网络分析  
+
+1、通过 `ifconfig` 指令查看 当前linux的ip,不然发现`br-73c53ebd4c27`的网段，这个网段是docker-compos 自动帮我们创建的。
+
+![Alt text](/images/docker/01/docker01_0004.png)
+
+通过 `docker network  ls` 查看当前docke的网格情况，找到 compose_default的网段下的服务
+``` bash
+[root@localhost compose]# docker network  ls
+NETWORK ID     NAME              DRIVER    SCOPE
+135f6bd6a817   bridge            bridge    local
+73c53ebd4c27   compose_default   bridge    local
+5d46f2b37b92   host              host      local
+1164d1413a7a   none              null      local
+[root@localhost compose]# docker network  inspect 73c53ebd4c27
+[
+    {
+        "Name": "compose_default",
+        "Id": "73c53ebd4c277be017508844a4b2eda878e4f4519c85de7ede46078f54aeca25",
+        "Created": "2023-11-20T16:32:47.212724167+08:00",
+        "Scope": "local",
+        "Driver": "bridge",
+        "EnableIPv6": false,
+        "IPAM": {
+            "Driver": "default",
+            "Options": null,
+            "Config": [
+                {
+                    "Subnet": "172.18.0.0/16", // 子网地址范围
+                    "Gateway": "172.18.0.1" // 网关
+                }
+            ]
+        },
+        "Internal": false,
+        "Attachable": true,
+        "Ingress": false,
+        "ConfigFrom": {
+            "Network": ""
+        },
+        "ConfigOnly": false,
+        "Containers": {
+            "182860d867a8715ca564462c44ae4be73f4c671d1c88824cd7c15f6b74ecc767": {
+                "Name": "compose_lknproductservice_1",//关联的微服务
+                "EndpointID": "bd87629ec33f58719493ad7d311531a047d06d16493108c5f654982309122b05",
+                "MacAddress": "02:42:ac:12:00:02",
+                "IPv4Address": "172.18.0.2/16",// ip 
+                "IPv6Address": ""
+            },
+            "97729d0d32c852fd9dc8da97593c8a94cc5d3f34a36f5bd80ecfca35c086bd58": {
+                "Name": "compose_lknnginx_1", //关联的微服务
+                "EndpointID": "ef57b780ef1adac1521ad8efee88db6cfc94aaa4332b7617498583d7222beaa5",
+                "MacAddress": "02:42:ac:12:00:03",
+                "IPv4Address": "172.18.0.3/16",# ip
+                "IPv6Address": ""
+            }
+        },
+        "Options": {},
+        "Labels": {
+            "com.docker.compose.network": "default",
+            "com.docker.compose.project": "compose",
+            "com.docker.compose.version": "1.24.1"
+        }
+    }
+]
+```
+2、docker 虚拟机 默认指定桥接模式，通过主机ip进行通信的。
+``` bash
+docker network create -d  bridge lknmicroservice
+```
+然后 查看网络  
+``` bash
+[root@localhost compose]# ifconfig
+br-73c53ebd4c27: flags=4163<UP,BROADCAST,RUNNING,MULTICAST>  mtu 1500
+        inet 172.18.0.1  netmask 255.255.0.0  broadcast 172.18.255.255
+        inet6 fe80::42:2ff:fe0f:4d17  prefixlen 64  scopeid 0x20<link>
+        ether 02:42:02:0f:4d:17  txqueuelen 0  (Ethernet)
+        RX packets 34362  bytes 2788649 (2.6 MiB)
+        RX errors 0  dropped 0  overruns 0  frame 0
+        TX packets 79555  bytes 169649516 (161.7 MiB)
+        TX errors 0  dropped 0 overruns 0  carrier 0  collisions 0
+
+br-fe0704eb7d4f: flags=4099<UP,BROADCAST,MULTICAST>  mtu 1500
+        inet 172.19.0.1  netmask 255.255.0.0  broadcast 172.19.255.255
+        ether 02:42:cc:74:54:b8  txqueuelen 0  (Ethernet)
+        RX packets 320  bytes 388680 (379.5 KiB)
+        RX errors 0  dropped 0  overruns 0  frame 0
+        TX packets 429  bytes 397728 (388.4 KiB)
+        TX errors 0  dropped 0 overruns 0  carrier 0  collisions 0
+
+docker0: flags=4099<UP,BROADCAST,MULTICAST>  mtu 1500
+        inet 172.17.0.1  netmask 255.255.0.0  broadcast 172.17.255.255
+        inet6 fe80::42:51ff:fe19:a0c0  prefixlen 64  scopeid 0x20<link>
+        ether 02:42:51:19:a0:c0  txqueuelen 0  (Ethernet)
+        RX packets 34362  bytes 2788649 (2.6 MiB)
+        RX errors 0  dropped 0  overruns 0  frame 0
+        TX packets 79555  bytes 169649516 (161.7 MiB)
+        TX errors 0  dropped 0 overruns 0  carrier 0  collisions 0
+
+enp0s3: flags=4163<UP,BROADCAST,RUNNING,MULTICAST>  mtu 1500
+        inet 10.0.2.15  netmask 255.255.255.0  broadcast 10.0.2.255
+        inet6 fe80::a00:27ff:fe79:eb7  prefixlen 64  scopeid 0x20<link>
+        ether 08:00:27:79:0e:b7  txqueuelen 1000  (Ethernet)
+        RX packets 731365  bytes 914731582 (872.3 MiB)
+        RX errors 0  dropped 0  overruns 0  frame 0
+        TX packets 222033  bytes 71034595 (67.7 MiB)
+        TX errors 0  dropped 0 overruns 0  carrier 0  collisions 0
+
+enp0s8: flags=4163<UP,BROADCAST,RUNNING,MULTICAST>  mtu 1500
+        inet 192.168.3.61  netmask 255.255.255.0  broadcast 192.168.3.255
+        inet6 fe80::a00:27ff:fe39:fea  prefixlen 64  scopeid 0x20<link>
+        ether 08:00:27:39:0f:ea  txqueuelen 1000  (Ethernet)
+        RX packets 34325  bytes 2148898 (2.0 MiB)
+        RX errors 0  dropped 0  overruns 0  frame 0
+        TX packets 3353  bytes 1981686 (1.8 MiB)
+        TX errors 0  dropped 0 overruns 0  carrier 0  collisions 0
+
+lo: flags=73<UP,LOOPBACK,RUNNING>  mtu 65536
+        inet 127.0.0.1  netmask 255.0.0.0
+        inet6 ::1  prefixlen 128  scopeid 0x10<host>
+        loop  txqueuelen 1000  (Local Loopback)
+        RX packets 49  bytes 9743 (9.5 KiB)
+        RX errors 0  dropped 0  overruns 0  frame 0
+        TX packets 49  bytes 9743 (9.5 KiB)
+        TX errors 0  dropped 0 overruns 0  carrier 0  collisions 0
+
+vetha76453b: flags=4163<UP,BROADCAST,RUNNING,MULTICAST>  mtu 1500
+        inet6 fe80::a8c4:ebff:fec4:99b9  prefixlen 64  scopeid 0x20<link>
+        ether aa:c4:eb:c4:99:b9  txqueuelen 0  (Ethernet)
+        RX packets 232  bytes 393444 (384.2 KiB)
+        RX errors 0  dropped 0  overruns 0  frame 0
+        TX packets 289  bytes 30903 (30.1 KiB)
+        TX errors 0  dropped 0 overruns 0  carrier 0  collisions 0
+
+vethcab32a5: flags=4163<UP,BROADCAST,RUNNING,MULTICAST>  mtu 1500
+        inet6 fe80::186b:d1ff:fec4:a3e4  prefixlen 64  scopeid 0x20<link>
+        ether 1a:6b:d1:c4:a3:e4  txqueuelen 0  (Ethernet)
+        RX packets 320  bytes 388680 (379.5 KiB)
+        RX errors 0  dropped 0  overruns 0  frame 0
+        TX packets 429  bytes 397728 (388.4 KiB)
+        TX errors 0  dropped 0 overruns 0  carrier 0  collisions 0
+ 
+```
+
+也可能通过` docker network ls` ，docker network 网格创建成功了。
+
+
 ### 为什么要进行容器互联  
 容器之间由于是隔离的，导致网络是不通的。  
 如何解决呢？  
 1、查看容器网络  
 ``` bash
-docker inspect nginx  
+docker inspect lknnginx
+```
+网络信息
+``` bash
+ "Networks": {
+                "compose_default": {
+                    "IPAMConfig": null,
+                    "Links": null,
+                    "Aliases": [
+                        "8af9c6c40298",
+                        "lknnginx"
+                    ],
+                    "NetworkID": "73c53ebd4c277be017508844a4b2eda878e4f4519c85de7ede46078f54aeca25",
+                    "EndpointID": "d5514e303cfae8bae7723d5634b727ed21af51886b6255bb2e3a55199e318053",
+                    "Gateway": "172.18.0.1",
+                    "IPAddress": "172.18.0.3",
+                    "IPPrefixLen": 16,
+                    "IPv6Gateway": "",
+                    "GlobalIPv6Address": "",
+                    "GlobalIPv6PrefixLen": 0,
+                    "MacAddress": "02:42:ac:12:00:03",
+                    "DriverOpts": null
+                }
+            }
+
 ```
 2、进入nginx容器  
 ``` bash
-docker exec -it nginx /bin/bash
+docker exec -it lknnginx /bin/bash
 ```
 3、修改nginx配置  
 ``` text
   1、 切换到nginx配置目录 cd /user/local/nginx/conf
   2、编辑 vi nginx.conf ,输入容器IP   
 ```
+修改容器中的nginx.conf 文件 ，把微服务的代理地址配置即可。
+``` yml
+....
+第一种通过Ip
+location / {
+	 proxy_pass  http://172.18.0.2:80; # 端口是容器端口 80，不需要指定 8090 端口（linux 映射接口）
+}
+第二种通过 容器名称
+location / {
+	 proxy_pass  http://lknproductservice:80; # 端口是容器端口 80，不需要指定 8090 端口（linux 映射接口）
+}
+....
+```
+
 4、然后进行访问 
 出现了网络异常问题，如何解决？  
-使用网络network来解决，内部使用Bridge桥接网络来解决！  
+使用网络`network`来解决，内部使用`Bridge`桥接网络来解决！  
 条件   
-1、nginx镜像  
+1、`nginx`镜像  
 2、商品微服务镜像   
-3、容器网络network  
+3、容器网络`network ` 
 步骤  
-1、使用network设置网络  
-1.2 查看network使用
-1.2.1 输入docker命令，查看network如何使用  
-1.2.2 输入docker network,查看network使用   
+1、使用`network`设置网络  
+1.2 查看`network`使用
+1.2.1 输入`docker`命令，查看`network`如何使用  
+1.2.2 输入`docker network`,查看network使用   
 1.3 创建网络  
 ```bash 
-docker network create nginx-rmcore
+docker network create lknmicoservice
 ```
 指定创建
 ``` bash
-docker network create -d bridge microservice 
+docker network create -d bridge lknmicoservice 
 ```
 1.4 选择驱动版本（默认为桥接版本）  
-1.4.1 桥接网络模式（brigde） 覆盖网络模式（overlay）主机网络模式（host）MAC网络模式（macvlan）:禁用网络模式（none）:其它模式（网络插件）
-1.4.2 如何在docker-compose.yml文件内使用network 
+1.4.1 桥接网络模式（`brigde`） 覆盖网络模式（`overlay`）主机网络模式（`host`）MAC网络模式（`macvlan`）:禁用网络模式（none）:其它模式（网络插件）
+1.4.2 如何在`docker-compose.yml`文件内使用`network `
+已经有镜像的配置
+``` yml
+[root@localhost compose]# cat docker-compose.yml 
+version: '3'
+services:
+  lknnginx:
+    image: mynginx  
+    networks:
+      - lknmicroservice
+    ports:
+      - 8088:80
+  lknproductservice:
+    image: productservice_micro
+    networks:
+      - lknmicroservice
+    ports:
+      - 8090:80    
+networks:
+  lknmicroservice: 
+    external: true
+
+``
+没有镜像，批量生成镜像配置
+
 ``` yml
 version: '3'
 services:
   lknnginx:
-    build: /root/lkn/nginx
-    ports:
-     - 8088:80
+    #image: mynginx
+    build: /root/microservice/nginx # 生成镜像文件目录,指定Dockerfile文件目录即可
     networks:
-     - microservice
-  productservice:
-    build: /root/lkn/productservice
+      - lknmicroservice
     ports:
-     - 8090:80
+      - 8088:80
+  lknproductservice:
+    #image: productservice_micro
+    build: /root/microservice/productservice
     networks:
-     - microservice
+      - lknmicroservice
+    ports:
+      - 8090:80    
 networks:
- microservice:
-      external: true
+  lknmicroservice: 
+    external: true
+
 ```
 
 2、更新compose.yml配置文件
 ``` bash
 docker-compose up -d
 ```
+
+3、查询 `docker network inspect lknmicroservice`
+```bash
+[root@localhost ~]# docker network inspect lknmicroservice
+[
+    {
+        "Name": "lknmicroservice",
+        "Id": "fe0704eb7d4f0fd4e5aabba834e73289b11e924b0a5d0c084f51ec76900294e3",
+        "Created": "2023-11-21T10:39:04.66342572+08:00",
+        "Scope": "local",
+        "Driver": "bridge",
+        "EnableIPv6": false,
+        "IPAM": {
+            "Driver": "default",
+            "Options": {},
+            "Config": [
+                {
+                    "Subnet": "172.19.0.0/16",
+                    "Gateway": "172.19.0.1"
+                }
+            ]
+        },
+        "Internal": false,
+        "Attachable": false,
+        "Ingress": false,
+        "ConfigFrom": {
+            "Network": ""
+        },
+        "ConfigOnly": false,
+        "Containers": {
+            "5bd3e0e89c7729086ee5042e7a3126ac9d7dfadc46034d1d8273b09203255dc5": {
+                "Name": "compose_lknnginx_1",
+                "EndpointID": "6b8c65bc45402310c3e9ae7190635a904e2eaf8e56d7f7c07de6c36f6d6775e2",
+                "MacAddress": "02:42:ac:13:00:02",
+                "IPv4Address": "172.19.0.2/16",
+                "IPv6Address": ""
+            },
+            "a1b2bdc5c1d7a18a168fb3fe41c2162ee0f06c4d711b4e265c0598cafa9c551d": {
+                "Name": "compose_lknproductservice_1",
+                "EndpointID": "e2c9c3085af75aa71c15237edfd499aa3c101359fa4aff82108fc1b2279e5596",
+                "MacAddress": "02:42:ac:13:00:03",
+                "IPv4Address": "172.19.0.3/16",
+                "IPv6Address": ""
+            }
+        },
+        "Options": {},
+        "Labels": {}
+    }
+]
+
+```
+查看docker 网络得知，docker-compose自定义网络成功。
+
+
+
+
 ## Docker volume  数据卷  
 ### 什么是volume  
 数据卷就是将容器的数据存储到主机上，方便进行持久化存储   
@@ -995,7 +1342,7 @@ server {
     #access_log  logs/host.access.log  main;
 
     location / {
-        proxy_pass  http://productservice:80;
+        proxy_pass  http://lknproductservice:80; //lknproductservice  是 docker-compose.yml 配置中的服务名称
     }
 
     #error_page  404              /404.html;
@@ -1014,22 +1361,25 @@ server {
 version: '3'
 services:
   lknnginx:
-    build: /root/lkn/nginx
+    #image: mynginx
+    build: /root/microservice/nginx
     ports:
-     - 8088:80
+      - 8088:80
     networks:
-     - microservice
+      - lknmicroservice
     volumes:
-     - /root/lkn/compose/nginx.conf:/usr/local/nginx/conf/nginx.conf
-  productservice:
-    build: /root/lkn/productservice
+      - /root/microservice/compose/nginx.conf:/usr/local/nginx/conf/nginx.conf
+  lknproductservice:  //容器名称 可以用于通信，相当DNS ,容器内部的域名
+    #image: productservice_micro
+    build: /root/microservice/productservice
     ports:
-     - 8090:80
+      - 8090:80
     networks:
-     - microservice
+      - lknmicroservice
 networks:
- microservice:
-      external: true
+  lknmicroservice:
+    external: true
+
 ```
 
 备注：
@@ -1200,7 +1550,8 @@ make install 进行安装
 ```
 #### 改造阶段
 ``` yml
-FROM centos:9
+##基础镜像模板
+FROM centos:7  ## 原始镜像
 RUN yum -y install gcc make pcre-devel zlib-devel tar zlib
 WORKDIR /nginx
 COPY nginx-1.15.2.tar.gz /nginx
@@ -1209,7 +1560,7 @@ RUN cd nginx-1.15.2 && ./configure && make && make install
 EXPOSE 80
 COPY nginx.sh /nginx.sh
 RUN chmod 755 /nginx.sh
-CMD [“/nginx.sh”]
+CMD ["/nginx.sh"]
 ```
 自定义镜像：效率很低
 
@@ -1230,7 +1581,10 @@ Consul skywalking。
 公司业务需要定制化的时候用。
 
 容器编排
-
+   批量操作容器
 镜像编排
+  批量操作镜像
+##  `Docker-compose` 工具
 
-Docker-compose。
+
+
