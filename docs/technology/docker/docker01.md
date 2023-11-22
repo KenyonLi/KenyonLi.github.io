@@ -1588,3 +1588,41 @@ Consul skywalking。
 
 
 
+## Linux 系统重启后 Docker 服务器以及容器设置自启动   
+
+## 重启【reboot】 linux 系统后，docker 服务及容器没有自动启动 
+1、设置Docker 服务自动启动
+``` bash
+systemctl enable docker.service
+```
+
+2、设置Docker的容器自动启动
+``` bash
+systemctl restart docker
+```
+
+3、容器还没有创建，在运行容器的时候加入--restart=always参数  
+
+``` bash
+docker run -id --restart=always -p 9999:9999 -v xxxx:xxxx 镜像名称:tag
+```
+
+4、容器已经运行的情况，运行以下命令：
+``` bash
+docker update --restart=always 容器名字或者容器ID
+```
+
+5、如果想停止自动启动，运行以下命令：
+``` bash
+docker update --restart=no 容器名字或者容器ID
+```
+``` bash
+--restart具体参数值详细信息：
+
+no - 容器退出时，不重启容器；
+
+on-failure - 只有在非0状态退出时才从新启动容器；
+
+always - 无论退出状态是如何，都重启容器；
+
+``` 
