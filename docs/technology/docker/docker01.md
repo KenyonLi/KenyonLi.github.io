@@ -1626,3 +1626,57 @@ on-failure - 只有在非0状态退出时才从新启动容器；
 always - 无论退出状态是如何，都重启容器；
 
 ``` 
+
+## 卸载 docke 
+[参考](https://blog.csdn.net/qq_43479188/article/details/133125597)
+```bash
+#停用
+[root@lkn65 ~]# sudo systemctl stop docker.socket
+# 查docker 包文件
+[root@lkn65 ~]# yum list installed |grep docker
+containerd.io.x86_64                             1.6.25-3.1.el9                   @docker-ce-stable
+docker-buildx-plugin.x86_64                      0.11.2-1.el9                     @docker-ce-stable
+docker-ce.x86_64                                 3:24.0.7-1.el9                   @docker-ce-stable
+docker-ce-cli.x86_64                             1:24.0.7-1.el9                   @docker-ce-stable
+docker-ce-rootless-extras.x86_64                 24.0.7-1.el9                     @docker-ce-stable
+docker-compose-plugin.x86_64                     2.21.0-1.el9                     @docker-ce-stable
+# 删除
+[root@lkn65 ~]# rpm -qa |grep docker
+docker-compose-plugin-2.21.0-1.el9.x86_64
+docker-buildx-plugin-0.11.2-1.el9.x86_64
+docker-ce-cli-24.0.7-1.el9.x86_64
+docker-ce-rootless-extras-24.0.7-1.el9.x86_64
+docker-ce-24.0.7-1.el9.x86_64
+[root@lkn65 ~]# rm -rf /var/lib/docker
+
+```
+``` bash
+#删除所有安装的docker文件包
+yum -y remove <此处粘贴上一步所有的rpm源文件名用空格间隔>
+#检查是否卸载干净
+rpm -qa |grep docker
+#删除docker的镜像文件，默认在/var/lib/docker目录下 
+rm -rf /var/lib/docker
+#卸载结束
+```
+## 指定版本安装docker 
+
+```bash
+#安装所需要的软件包
+sudo yum install -y yum-utils  device-mapper-persistent-data  lvm2
+#设置稳定的仓库（选择的阿里云）。
+sudo yum-config-manager  --add-repo  http://mirrors.aliyun.com/docker-ce/linux/centos/docker-ce.repo
+#安装特定版本的 Docker Engine-Community，请在存储库中列出可用版本，然后选择并安装：
+yum list docker-ce --showduplicates | sort -r
+yum list docker-ce-cli --showduplicates | sort -r
+```
+
+``` bash
+#此处为兼容K8s选择20.10.3
+#安装docker服务
+sudo yum install docker-ce-20.10.15 docker-ce-cli-20.10.15 containerd.io
+#安装完成后启动服务
+systemctl start docker
+#测试docker是否安装成功
+docker run hello-world
+```
