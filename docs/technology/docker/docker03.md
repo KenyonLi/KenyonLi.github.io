@@ -116,16 +116,16 @@ k8s有硬件要求，必须运行cpu为2核，内存为2G以上
 `kubelet`:运行每个节点容器  
 
 ### 步骤  
-1-8（除了4）在所有节点执行  
-1、关闭防火墙，配置免密码登录
+#### 1-8（除了4）在所有节点执行  
+#### 1、关闭防火墙，配置免密码登录
 ``` bash
 systemctl stop firewall #防止端口不开放，k8s集群无法启动
 ```
-2、关闭 selinux
+#### 2、关闭 selinux
 ```bash
 setenforce 0
 ```
-3、关闭swap  
+#### 3、关闭swap  
 ![Alt text](/images/docker/03/docker03_002.png)
 
 ``` bash
@@ -144,7 +144,7 @@ Mem:         1806068      703704      844676       11692      423952     1102364
 Swap:              0           0           0
 
 ```
-4、添加主机名与ip对应的关系，免密（这一步可以只在master执行），这一步我为后面传输网络做准备   
+#### 4、添加主机名与ip对应的关系，免密（这一步可以只在master执行），这一步我为后面传输网络做准备   
 ``` bash
 vim /etc/hosts
 192.168.3.63       lkn01
@@ -160,14 +160,16 @@ chmod 600 .ssh/authorized_keys
 scp -r .ssh root@192.168.44.4:/root
 ```
 
-5.将桥接的IPV4流量传递到iptables的链
+#### 5.将桥接的IPV4流量传递到iptables的链
 ``` bash
 vi /etc/sysctl.d/k8s.conf
 net.bridge.bridge-nf-call-ip6tables = 1
 net.bridge.bridge-nf-call-iptables = 1
+# 重新加载
+sysctl --system
 ```
 
-6.安装Docker及同步时间
+#### 6.安装Docker及同步时间
 ``` bash
 wget https://mirrors.aliyun.com/docker-ce/linux/centos/docker-ce.repo -O/etc/yum.repos.d/docker-ce.repo
 
@@ -198,7 +200,7 @@ chronyc sources
 chronyc sourcestats -v
 ```
 
-7.添加阿里云YUM软件源
+#### 7.添加阿里云YUM软件源
 ``` bash
 vim /etc/yum.repos.d/kubernetes.repo
 
@@ -211,7 +213,7 @@ repo_gpgcheck=1
 gpgkey=https://mirrors.aliyun.com/kubernetes/yum/doc/yum-key.gpg https://mirrors.aliyun.com/kubernetes/yum/doc/rpm-package-key.gpg
 ```
 
-8、安装 kubeadm,kubelet和kubectl
+#### 8、安装 kubeadm,kubelet和kubectl
 [在centos stream 9上搭建k8s最新版本](https://www.cnblogs.com/zengqinglei/p/17131046.html)
 [【云原生-K8s】kubeadm搭建k8s集群1.25版本完整教程【docker、网络插件calico、中间层cri-docker】](https://developer.aliyun.com/article/1071066)
 ``` bash
@@ -224,7 +226,7 @@ yum install -y kubectl-1.20.0 kubeadm-1.20.0 kubelet-1.20.0 --nogpgcheck
 # 启动kubelet服务
 systemctl enable kubelet && systemctl start kubelet
 ```
-9、部署kubernetes Master  
+#### 9、部署kubernetes Master  
 初始化makecache 
 ``` bash
 # 第一次初始化比较慢，需要拉取镜像
@@ -247,32 +249,7 @@ mkdir -p $HOME/.kube
 sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
 sudo chown $(id -u):$(id -g) $HOME/.kube/config
 
-
-
----
-Your Kubernetes control-plane has initialized successfully!
-
-To start using your cluster, you need to run the following as a regular user:
-
-  mkdir -p $HOME/.kube
-  sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
-  sudo chown $(id -u):$(id -g) $HOME/.kube/config
-
-Alternatively, if you are the root user, you can run:
-
-  export KUBECONFIG=/etc/kubernetes/admin.conf
-
-You should now deploy a pod network to the cluster.
-Run "kubectl apply -f [podnetwork].yaml" with one of the options listed at:
-  https://kubernetes.io/docs/concepts/cluster-administration/addons/
-
-Then you can join any number of worker nodes by running the following on each as root:
-
-kubeadm join 192.168.3.66:6443 --token ru081s.upj5xz94v24ey0mm \
-    --discovery-token-ca-cert-hash sha256:47def65c83c1d2b9794cd4ea7407f6ba7829bc3c25f27c863f1eb299850c211d 
-
-
-
+kubeadm join 192.168.3.66:6443 --token eml8id.1yoangisuwgtgyoy  --discovery-token-ca-cert-hash sha256:1c408baadb6783d343d5bd480453411d310c007147bdf19e84903692724ca29b 
 
 ```
 验证状态，发现前两个是`pending`，`get pods` 发现是`not ready`
@@ -289,33 +266,36 @@ kube-system   kube-proxy-2trv9                 1/1     Running   0         100d
 kube-system   kube-scheduler-local1           1/1     Running   0         100d
 ```
 
-需要安装`flannel`
+##### 需要安装`flannel`
 
 ```bash
 # 安装flannel（在master执行）/
  // 1、在线安装
 kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/master/Documentation/kube-flannel.yml
-
+下载文件在本地安装
+kubectl apply -f kube-flannel.yml
 // 1、离线安装
 如果kube-flannel.yml无法下载
 手动配置网路地址
 mkdir /run/flannel/
  
+#  FLANNEL_NETWORK=10.244.0.0/16   需要根据 kubeamd init 的参数据pod-network-cidr=10.244.0.0/16 一样
+
 cat <<EOF> /run/flannel/subnet.env
-FLANNEL_NETWORK=10.244.0.0/16
+FLANNEL_NETWORK=10.244.0.0/16 
 FLANNEL_SUBNET=10.244.1.0/24
 FLANNEL_MTU=1450
 FLANNEL_IPMASQ=true
 EOF
 
 # 安装完flannel，将配置拷到node节点，否则添加节点之后状态不对
-scp -r /etc/cni root@192.168.44.4:/etc
+scp -r /etc/cni root@192.168.3.65:/etc
 
 # 这一步也要拷贝，否则节点看着正常，但是pod由于网络原因无法创建
-scp -r /run/flannel/ root@192.168.44.4:/run
+scp -r /run/flannel/ root@192.168.3.65:/run
 ```
 
-## 再次初始化
+##### 再次初始化
 ``` bash
 # 执行第9步的命令
 kubeadm init ...
@@ -328,40 +308,43 @@ kubeadm init ...
 --ignore-preflight-errors all 跳过之前已安装部分（出问题时，问题解决后加上继续运行）
 ```
 
-## 查看集群状态，master正常
-
+##### 卸载k8s [参考](https://www.orchome.com/16614)
 ``` bash
-[root@local1 ~]# kubectl get cs
-NAME                 STATUS    MESSAGE             ERROR
-scheduler            Healthy   ok                  
-controller-manager   Healthy   ok                  
-etcd-0               Healthy   {"health":"true"}
-
-[root@local1 ~]# kubectl get nodes
-NAME     STATUS     ROLES    AGE     VERSION
-local1   Ready      master   2m16s   v1.17.3
-
-[root@local1 ~]# kubectl get pods --all-namespaces
-NAMESPACE     NAME                             READY   STATUS    RESTARTS   AGE
-kube-system   coredns-9d85f5447-9s4mc          1/1     Running   0          16m
-kube-system   coredns-9d85f5447-gt2nf          1/1     Running   0          16m
-kube-system   etcd-local1                      1/1     Running   0          16m
-kube-system   kube-apiserver-local1            1/1     Running   0          16m
-kube-system   kube-controller-manager-local1   1/1     Running   0          16m
-kube-system   kube-proxy-sdbl9                 1/1     Running   0          15m
-kube-system   kube-proxy-v4vxg                 1/1     Running   0          16m
-kube-system   kube-scheduler-local1            1/1     Running   0  
+sudo yum remove -y kubeadm kubectl kubelet kubernetes-cni kube*   
 ```
 
-10、node工作节点加载
+##### 查看集群状态，master正常
+
+``` bash
+[root@lkn66 ~]# kubectl get cs
+Warning: v1 ComponentStatus is deprecated in v1.19+
+NAME                 STATUS      MESSAGE                                                                                       ERROR
+scheduler            Unhealthy   Get "http://127.0.0.1:10251/healthz": dial tcp 127.0.0.1:10251: connect: connection refused   
+controller-manager   Unhealthy   Get "http://127.0.0.1:10252/healthz": dial tcp 127.0.0.1:10252: connect: connection refused   
+etcd-0               Healthy     {"health":"true"}   
+
+[root@lkn66 ~]# kubectl get pods --all-namespaces
+NAMESPACE      NAME                            READY   STATUS             RESTARTS   AGE
+kube-flannel   kube-flannel-ds-7r99t           1/1     Running            0          10h
+kube-flannel   kube-flannel-ds-vv9r2           1/1     Running            0          11h
+kube-system    coredns-7f89b7bc75-dbb9d        1/1     Running            0          12h
+kube-system    coredns-7f89b7bc75-tzdjq        1/1     Running            0          12h
+kube-system    etcd-lkn66                      1/1     Running            0          12h
+kube-system    kube-apiserver-lkn66            1/1     Running            0          12h
+kube-system    kube-controller-manager-lkn66   0/1     CrashLoopBackOff   114        12h
+kube-system    kube-proxy-9shnb                1/1     Running            0          12h
+kube-system    kube-proxy-cq2fx                1/1     Running            0          10h
+kube-system    kube-scheduler-lkn66            0/1     CrashLoopBackOff   111        12h
+
+```
+
+#### 10、node工作节点加载
 
 node节点执行1-8，如果第五步不执行，会添加失败
 
 在node节点执行上面初始化时生成的join命令
 ```bash
-kubeadm join 192.168.235.145:6443 --token w5rify.gulw6l1yb63zsqsa 
-    --discovery-token-ca-cert-hash 
-    sha256:4e7f3a03392a7f9277d9f0ea2210f77d6e67ce0367e824ed891f6fefc7dae3c8
+ kubeadm join 192.168.3.66:6443 --token 3d33ro.m3jy3f3yq1o05q0y  --discovery-token-ca-cert-hash sha256:7288dab1719003c8be4dbfd2f916e7bc6e1703e7ac650701683a71535a7eb43c 
 
 # 输出
 This node has joined the cluster:
@@ -402,7 +385,40 @@ local2   Ready    <none>   31s     v1.18.0
 local3   Ready    <none>   5m43s   v1.18.0
 
 ```
-## 卸载k8s [参考](https://www.orchome.com/16614)
+
+#### 11、如果节点出错，可以移除节点
 ``` bash
-sudo yum remove -y kubeadm kubectl kubelet kubernetes-cni kube*   
+#重置节点
+kubeadm reset
+
+[root@lkn66 ~]# kubectl get nodes
+NAME    STATUS   ROLES                  AGE   VERSION
+lkn65   Ready    <none>                 11h   v1.20.0
+lkn66   Ready    control-plane,master   12h   v1.20.0
+
+#删除节点，删除后 数据就从etcd中清除了(可运行kubectl的任一节点中执行)
+kubectl delete node lkn65
 ```
+#### 12、如果加入节点时，token过期，可以重新生成
+``` bash
+1、查看token
+[root@lkn66 ~]# kubeadm token list
+TOKEN                     TTL         EXPIRES                     USAGES                   DESCRIPTION                                                EXTRA GROUPS
+3d33ro.m3jy3f3yq1o05q0y   11h         2023-11-25T01:26:15+08:00   authentication,signing   The default bootstrap token generated by 'kubeadm init'.   system:bootstrappers:kubeadm:default-node-token
+
+2、默认生成的token有效期是一天，生成永不过期的token
+[root@lkn66 ~]# kubeadm token create --ttl 0
+05402u.jb7a47xpzewhcrrt
+
+3、创建token
+[root@lkn66 ~]# openssl x509 -pubkey -in /etc/kubernetes/pki/ca.crt | openssl rsa -pubin -outform der 2>/dev/null | openssl dgst -sha256 -hex | sed 's/^.* //'
+#token
+7288dab1719003c8be4dbfd2f916e7bc6e1703e7ac650701683a71535a7eb43c
+ 
+4、在worker节点执行join
+
+kubeadm join 192.168.3.66:6443 --token 05402u.jb7a47xpzewhcrrt --discovery-token-ca-cert-hash sha256:7288dab1719003c8be4dbfd2f916e7bc6e1703e7ac650701683a71535a7eb43c
+```
+
+
+
