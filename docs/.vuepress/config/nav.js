@@ -187,6 +187,13 @@ module.exports = [
         // 支持正则表达式
         activeMatch: "/",
       },
+      {
+        text: "什么反刍思维",
+        link: "/read/read01.md",
+        // 该元素在当前路由路径是 /foo/ 开头时激活
+        // 支持正则表达式
+        activeMatch: "/",
+      },
     ],
   },
   {
