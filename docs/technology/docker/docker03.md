@@ -420,5 +420,140 @@ TOKEN                     TTL         EXPIRES                     USAGES        
 kubeadm join 192.168.3.66:6443 --token 05402u.jb7a47xpzewhcrrt --discovery-token-ca-cert-hash sha256:7288dab1719003c8be4dbfd2f916e7bc6e1703e7ac650701683a71535a7eb43c
 ```
 
+## k8s 运行
+## 基础命令  
+``` yml
+获取节点
+
+kubectl get node
+
+获取相信节点
+
+kubectl get node -o wide
+
+运行nginx pod(这个时候只是容器在pod内部使用，还不能给外界进行访问)
+
+kubectl run nginx --image=nginx --port=80
+
+查看nginx pod信息(显示demo是否成功或者失败信息)
+
+kubectl describe pod nginx-pod
+
+暴露nginx pod(暴露给外界进行访问)
+
+kubectl expose pod nginx-pod --port=80 --target-port=80 --type=NodePort
+
+查看暴露nginx副本deployment service
+
+ kubectl get service -o wide
+```
+
+## 副本命令(伸缩命令)
+``` yml
+创建副本集deployment
+
+kubectl create 命令
+
+创建nginx副本deployment
+
+kubectl create deployment nginx-deployment --image=nginx
+
+查看nginx副本deployment
+
+kubectl create deployment -o wide
+
+暴露nginx副本deployment
+
+kubectl expose deployment nginx-deployment --port=80 --target-port=8000 --type=NodePort
+
+查看暴露nginx副本deployment service
+
+ kubectl get service -o wide
+
+动态扩容nginx副本deployment
+
+kubectl scale  --replicas=3 deployment/nginx
+```
+### yaml文件命令 
+#### nginx副本集部署 deployment  
+``` yml
+apiVersion: apps/v1 #k8s版本号
+kind: Deployment #部署类型（资源类型）
+metadata: #元数据(用于定义资源信息)
+  name: nginx-deployment-tony5 #资源名称
+  labels: #资源标签(版本号)
+    app: nginx 
+spec: #资源相关信息规范
+  replicas: 3 #副本数
+  selector: #选择哪一个版本
+    matchLabels:
+      app: nginx
+  template: #模板
+    metadata: #资源的元数据/属性
+      labels: #设置资源的标签
+        app: nginx
+    spec: #资源规范字段(规范容器配置)
+      containers: #指定容器
+      - name: nginx #容器名称
+        image: nginx #容器使用的镜像
+        ports: #端口号
+        - containerPort: 80 #容器对应的端口号
+```
+#### nginx暴露 service 
+``` yml
+apiVersion: v1 # 指定api版本，此值必须在kubectl api-versions中
+kind: Service # 指定创建资源的角色/类型
+metadata: # 资源的元数据/属性
+  name: service-tony # 资源的名字，在同一个namespace中必须唯一
+  namespace: default # 部署在哪个namespace中
+  labels: # 设定资源的标签
+    app: demo
+spec: # 资源规范字段
+  type: NodePort # ClusterIP 类型
+  ports:
+    - port: 8080 # service 端口
+      targetPort: 80 # 容器暴露的端口
+      protocol: TCP # 协议
+      name: http # 端口名称
+  selector: # 选择器(选择什么资源进行发布给外界进行访问：pod deployment 等等资源)
+    app: nginx
+```
+#### nginx运行Service configmap
+
+``` yml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: nginx-configmap
+spec:
+  containers:
+  - name: nginx-configmap
+    image: nginx
+    volumeMounts:
+    - name: config-volume4
+      mountPath: "/tmp/config4"
+  volumes:
+  - name: config-volume4
+    configMap:
+      name: my-config
+```
 
 
+## docker 删除
+``` bash
+ yum remove docker \
+                    docker-client \
+                    docker-client-latest \
+                    docker-common \
+                    docker-latest \
+                    docker-latest-logrotate \
+                    docker-logrotate \
+                    docker-selinux \
+                    docker-engine-selinux \
+                   docker-engine
+                   
+ rm -rf /etc/systemd/system/docker.service.d 
+ rm -rf /var/lib/docker
+ 
+ rm -rf /var/run/docker
+```
