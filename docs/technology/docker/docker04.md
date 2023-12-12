@@ -230,9 +230,7 @@ spec:
 3.1 输入命令：kubectl apply -f nginx.yml  
 3.2 输入命令： kubectl get service
 
-``` bash
 
-```
 
 ## k8s运行商品微服务镜像
 
@@ -262,6 +260,86 @@ spec:
     ports:
      - containerPort: 80
 ```
+3、然后运行productservice.yml 
+3.1 输入命令：kubectl create -f productservice.yml  
+3.2 输入命令： kubectl get service
+
+
+## 商品微服务 Deployment 配置
+条件  
+
+1、productservice.yml   
+
+步骤   
+
+1、先创建productservice.yml文件   
+
+2、然后在productservice.yml文件中添加内容，
+
+如下所示：
+``` yml
+apiVersion: apps/v1
+kind: Deployment 
+metadata:
+  name: productservice
+  namespace: default  
+spec: # 代表运行多少pod 
+  replicas: 3
+  selector: # 选择器，pod和容器通信
+    matchLabels:
+      app: productservice
+  template: # 模板，运行什么镜像，就是什么模板
+    metadata: 
+     labels:
+       app: productservice # 代表pod版本
+    spec:  # 代表运行啥镜像
+      containers:
+       - image: lknproductservice
+         name: productservice-container
+         imagePullPolicy: IfNotPresent
+         ports:
+          - containerPort: 80
+
+```
+3、然后运行productservice.yml 
+3.1 输入命令：kubectl create -f productservice.yml
+3.2 输入命令： kubectl get deployment
+
+### 手动 动态 scale 实际动态伸缩
+``` yml
+kubectl scale --replicas=2 -f productservice.yml 
+
+kubectl  get deployment
+``` 
+手动方式：
+  1、无法确定资源是否利用完美。
+  2、资源利用过度，出现性能瓶颈
+
+度的范围之内。最好的方式，自动根据资源情况，进行调度。  
+20G,100个   
+10G，50个   
+10核 1000个容器  
+4核 50个容器   
+### autoscale 自动动态伸缩 
+方案  
+1、实例范围方案  
+
+商品微服务，最小多个个：2 最大多少个：10
+1、根据什么，cpu自动策略80%  
+并发量大小。会反应到cpu使用率   
+并发量小，会反应到cpu使用率  
+cpu 是谁的？  
+1、pod,独立的cpu资源消耗。80%  
+就会启动实例，最大启动10个  
+如果pod,cpu 使用率资源减低  
+最小可以缩小为2个  
+
+``` bash
+[root@lkn66 deployment]# kubectl  autoscale -f productservice.yml  --min=2 --max=10
+horizontalpodautoscaler.autoscaling/productservice autoscaled
+
+```
+
 
 ## 商品微服务、Nginx之间通信
 条件
@@ -418,6 +496,10 @@ spec:
     targetPort: 80
  type: NodePort
 ```
+
+
+
+
 
 
 ## 附件 
@@ -664,3 +746,66 @@ spec:
     persistentVolumeClaim:
       claimName: rbd-pvc1         #挂载已经申请的pvc磁盘
 ```
+
+
+## 数据挂载总结
+
+总结
+
+1、k8s数据挂载
+
+hostPath ：直接指定主机路径
+
+configmap：直接目录挂载
+
+hostPath
+
+优势：
+
+1、hostPath 可以指定具体的文件。主机替换容器
+
+缺陷：
+
+1、容器运行在哪一个主机，就必须在主机上有这个文件
+
+configmap：
+
+优势：
+
+1、只需要在主机上创建文件就可以了。可以自动同步到所有节点
+
+缺陷：
+
+1、是目录挂载。
+
+主机上可以把多个文件，容器要对应是一个目录。
+
+
+## IP地址中/16或者/24的意义
+[参考](https://blog.csdn.net/weixin_40880213/article/details/120670910)
+当创建vpc专有网络时，许多人会遇到填写IPv4地址情况，通常使用的格式是xxx.xxx.xxx.xxx/16或xxx.xxx.xxx.xxx/24 那么这个斜杠后面的数字代表什么意思呢？
+
+实际上，IPv4地址是由32位二进制数组成的。以192.168.0.0/16为例，它的二进制表示是11000000.10101000.00000000.00000000。/16表示前16位是网络地址，后16位是主机地址，即从1000000.10101000.00000000.00000000到11000000.10101000.11111111.11111111，所表示的IP地址范围是从192.168.0.0到192.168.255.255，其中最后一个地址为广播地址，因此可用IP地址数量为65534。    
+
+如果是/24，它表示前24位是网络地址，后8位是主机地址。例如，192.168.0.0/24表示的IP地址范围是从1000000.10101000.00000000.00000000到11000000.10101000.00000000.11111111，所表示的IP地址为192.168.0.0到192.168.0.255，其中最后一个地址为广播地址，因此可用IP地址数量为254。
+子网掩码还决定了网络的大小。因此，在选择子网掩码时，需要考虑所需的IP地址数量和网络规模.
+更加详细的地址算法可以参考:[在线网络计算器|TCP/IP子网掩码计算换算 一在线工具](https://www.sojson.com/convert/subnetmask.html)
+
+
+
+## k8s 网络检查
+
+### pod 资料解析
+
+``` bash
+kubectl  get pod -o wide
+
+[root@lkn66 k8s]# kubectl  get pod -o wide
+NAME                              READY   STATUS    RESTARTS   AGE   IP            NODE    NOMINATED NODE   READINESS GATES
+nginx                             1/1     Running   1          17h   10.244.1.16   lkn65   <none>           <none>
+productservice                    1/1     Running   1          17h   10.244.1.19   lkn65   <none>           <none>
+productservice-6c877bccf4-k7br4   1/1     Running   1          17h   10.244.1.17   lkn65   <none>           <none>
+productservice-6c877bccf4-vqnkg   1/1     Running   1          17h   10.244.1.18   lkn65   <none>           <none>
+
+```
+

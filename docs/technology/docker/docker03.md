@@ -119,6 +119,7 @@ k8s有硬件要求，必须运行cpu为2核，内存为2G以上
 #### 1-8（除了4）在所有节点执行  
 #### 1、关闭防火墙，配置免密码登录
 ``` bash
+
 systemctl stop firewall #防止端口不开放，k8s集群无法启动
 ```
 #### 2、关闭 selinux
@@ -146,6 +147,9 @@ Swap:              0           0           0
 ```
 #### 4、添加主机名与ip对应的关系，免密（这一步可以只在master执行），这一步我为后面传输网络做准备   
 ``` bash
+修改主机名称
+hostnamectl set-hostname lk64 && bash
+
 vim /etc/hosts
 192.168.3.66       lkn01
 192.168.3.64       lkn02
@@ -158,17 +162,51 @@ chmod 600 .ssh/authorized_keys
 
 # 可以在master生成，然后拷贝到node节点(免密登录，主机之间互相传文件)
 scp -r .ssh root@192.168.44.4:/root
+
+# 使用 xhe远程 拷贝密钥
+ ssh-copy-id lkn65
+[root@lkn66 ~]# ssh-copy-id lkn66
+/usr/bin/ssh-copy-id: INFO: Source of key(s) to be installed: "/root/.ssh/id_rsa.pub"
+The authenticity of host 'lkn66 (192.168.3.66)' can't be established.
+ED25519 key fingerprint is SHA256:1enlDYahcD8aoSNDodKcoL8wxFmYDurvyZny5/kmyC4.
+This host key is known by the following other names/addresses:
+    ~/.ssh/known_hosts:1: 192.168.3.66
+Are you sure you want to continue connecting (yes/no/[fingerprint])? yes   
+/usr/bin/ssh-copy-id: INFO: attempting to log in with the new key(s), to filter out any that are already installed
+/usr/bin/ssh-copy-id: INFO: 1 key(s) remain to be installed -- if you are prompted now it is to install the new keys
+root@lkn66's password: 
+Permission denied, please try again.
+root@lkn66's password: 
+
+Number of key(s) added: 1
+
+Now try logging into the machine, with:   "ssh 'lkn66'"
+
+
 ```
 
 #### 5.将桥接的IPV4流量传递到iptables的链
 ``` bash
+1、先加载模块
+modprobe br_netfilter
+
 vi /etc/sysctl.d/k8s.conf
 net.bridge.bridge-nf-call-ip6tables = 1
 net.bridge.bridge-nf-call-iptables = 1
+net.ipv4.ip_forward=1
 # 重新加载
 sysctl --system
+
+sysctl -p /etc/sysctl.d/k8s.conf
 ```
 
+#### 5.1 安装基础软件包
+```bash
+[root@lkn66 ~]#  yum install -y yum-utils device-mapper-persistent-data lvm2wget net-tools nfs-utils lrzsz gcc gcc-c++ make cmake libxml2-devel openssl-devel curlcurl-devel unzip sudo ntp libaio-devel wget vim ncurses-devel autoconf automake zlibdevel python-devel epel-release openssh-server socat ipvsadm conntrack ntpdate telnete
+
+未找到 lvm2wget curlcurl-devel ntp zlibdevel ntpdate telnete
+
+```
 #### 6.安装Docker及同步时间
 ``` bash
 wget https://mirrors.aliyun.com/docker-ce/linux/centos/docker-ce.repo -O/etc/yum.repos.d/docker-ce.repo
@@ -176,19 +214,82 @@ wget https://mirrors.aliyun.com/docker-ce/linux/centos/docker-ce.repo -O/etc/yum
 sudo yum install docker-ce-20.10.15 docker-ce-cli-20.10.15 containerd.io
 # yum -y install docker-ce
 
-systemctl start docker
-systemctl enable docker
+#设置开机启动
 
-# centos 7 同步时间（这一步必须做，否则后面安装flannel可能会有证书错误）
+systemctl start docker && systemctl enable docker
+
+#配置 docker 驱动
+ tee /etc/docker/daemonjson <<EOF
+{
+  "registry-mirrors":["https://vh3bm52y.mirror.aliyuncs.com","https://registry.dockercn.com","https://docker.mirrors.ustc.edu.cn","https://dockerhub.azk8s.cn","http://hub.mirror.c.163.com"]
+  "exec-opts":["native.cgroupdriver=systemd"]
+}
+EOF
+
+#淘汰了 centos 7 同步时间（这一步必须做，否则后面安装flannel可能会有证书错误）
 yum install ntpdate -y
 ntpdate cn.pool.ntp.org
+
+
+
 ```
+开启 docker 
+``` bash
+[root@lkn66 ~]# vim /etc/docker/daemonjson 
+[root@lkn66 ~]# systemctl daemon-reload 
+[root@lkn66 ~]# systemctl restart  docker
+[root@lkn66 ~]# systemctl  enable  docker
+Created symlink /etc/systemd/system/multi-user.target.wants/docker.service → /usr/lib/systemd/system/docker.service.
+[root@lkn66 ~]# systemctl  status  docker
+● docker.service - Docker Application Container Engine
+     Loaded: loaded (/usr/lib/systemd/system/docker.service; enabled; preset: disabled)
+     Active: active (running) since Thu 2023-12-07 19:42:23 CST; 35s ago
+
+```
+
 
 6.1 centos9 同步时间工具安装[参考文档](https://wiki.crowncloud.net/?How_to_Sync_Time_in_CentOS_Stream_9_using_Chrony)
 ``` bash
 #要安装Chrony，请使用以下命令：
 yum install chrony -y
 #使用以下命令启动chronyd服务并将chronyd设置为在重新引导时自动启动，
+systemctl enable  chronyd --now # 设置chronyd 开机开启并立即启动
+
+# 编辑 chronyd 配置文件，使用中国的时间服务器同步时间，速度更快
+vim /etc/chrony.conf
+
+删除:
+server 0.centos.pool.ntp.org iburst
+server 1.centos.pool.ntp.org iburst
+server 2.centos.pool.ntp.org iburst
+server 3.centos.pool.ntp.org iburst
+在原来的位置，插入国内 NTP 服务器地址
+server ntp1.aliyun.com iburst
+server ntp2.aliyun.com iburst
+server ntp1.tencent.com iburst
+server ntp2.tencent.com iburst
+
+# 重启
+systemctl  restart chronyd
+# 查看当前时间同步源
+chronyc sources
+
+[root@lkn66 ~]# chronyc sources
+MS Name/IP address         Stratum Poll Reach LastRx Last sample               
+===============================================================================
+^* 120.25.115.20                 2   6   121    48    +21us[+1179us] +/- 3607us
+^- 203.107.6.88                  2   6    63    52  -2342us[-1184us] +/-   31ms
+^- 106.55.184.199                2   6    17    57  -1183us[  -25us] +/-   17ms
+^- 111.230.189.174               2   6    17    57   +791us[+1329us] +/-   36ms
+[root@lkn66 ~]# 
+
+从上面结果可以看到: 这里总共输出 8 列信息，分别对应含义如下，重点看: Poll 列M 表示授时时钟源，^表示服务器，= 表示二级时钟源，#表示本地连接的参考时钟S指示源的状态，*当前同步的源，+表示其他可接受的源，?表示连接丢失的源，x 表示一个认为是falseticker 的时钟(即它的时间与大多数其他来源不一致)，~表示其时间似乎具有太多可变性的来源Name/lPaddress表示源的名称或IP地址e
+Stratum表示源的层级，层级1表示本地连接的参考时钟，第2层表示通过第1层级计算机的时钟实现同步，依此类推。“
+Poll 表示源轮询的频率，以秒为单位，值是2指数幂，例如值 6，表示每 2^6=64 秒，进行一次时问同步，chronvd 会很据当时的情况自动改变轮询频Reach 表示源的可达性的锁存值 (八进制数值)，该锁存值有 8 位，并在当接收或丢失一次时进行一
+
+
+
+
 systemctl start chronyd
 systemctl enable chronyd
 #检查你的系统的时间是同步使用chrony现在。
@@ -202,6 +303,13 @@ chronyc sourcestats -v
 
 #### 7.添加阿里云YUM软件源
 ``` bash
+安装yum 工具
+yum install yum-utils -y
+
+ yum-config-manager --add-repo http://mirrors.aliyun.com/docker-ce/linux/centos/docker-ce.repoe
+
+
+
 vim /etc/yum.repos.d/kubernetes.repo
 
 [kubernetes]
@@ -223,9 +331,21 @@ yum makecache fast
 yum makecache --timer
 
 yum install -y kubectl-1.20.0 kubeadm-1.20.0 kubelet-1.20.0 --nogpgcheck
+
+# 版本  
+yum install -y kubelet-1.23.1 kubeadm-1.23.1 kubectl-1.23.1 
+
 # 启动kubelet服务
 systemctl enable kubelet && systemctl start kubelet
 ```
+每个软件包的作用
+
+```yml
+kubelet : 运行在集群所有节点上，用于启动 Pod 和容器等对象的工具
+kubeadm : 用于初始化集群，启动集群的命令工具
+kubectl : 用于和集群通信的命令行，通过 kubectl 可以部署和管理应用，查看各种资源，创建、删除和更新各种组件(
+```
+
 #### 9、部署kubernetes Master  
 初始化makecache 
 ``` bash
@@ -270,11 +390,14 @@ kube-system   kube-scheduler-local1           1/1     Running   0         100d
 
 ```bash
 # 安装flannel（在master执行）/
- // 1、在线安装
+ // 1、在线安装（一定要在线安装）
+ 配置： vi /etc/hosts 
+ 199.232.28.133  raw.githubusercontent.com
+
 kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/master/Documentation/kube-flannel.yml
 下载文件在本地安装
 kubectl apply -f kube-flannel.yml
-// 1、离线安装
+// 1、离线安装（导致节点之间无法通信）
 如果kube-flannel.yml无法下载
 手动配置网路地址
 mkdir /run/flannel/
@@ -420,6 +543,94 @@ TOKEN                     TTL         EXPIRES                     USAGES        
 kubeadm join 192.168.3.66:6443 --token 05402u.jb7a47xpzewhcrrt --discovery-token-ca-cert-hash sha256:7288dab1719003c8be4dbfd2f916e7bc6e1703e7ac650701683a71535a7eb43c
 ```
 
+
+#### 13 查看 安装状态
+```bash
+kubectl get pods --all-namespaces
+``` 
+
+#### 14 卸载flannel网络步骤：
+[参考](https://dandelioncloud.cn/article/details/1576406630231404545)
+``` bash
+#第一步，在master节点删除flannel
+kubectl delete -f https://raw.githubusercontent.com/coreos/flannel/master/Documentation/kube-flannel.yml
+#第二步，在node节点清理flannel网络留下的文件
+ifconfig cni0 down
+ip link delete cni0
+ifconfig flannel.1 down
+ip link delete flannel.1
+rm -rf /var/lib/cni/
+rm -f /etc/cni/net.d/*
+注：执行完上面的操作，重启kubelet
+```
+
+#### 15 卸载 k8s 
+[参考](https://blog.csdn.net/qq_14910065/article/details/133824738)
+1、首先清理运行到k8s群集中的pod，使用
+``` bash
+kubectl delete node --all
+```
+2、使用脚本停止所有k8s服务
+``` bash
+for service in kube-apiserver kube-controller-manager kubectl kubelet etcd kube-proxy kube-scheduler; 
+do
+    systemctl stop $service
+done
+
+```
+3、使用命令卸载k8s
+``` bash
+kubeadm reset -f  #卸载所有节点的K8S
+
+
+#谨慎操作
+docker rm $(docker ps -a | awk '{ print $1}' | tail -n +2)    #docker中 删除所有的容器命令
+docker rmi $(docker images | awk '{print $3}' |tail -n +2) # docker中 删除所有的镜像
+
+```
+4、卸载k8s相关程序
+``` bash
+yum -y remove kube*
+```
+5、删除相关的配置文件
+``` bash
+modprobe -r ipip
+lsmod
+
+```
+6、然后手动删除配置文件和flannel网络配置和flannel网口：
+``` bash
+rm -rf /etc/cni
+rm -rf /root/.kube
+```
+7.删除cni网络
+``` bash
+ifconfig cni0 down
+ip link delete cni0
+ifconfig flannel.1 down
+ip link delete flannel.1
+```
+8、删除残留的配置文件
+``` bash
+rm -rf ~/.kube/
+rm -rf /etc/kubernetes/
+rm -rf /etc/systemd/system/kubelet.service.d
+rm -rf /etc/systemd/system/kubelet.service
+rm -rf /etc/systemd/system/multi-user.target.wants/kubelet.service
+rm -rf /var/lib/kubelet
+rm -rf /usr/libexec/kubernetes/kubelet-plugins
+rm -rf /usr/bin/kube*
+rm -rf /opt/cni
+rm -rf /var/lib/etcd
+rm -rf /var/etcd
+
+```
+9、 更新镜像
+``` bash
+yum clean all
+yum makecache
+```
+
 ## k8s 运行
 ## 基础命令  
 ``` yml
@@ -472,7 +683,8 @@ kubectl expose deployment nginx-deployment --port=80 --target-port=8000 --type=N
 
 动态扩容nginx副本deployment
 
-kubectl scale  --replicas=3 deployment/nginx
+
+
 ```
 ### yaml文件命令 
 #### nginx副本集部署 deployment  
@@ -556,4 +768,20 @@ spec:
  rm -rf /var/lib/docker
  
  rm -rf /var/run/docker
+```
+
+## kubernetes 报scheduler Unhealthy的错误解决
+
+[参考解决](https://blog.csdn.net/xgysimida/article/details/122129087)
+``` bash
+kubectl  get cs
+
+``` 
+
+## 安装 nginx 
+``` bash
+
+yum install epel-release -y
+
+yum install nginx -y
 ```
