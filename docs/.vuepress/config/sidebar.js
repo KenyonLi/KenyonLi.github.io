@@ -225,6 +225,15 @@ module.exports = [
           ],
       },
       {
+        text: 'Jenkins',
+        //link: '/technology/cppreference/',
+        collapsible: true,
+        children: [{
+          text: 'Jenkins 安装部署',
+          link: '/technology/jenkins/jenkins001.md',
+        }],
+      },
+      {
         text: 'c/c++',
         //link: '/technology/cppreference/',
         collapsible: true,

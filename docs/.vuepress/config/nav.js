@@ -86,6 +86,11 @@ module.exports = [
         activeMatch: "/",
       },
       {
+        text: "Jenkins",
+        link: "/technology/jenkins/jenkins001.md",
+        activeMatch: "/",
+      },
+      {
         text: "c/c++",
         link: "/technology/cppreference/",
         // 该元素在当前路由路径是 /foo/ 开头时激活

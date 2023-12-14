@@ -14,7 +14,7 @@ categories:
 
 ## Linux实现socks终端代理、全局代理
 [原文参考](https://cloud.tencent.com/developer/article/1852590?ivk_sa=1024320u)
-
+[参考](https://neoctobers.readthedocs.io/en/latest/rpi/shadowsocksr_client.html)
 
 ## socks支持的代理协议
 socks运行在会话层，能代理TCP、UDP本身及基于它们之上的协议，如http/https over tcp，http3 over udp(quic)，无法代理icmp，因此你通过socks无法ping通谷歌，不要觉得是代理软件或节点的问题，是你的问题
