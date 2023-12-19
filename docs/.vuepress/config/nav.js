@@ -91,6 +91,11 @@ module.exports = [
         activeMatch: "/",
       },
       {
+        text: "Frp",
+        link: "/technology/frp/frp001.md",
+        activeMatch: "/",
+      },
+      {
         text: "c/c++",
         link: "/technology/cppreference/",
         // 该元素在当前路由路径是 /foo/ 开头时激活

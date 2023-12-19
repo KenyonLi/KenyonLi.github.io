@@ -234,6 +234,15 @@ module.exports = [
         }],
       },
       {
+        text: 'Frp',
+        //link: '/technology/cppreference/',
+        collapsible: true,
+        children: [{
+          text: 'Frp网络穿透工具',
+          link: '/technology/frp/frp001.md',
+        }],
+      },
+      {
         text: 'c/c++',
         //link: '/technology/cppreference/',
         collapsible: true,
