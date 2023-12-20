@@ -388,6 +388,18 @@ module.exports = [
         activeMatch: "/",
       },
       {
+        text: "设计模式",
+        //link: "/technology/markdown/",
+        collapsible: true,
+        children: [{
+          text: '设计模式',
+          link: '/technology/design/design001.md',
+        }],
+        // 该元素在当前路由路径是 /foo/ 开头时激活
+        // 支持正则表达式
+        activeMatch: "/",
+      },
+      {
         text: "markdown",
         //link: "/technology/markdown/",
         collapsible: true,
