@@ -392,7 +392,7 @@ module.exports = [
         //link: "/technology/markdown/",
         collapsible: true,
         children: [{
-          text: '设计模式',
+          text: '工厂、抽象工厂、策略模式',
           link: '/technology/design/design001.md',
         }],
         // 该元素在当前路由路径是 /foo/ 开头时激活
