@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    
+<video id="videoHTML5" class="video" width="100%" height="400" poster="img/poster.png" autoplay="true" controls> 
+    <source src="https://mes02-online-gzty-lt.lechange.com:7080/localvod/d0c44f2ee9818a375362ef54ec9387c3.m3u8?proto=https" > 
+</video> 
+
+
+<script> 
+    var vdo = document.getElementById('videoHTML5'); 
+    vdo.src = 'https://mes02-online-gzty-lt.lechange.com:7080/localvod/d0c44f2ee9818a375362ef54ec9387c3.m3u8?proto=https'; 
+    vdo.load(); 
+    vdo.play(); 
+</script> 
+</body>
+</html>

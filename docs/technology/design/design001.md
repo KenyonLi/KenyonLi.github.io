@@ -376,7 +376,7 @@ class DefaultIOCFactory
 }
 ```
 5、递归进行依赖注入​
-``` bash
+``` C# 
 class DefaultIOCFactory
 {
  /// <summary>
@@ -420,7 +420,7 @@ class DefaultIOCFactory
 }   
 ```
 6、Type容器递归进行对象依赖注入()
-``` bash
+``` C# 
 class DefaultIOCFactory
 {
  /// <summary>
@@ -466,7 +466,7 @@ class DefaultIOCFactory
     }   
 ```
 7、如何防止重复创建
-``` bash
+``` C#
 class DefaultIOCFactory
 {
  /// <summary>
@@ -598,3 +598,5 @@ class DefaultIOCFactory
 ​ 3.2 抽象工厂模式
 
 ​ 3.3 策略模式
+
+
