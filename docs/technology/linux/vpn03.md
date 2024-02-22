@@ -173,58 +173,59 @@ VPS购买
 安装X-UI
 bash <(curl -Ls https://raw.githubusercontent.com/FranzKafkaYu/x-ui/956bf85bbac978d56c0e319c5fac2d6db7df9564/install.sh) 0.3.4.4
 
-各平台客户端
+``` bash
+x-ui 管理脚本使用方法: 
+----------------------------------------------
+x-ui              - 显示管理菜单 (功能更多)
+x-ui start        - 启动 x-ui 面板
+x-ui stop         - 停止 x-ui 面板
+x-ui restart      - 重启 x-ui 面板
+x-ui status       - 查看 x-ui 状态
+x-ui enable       - 设置 x-ui 开机自启
+x-ui disable      - 取消 x-ui 开机自启
+x-ui log          - 查看 x-ui 日志
+x-ui v2-ui        - 迁移本机器的 v2-ui 账号数据至 x-ui
+x-ui update       - 更新 x-ui 面板
+x-ui install      - 安装 x-ui 面板
+x-ui uninstall    - 卸载 x-ui 面板
+x-ui geo          - 更新 geo  数据
+
+```
+
+### 各平台客户端
+``` bash
 Windows（v2rayN）：https://github.com/2dust/v2rayN/releases/tag/6.23
 
 Android（v2rayNG）：https://github.com/2dust/v2rayNG/releases/tag/1.8.5
 
 IOS（shadowrocket）：https://apps.apple.com/app/shadowrocket/id932747118
-
-搭建vision节点申请证书
-#安装证书工具：
-curl https://get.acme.sh | sh; apt install socat -y || yum install socat -y; ~/.acme.sh/acme.sh --set-default-ca --server letsencrypt
-
-#三种方式任选其中一种，申请失败则更换方式
-#申请证书方式1： 
-~/.acme.sh/acme.sh  --issue -d 你的域名 --standalone -k ec-256 --force --insecure
-#申请证书方式2： 
-~/.acme.sh/acme.sh --register-account -m "${RANDOM}@chacuo.net" --server buypass --force --insecure && ~/.acme.sh/acme.sh  --issue -d 你的域名 --standalone -k ec-256 --force --insecure --server buypass
-#申请证书方式3： 
-~/.acme.sh/acme.sh --register-account -m "${RANDOM}@chacuo.net" --server zerossl --force --insecure && ~/.acme.sh/acme.sh  --issue -d 你的域名 --standalone -k ec-256 --force --insecure --server zerossl
-
-#安装证书：
-~/.acme.sh/acme.sh --install-cert -d 你的域名 --ecc --key-file /etc/x-ui/server.key --fullchain-file /etc/x-ui/server.crt
-Shell 复制
-Reality寻找适合的目标网站
-查询ASN：https://tools.ipip.net/as.php
-
-寻找目标：https://fofa.info
-
-asn=="25820" && country=="US" && port=="443" && cert!="Let's Encrypt" && cert.issuer!="ZeroSSL" && status_code="200"
-
-
-
-
-``` bash
-#安装证书工具：
-curl https://get.acme.sh | sh; apt install socat -y || yum install socat -y; ~/.acme.sh/acme.sh --set-default-ca --server letsencrypt
-
-#三种方式任选其中一种，申请失败则更换方式
-#申请证书方式1： 
-~/.acme.sh/acme.sh  --issue -d 149-28-198-198.nip.io --standalone -k ec-256 --force --insecure
-~/.acme.sh/acme.sh  --issue -d 你的域名 --standalone -k ec-256 --force --insecure
-#申请证书方式2： 
-~/.acme.sh/acme.sh --register-account -m "${RANDOM}@chacuo.net" --server buypass --force --insecure && ~/.acme.sh/acme.sh  --issue -d 你的域名 --standalone -k ec-256 --force --insecure --server buypass
-#申请证书方式3： 
-~/.acme.sh/acme.sh --register-account -m "${RANDOM}@chacuo.net" --server zerossl --force --insecure && ~/.acme.sh/acme.sh  --issue -d 149-28-198-198.nip.io --standalone -k ec-256 --force --insecure --server zerossl
-
-#安装证书：
-~/.acme.sh/acme.sh --install-cert -d 你的域名 --ecc --key-file /etc/x-ui/server.key --fullchain-file /etc/x-ui/server.crt
-
 ```
 
-~/.acme.sh/acme.sh --install-cert -d 149-28-198-198.nip.io --ecc --key-file /etc/x-ui/server.key --fullchain-file /etc/x-ui/server.crt
 
+### 证书安装
+``` bash 
+
+#安装证书工具：
+curl https://get.acme.sh | sh; apt install socat -y || yum install socat -y; ~/.acme.sh/acme.sh --set-default-ca --server letsencrypt
+
+#三种方式任选其中一种，申请失败则更换方式
+#申请证书方式1： 
+~/.acme.sh/acme.sh  --issue -d 149-28-148-93.nip.io --standalone -k ec-256 --force --insecure
+~/.acme.sh/acme.sh  --issue -d 你的域名 --standalone -k ec-256 --force --insecure
+#申请证书方式2： 
+~/.acme.sh/acme.sh --register-account -m "${RANDOM}@chacuo.net" --server buypass --force --insecure && ~/.acme.sh/acme.sh  --issue -d 你的域名 --standalone -k ec-256 --force --insecure --server buypass
+
+~/.acme.sh/acme.sh --register-account -m "${RANDOM}@chacuo.net" --server buypass --force --insecure && ~/.acme.sh/acme.sh  --issue -d 149-28-148-93.nip.io --standalone -k ec-256 --force --insecure --server buypass
+
+#申请证书方式3： 
+~/.acme.sh/acme.sh --register-account -m "${RANDOM}@chacuo.net" --server zerossl --force --insecure && ~/.acme.sh/acme.sh  --issue -d  149-28-148-93.nip.io --standalone -k ec-256 --force --insecure --server zerossl
+
+#安装证书：
+~/.acme.sh/acme.sh --install-cert -d 你的域名 --ecc --key-file /etc/x-ui/server.key --fullchain-file /etc/x-ui/server.crt
+~/.acme.sh/acme.sh --install-cert -d 149-28-148-93.nip.io --ecc --key-file /etc/x-ui/server.key --fullchain-file /etc/x-ui/server.crt
+
+```
+ 
 ## Reality寻找适合的目标网站
 查询ASN：https://tools.ipip.net/as.php
 
@@ -641,3 +642,4 @@ flow改成vision
 点击确认 然后会自动跳转到新网址
 下次再进入面板就需要通过这个新网址才能进入
 建议将其保存为书签 防止忘记了
+
