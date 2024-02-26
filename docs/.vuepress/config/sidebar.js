@@ -272,6 +272,10 @@ module.exports = [
           link: '/technology/linux/vpn02.md',
         },
         {
+          text: '搭建 vpn 使用 x-ui 部署配置',
+          link: '/technology/linux/vpn03.md',
+        },
+        {
           text: 'yum及yum-config-manager命令详解',
           link: '/technology/linux/linux001.md',
         },

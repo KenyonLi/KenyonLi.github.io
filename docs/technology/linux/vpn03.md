@@ -1,13 +1,18 @@
 ---
-title: 'Linux实现socks终端代理、全局代理'
-date: "2023-12-12"
+title: 'Linux vpn 科学上网'
+date: "2024-02-26"
 tags:
-- 'centos9'
+- 'debian'
 - 'linux'
-- 'AppImage'
+- 'v2rayn'
 categories:
 - '技术'
 ---
+
+## 目录
+[[toc]]
+
+## 搭建 vpn 使用 x-ui 部署  
 
 
 ### 免费给你的VPS添加无数个IPv6地址，无限落地IP，节点永不被墙，网赚跨境电商、批量注册、养号运营、网页爬虫、IP防风控必备操作，单IP服务器变身站群服务器，免费IPv6隧道，解锁奈飞
@@ -158,10 +163,11 @@ b.huaqianle.cf
 https://bulianglin.com/archives/ipv6.html
 
 
+## vpn 搭建 使用 X-UI 安装部署配置
 
 youtube播放地址：https://youtu.be/SpxTFes1B8U
 
-VPS购买
+### VPS购买
 美国CN2 GIA线路：https://bwg.880805.xyz
 
 香港CN2 GIA线路：https://hk.880805.xyz
@@ -170,9 +176,9 @@ VPS购买
 
 优惠码： BWHCCNCXVV
 
-安装X-UI
+### 安装X-UI
 bash <(curl -Ls https://raw.githubusercontent.com/FranzKafkaYu/x-ui/956bf85bbac978d56c0e319c5fac2d6db7df9564/install.sh) 0.3.4.4
-
+### 管理脚本使用方法
 ``` bash
 x-ui 管理脚本使用方法: 
 ----------------------------------------------
@@ -246,17 +252,16 @@ asn=="20473" && country=="US" && port=="443" && cert!="Let's Encrypt" && cert.is
 
 
 
-检测端口是否被封
+### 检测端口是否被封
+```bash
 https://tcp.ping.pe/
 
-
-
 https://tcp.ping.pe/45.76.9.193:22
+```
 
 
 
-
-视频文稿（忽略）
+### 视频文稿（忽略）
 目前科学上网用的节点
 主要分为机场节点和自建节点
 二者属于互补的关系
