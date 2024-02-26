@@ -12,7 +12,7 @@ categories:
 ## 目录
 [[toc]]
 
-## 搭建 vpn 使用 x-ui 部署  
+## 搭建 vpn 使用 x-ui 部署配置  
 
 
 ### 免费给你的VPS添加无数个IPv6地址，无限落地IP，节点永不被墙，网赚跨境电商、批量注册、养号运营、网页爬虫、IP防风控必备操作，单IP服务器变身站群服务器，免费IPv6隧道，解锁奈飞
@@ -217,18 +217,19 @@ curl https://get.acme.sh | sh; apt install socat -y || yum install socat -y; ~/.
 #三种方式任选其中一种，申请失败则更换方式
 #申请证书方式1： 
 ~/.acme.sh/acme.sh  --issue -d 149-28-148-93.nip.io --standalone -k ec-256 --force --insecure
-~/.acme.sh/acme.sh  --issue -d 你的域名 --standalone -k ec-256 --force --insecure
+~/.acme.sh/acme.sh  --issue -d 216-246-21-157-nip.io --standalone -k ec-256 --force --insecure
 #申请证书方式2： 
 ~/.acme.sh/acme.sh --register-account -m "${RANDOM}@chacuo.net" --server buypass --force --insecure && ~/.acme.sh/acme.sh  --issue -d 你的域名 --standalone -k ec-256 --force --insecure --server buypass
 
-~/.acme.sh/acme.sh --register-account -m "${RANDOM}@chacuo.net" --server buypass --force --insecure && ~/.acme.sh/acme.sh  --issue -d 149-28-148-93.nip.io --standalone -k ec-256 --force --insecure --server buypass
+~/.acme.sh/acme.sh --register-account -m "${RANDOM}@chacuo.net" --server buypass --force --insecure && ~/.acme.sh/acme.sh  --issue -d 216-246-21-157-nip.io --standalone -k ec-256 --force --insecure --server buypass
 
 #申请证书方式3： 
 ~/.acme.sh/acme.sh --register-account -m "${RANDOM}@chacuo.net" --server zerossl --force --insecure && ~/.acme.sh/acme.sh  --issue -d  149-28-148-93.nip.io --standalone -k ec-256 --force --insecure --server zerossl
+~/.acme.sh/acme.sh --register-account -m "${RANDOM}@chacuo.net" --server zerossl --force --insecure && ~/.acme.sh/acme.sh  --issue -d  vpnkenyonli.nip.io --standalone -k ec-256 --force --insecure --server zerossl
 
 #安装证书：
 ~/.acme.sh/acme.sh --install-cert -d 你的域名 --ecc --key-file /etc/x-ui/server.key --fullchain-file /etc/x-ui/server.crt
-~/.acme.sh/acme.sh --install-cert -d 149-28-148-93.nip.io --ecc --key-file /etc/x-ui/server.key --fullchain-file /etc/x-ui/server.crt
+~/.acme.sh/acme.sh --install-cert -d 216.246.21.157.nip.io --ecc --key-file /etc/trojan-go/server.key --fullchain-file /etc/trojan-go/server.crt
 
 ```
  
@@ -259,7 +260,14 @@ https://tcp.ping.pe/
 https://tcp.ping.pe/45.76.9.193:22
 ```
 
-
+## bbr 加速
+https://v2rayssr.com/bbr.html
+``` bash
+echo "net.core.default_qdisc=fq" >> /etc/sysctl.conf
+echo "net.ipv4.tcp_congestion_control=bbr" >> /etc/sysctl.conf
+sysctl -p
+lsmod | grep bbr
+```
 
 ### 视频文稿（忽略）
 目前科学上网用的节点
