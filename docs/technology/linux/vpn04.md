@@ -30,3 +30,7 @@ https://v2rayssr.com/trojancdn.html
 
 ## 配置 trojan-go 
 路径：/usr/local/etc/trojan/config.json
+```bash
+wget -N --no-check-certificate "https://raw.githubusercontent.com/chiakge/Linux-NetSpeed/master/tcp.sh" && chmod +x tcp.sh && ./tcp.sh
+```
+安装后直接选 4 启动 BBR 加速；然后再次运行 ./tcp.sh 运行后，选择 10 优化配置；然后重启 VPS 后，测试速度, 够用了。
