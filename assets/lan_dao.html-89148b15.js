@@ -1,0 +1,1 @@
+const e=JSON.parse('{"key":"v-cab76326","path":"/read/lan_dao.html","title":"狼道","lang":"en-US","frontmatter":{"title":"狼道","date":"2023-08-02T00:00:00.000Z","tags":["励志书集","励志书集"],"categories":["励志书集"],"sidebar":"auto"},"headers":[{"level":2,"title":"目录","slug":"目录","link":"#目录","children":[]}],"git":{},"filePathRelative":"read/lan_dao.md"}');export{e as data};

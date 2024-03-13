@@ -1,0 +1,644 @@
+<!DOCTYPE html>
+<html lang="en-US">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="generator" content="VuePress 2.0.0-beta.63">
+    <style>
+      :root {
+        --c-bg: #fff;
+      }
+      html.dark {
+        --c-bg: #22272e;
+      }
+      html, body {
+        background-color: var(--c-bg);
+      }
+    </style>
+    <script>
+      const userMode = localStorage.getItem('vuepress-color-scheme');
+			const systemDarkMode = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+			if (userMode === 'dark' || (userMode !== 'light' && systemDarkMode)) {
+				document.documentElement.classList.toggle('dark', true);
+			}
+    </script>
+    <link rel="icon" href="/images/logo_v.png"><meta name="keywords" content="kenyonli"><title>分布式中间件-消息中间件Kafka介绍（一） | Kenyon Li 随笔 </title><meta name="description" content="欢迎您，来到 Kenyon Li 世界！">
+    <link rel="preload" href="/assets/style-a6878af7.css" as="style"><link rel="stylesheet" href="/assets/style-a6878af7.css">
+    <link rel="modulepreload" href="/assets/app-1642d2c6.js"><link rel="modulepreload" href="/assets/kafka01.html-d5b766b4.js"><link rel="modulepreload" href="/assets/kafka01.html-dc2390bc.js"><link rel="prefetch" href="/assets/index.html-f82407ba.js" as="script"><link rel="prefetch" href="/assets/index.html-122d66cc.js" as="script"><link rel="prefetch" href="/assets/index.html-1565d8e0.js" as="script"><link rel="prefetch" href="/assets/lan_dao.html-89148b15.js" as="script"><link rel="prefetch" href="/assets/mo_fei_din_lu.html-adf342dd.js" as="script"><link rel="prefetch" href="/assets/read01.html-09be01f3.js" as="script"><link rel="prefetch" href="/assets/yan_pi_juen.html-86c00d51.js" as="script"><link rel="prefetch" href="/assets/index.html-6eb9f9a2.js" as="script"><link rel="prefetch" href="/assets/abp001.html-ec979bd0.js" as="script"><link rel="prefetch" href="/assets/abp002.html-5e9b0d7a.js" as="script"><link rel="prefetch" href="/assets/abp003.html-037d9dc7.js" as="script"><link rel="prefetch" href="/assets/abp004.html-1beba222.js" as="script"><link rel="prefetch" href="/assets/abp005.html-9e3e96c9.js" as="script"><link rel="prefetch" href="/assets/abp006.html-85aefdc4.js" as="script"><link rel="prefetch" href="/assets/abp007.html-27618535.js" as="script"><link rel="prefetch" href="/assets/abp008.html-13752005.js" as="script"><link rel="prefetch" href="/assets/abp009.html-7018371b.js" as="script"><link rel="prefetch" href="/assets/abp010.html-90cd04ed.js" as="script"><link rel="prefetch" href="/assets/abp011.html-eb289a99.js" as="script"><link rel="prefetch" href="/assets/abp012.html-71085302.js" as="script"><link rel="prefetch" href="/assets/abp013.html-feee5ed4.js" as="script"><link rel="prefetch" href="/assets/abp014.html-28e7e42c.js" as="script"><link rel="prefetch" href="/assets/abp015.html-6172e7ad.js" as="script"><link rel="prefetch" href="/assets/abp016.html-09f3f396.js" as="script"><link rel="prefetch" href="/assets/abpmicroservices0001.html-0036cfcd.js" as="script"><link rel="prefetch" href="/assets/abpmicroservices0002.html-fb76bb2a.js" as="script"><link rel="prefetch" href="/assets/abpmicroservices0003.html-84bf0231.js" as="script"><link rel="prefetch" href="/assets/abpmicroservices0004.html-3e9778f5.js" as="script"><link rel="prefetch" href="/assets/abpmicroservices0005.html-5990bd8d.js" as="script"><link rel="prefetch" href="/assets/abpmicroservices0006.html-4858ec55.js" as="script"><link rel="prefetch" href="/assets/abpmicroservices0007.html-5571f7fd.js" as="script"><link rel="prefetch" href="/assets/abpmicroservices0008.html-955c16f6.js" as="script"><link rel="prefetch" href="/assets/abpmicroservices0009.html-c1216c31.js" as="script"><link rel="prefetch" href="/assets/abpmicroservices0010.html-2ea3ced8.js" as="script"><link rel="prefetch" href="/assets/abpmicroservices0011.html-4a9c1e5f.js" as="script"><link rel="prefetch" href="/assets/abpmicroservices0012.html-f271043e.js" as="script"><link rel="prefetch" href="/assets/index.html-49e307fc.js" as="script"><link rel="prefetch" href="/assets/index.html-c0e0a59c.js" as="script"><link rel="prefetch" href="/assets/design001.html-efbb31d7.js" as="script"><link rel="prefetch" href="/assets/design002.html-80a9e411.js" as="script"><link rel="prefetch" href="/assets/docker01.html-0d69670a.js" as="script"><link rel="prefetch" href="/assets/docker02.html-56f5bebd.js" as="script"><link rel="prefetch" href="/assets/docker03.html-3c54b767.js" as="script"><link rel="prefetch" href="/assets/docker04.html-145269fd.js" as="script"><link rel="prefetch" href="/assets/dotnet01.html-4991eef9.js" as="script"><link rel="prefetch" href="/assets/dotnet02.html-8f8465dc.js" as="script"><link rel="prefetch" href="/assets/index.html-e4dc3303.js" as="script"><link rel="prefetch" href="/assets/socket001.html-73be6e9b.js" as="script"><link rel="prefetch" href="/assets/elasticsearch001.html-f8190f60.js" as="script"><link rel="prefetch" href="/assets/elasticsearch002.html-9439887c.js" as="script"><link rel="prefetch" href="/assets/ea001.html-29fa6bbd.js" as="script"><link rel="prefetch" href="/assets/frp001.html-f5f8866f.js" as="script"><link rel="prefetch" href="/assets/index.html-89d78fe7.js" as="script"><link rel="prefetch" href="/assets/index.html-50bc4d74.js" as="script"><link rel="prefetch" href="/assets/jenkins001.html-f3e8cb4a.js" as="script"><link rel="prefetch" href="/assets/centos9_001.html-11e003f4.js" as="script"><link rel="prefetch" href="/assets/index.html-ff83c47b.js" as="script"><link rel="prefetch" href="/assets/linux001.html-c02018c4.js" as="script"><link rel="prefetch" href="/assets/linux002.html-92ea389a.js" as="script"><link rel="prefetch" href="/assets/linux003.html-1bc7d72d.js" as="script"><link rel="prefetch" href="/assets/vpn01.html-74dbe491.js" as="script"><link rel="prefetch" href="/assets/vpn02.html-671f05bb.js" as="script"><link rel="prefetch" href="/assets/vpn03.html-3e38a486.js" as="script"><link rel="prefetch" href="/assets/vpn04.html-ed9daccc.js" as="script"><link rel="prefetch" href="/assets/index.html-56bc5451.js" as="script"><link rel="prefetch" href="/assets/minio001.html-eed9693d.js" as="script"><link rel="prefetch" href="/assets/mongodb001.html-0c8fc6a4.js" as="script"><link rel="prefetch" href="/assets/01mysql_info.html-319d97b9.js" as="script"><link rel="prefetch" href="/assets/02mysql_info.html-408d4b15.js" as="script"><link rel="prefetch" href="/assets/03mysql_innoDB.html-54c05040.js" as="script"><link rel="prefetch" href="/assets/04mysql_info.html-ad98062e.js" as="script"><link rel="prefetch" href="/assets/05InnoDB_lock.html-2c7f3fb9.js" as="script"><link rel="prefetch" href="/assets/06mysql_info.html-5bc20354.js" as="script"><link rel="prefetch" href="/assets/07mysql_info.html-652954a6.js" as="script"><link rel="prefetch" href="/assets/08mysql_info.html-a02cac04.js" as="script"><link rel="prefetch" href="/assets/09mysql_centos.html-76d3e97b.js" as="script"><link rel="prefetch" href="/assets/10mysql_write_read.html-e9aa8853.js" as="script"><link rel="prefetch" href="/assets/index.html-78ec95b1.js" as="script"><link rel="prefetch" href="/assets/nginx001.html-7e08ec33.js" as="script"><link rel="prefetch" href="/assets/rabbitmq01.html-e45914d4.js" as="script"><link rel="prefetch" href="/assets/rabbitmq02.html-42e27c58.js" as="script"><link rel="prefetch" href="/assets/redis001.html-2d8b93b4.js" as="script"><link rel="prefetch" href="/assets/schedule_master001.html-28470dad.js" as="script"><link rel="prefetch" href="/assets/sharding_sphere_proxy001.html-eb9834b8.js" as="script"><link rel="prefetch" href="/assets/index.html-d4229e42.js" as="script"><link rel="prefetch" href="/assets/404.html-60b35caa.js" as="script"><link rel="prefetch" href="/assets/index.html-3309950c.js" as="script"><link rel="prefetch" href="/assets/index.html-9479b806.js" as="script"><link rel="prefetch" href="/assets/index.html-c7784790.js" as="script"><link rel="prefetch" href="/assets/lan_dao.html-2aec7bb0.js" as="script"><link rel="prefetch" href="/assets/mo_fei_din_lu.html-56abb1b0.js" as="script"><link rel="prefetch" href="/assets/read01.html-f4958b41.js" as="script"><link rel="prefetch" href="/assets/yan_pi_juen.html-49bffbcf.js" as="script"><link rel="prefetch" href="/assets/index.html-9f3c19b9.js" as="script"><link rel="prefetch" href="/assets/abp001.html-1c7328cc.js" as="script"><link rel="prefetch" href="/assets/abp002.html-5c2c3e7a.js" as="script"><link rel="prefetch" href="/assets/abp003.html-8f1968fc.js" as="script"><link rel="prefetch" href="/assets/abp004.html-804452dc.js" as="script"><link rel="prefetch" href="/assets/abp005.html-e28dc0ae.js" as="script"><link rel="prefetch" href="/assets/abp006.html-56d7319e.js" as="script"><link rel="prefetch" href="/assets/abp007.html-8e780a12.js" as="script"><link rel="prefetch" href="/assets/abp008.html-ffb2e34b.js" as="script"><link rel="prefetch" href="/assets/abp009.html-a724f51c.js" as="script"><link rel="prefetch" href="/assets/abp010.html-72e84fb3.js" as="script"><link rel="prefetch" href="/assets/abp011.html-32ac7b60.js" as="script"><link rel="prefetch" href="/assets/abp012.html-e1e25e6f.js" as="script"><link rel="prefetch" href="/assets/abp013.html-4f1d8a21.js" as="script"><link rel="prefetch" href="/assets/abp014.html-9a2e8576.js" as="script"><link rel="prefetch" href="/assets/abp015.html-b5d876ca.js" as="script"><link rel="prefetch" href="/assets/abp016.html-f6b09170.js" as="script"><link rel="prefetch" href="/assets/abpmicroservices0001.html-fddde0cb.js" as="script"><link rel="prefetch" href="/assets/abpmicroservices0002.html-71d82077.js" as="script"><link rel="prefetch" href="/assets/abpmicroservices0003.html-cd9e9c43.js" as="script"><link rel="prefetch" href="/assets/abpmicroservices0004.html-4b5364f8.js" as="script"><link rel="prefetch" href="/assets/abpmicroservices0005.html-edccbe08.js" as="script"><link rel="prefetch" href="/assets/abpmicroservices0006.html-aea3787b.js" as="script"><link rel="prefetch" href="/assets/abpmicroservices0007.html-dd2b3c60.js" as="script"><link rel="prefetch" href="/assets/abpmicroservices0008.html-bc68ec39.js" as="script"><link rel="prefetch" href="/assets/abpmicroservices0009.html-2771f986.js" as="script"><link rel="prefetch" href="/assets/abpmicroservices0010.html-cec61fb7.js" as="script"><link rel="prefetch" href="/assets/abpmicroservices0011.html-d905fd35.js" as="script"><link rel="prefetch" href="/assets/abpmicroservices0012.html-a4295385.js" as="script"><link rel="prefetch" href="/assets/index.html-e03aecc7.js" as="script"><link rel="prefetch" href="/assets/index.html-7aa0be5c.js" as="script"><link rel="prefetch" href="/assets/design001.html-f0edfc65.js" as="script"><link rel="prefetch" href="/assets/design002.html-b71d5f7c.js" as="script"><link rel="prefetch" href="/assets/docker01.html-91b54489.js" as="script"><link rel="prefetch" href="/assets/docker02.html-cae80600.js" as="script"><link rel="prefetch" href="/assets/docker03.html-9fa76685.js" as="script"><link rel="prefetch" href="/assets/docker04.html-16c2ab82.js" as="script"><link rel="prefetch" href="/assets/dotnet01.html-4bbc99f7.js" as="script"><link rel="prefetch" href="/assets/dotnet02.html-08d9ab42.js" as="script"><link rel="prefetch" href="/assets/index.html-c42e0c7f.js" as="script"><link rel="prefetch" href="/assets/socket001.html-77b12eb1.js" as="script"><link rel="prefetch" href="/assets/elasticsearch001.html-881e4411.js" as="script"><link rel="prefetch" href="/assets/elasticsearch002.html-16d263ac.js" as="script"><link rel="prefetch" href="/assets/ea001.html-4df8d8a5.js" as="script"><link rel="prefetch" href="/assets/frp001.html-08f542f9.js" as="script"><link rel="prefetch" href="/assets/index.html-89e42ef6.js" as="script"><link rel="prefetch" href="/assets/index.html-218ce324.js" as="script"><link rel="prefetch" href="/assets/jenkins001.html-1b973235.js" as="script"><link rel="prefetch" href="/assets/centos9_001.html-4c95dda0.js" as="script"><link rel="prefetch" href="/assets/index.html-fc739f9e.js" as="script"><link rel="prefetch" href="/assets/linux001.html-48ec4d60.js" as="script"><link rel="prefetch" href="/assets/linux002.html-ac78c7cb.js" as="script"><link rel="prefetch" href="/assets/linux003.html-f588cd0f.js" as="script"><link rel="prefetch" href="/assets/vpn01.html-5b8375d9.js" as="script"><link rel="prefetch" href="/assets/vpn02.html-c4398919.js" as="script"><link rel="prefetch" href="/assets/vpn03.html-9dfb4981.js" as="script"><link rel="prefetch" href="/assets/vpn04.html-1d3505d5.js" as="script"><link rel="prefetch" href="/assets/index.html-7cdd8ff6.js" as="script"><link rel="prefetch" href="/assets/minio001.html-004becc8.js" as="script"><link rel="prefetch" href="/assets/mongodb001.html-8bd46e8f.js" as="script"><link rel="prefetch" href="/assets/01mysql_info.html-1a46796b.js" as="script"><link rel="prefetch" href="/assets/02mysql_info.html-4bb2ddc7.js" as="script"><link rel="prefetch" href="/assets/03mysql_innoDB.html-0a5915df.js" as="script"><link rel="prefetch" href="/assets/04mysql_info.html-f55a1e92.js" as="script"><link rel="prefetch" href="/assets/05InnoDB_lock.html-17c79fe7.js" as="script"><link rel="prefetch" href="/assets/06mysql_info.html-8fd6e8d5.js" as="script"><link rel="prefetch" href="/assets/07mysql_info.html-8500d7ab.js" as="script"><link rel="prefetch" href="/assets/08mysql_info.html-51aee993.js" as="script"><link rel="prefetch" href="/assets/09mysql_centos.html-0c1fdbc3.js" as="script"><link rel="prefetch" href="/assets/10mysql_write_read.html-57ac5d52.js" as="script"><link rel="prefetch" href="/assets/index.html-907b076f.js" as="script"><link rel="prefetch" href="/assets/nginx001.html-6326b8f4.js" as="script"><link rel="prefetch" href="/assets/rabbitmq01.html-a7707290.js" as="script"><link rel="prefetch" href="/assets/rabbitmq02.html-96a5aa64.js" as="script"><link rel="prefetch" href="/assets/redis001.html-c5c6541e.js" as="script"><link rel="prefetch" href="/assets/schedule_master001.html-c4333c4a.js" as="script"><link rel="prefetch" href="/assets/sharding_sphere_proxy001.html-e0da73cf.js" as="script"><link rel="prefetch" href="/assets/index.html-00fa4aa1.js" as="script"><link rel="prefetch" href="/assets/404.html-923a8c1c.js" as="script"><link rel="prefetch" href="/assets/index-e32a7948.js" as="script"><link rel="prefetch" href="/assets/mermaid.core-cac92f75.js" as="script">
+  </head>
+  <body>
+    <div id="app"><!--[--><div class="theme-container"><!--[--><header class="navbar"><div class="toggle-sidebar-button" title="toggle sidebar" aria-expanded="false" role="button" tabindex="0"><div class="icon" aria-hidden="true"><span></span><span></span><span></span></div></div><span><a href="/" class=""><img class="logo" src="/images/home_logo_v.png" alt="Kenyon Li 随笔 "><span class="site-name can-hide">Kenyon Li 随笔 </span></a></span><div class="navbar-items-wrapper" style=""><!--[--><!--]--><nav class="navbar-items can-hide"><!--[--><div class="navbar-item"><a href="/" class="" aria-label="首页"><!--[--><!--]--> 首页 <!--[--><!--]--></a></div><div class="navbar-item"><div class="navbar-dropdown-wrapper"><button class="navbar-dropdown-title" type="button" aria-label="生活"><span class="title">生活</span><span class="arrow down"></span></button><button class="navbar-dropdown-title-mobile" type="button" aria-label="生活"><span class="title">生活</span><span class="right arrow"></span></button><ul style="display:none;" class="navbar-dropdown"><!--[--><li class="navbar-dropdown-item"><a href="/life/index.md" class="router-link-active" aria-label="生活之旅"><!--[--><!--]--> 生活之旅 <!--[--><!--]--></a></li><!--]--></ul></div></div><div class="navbar-item"><div class="navbar-dropdown-wrapper"><button class="navbar-dropdown-title" type="button" aria-label="技术"><span class="title">技术</span><span class="arrow down"></span></button><button class="navbar-dropdown-title-mobile" type="button" aria-label="技术"><span class="title">技术</span><span class="right arrow"></span></button><ul style="display:none;" class="navbar-dropdown"><!--[--><li class="navbar-dropdown-item"><a href="/technology/dotnetcore/" class="router-link-active" aria-label="dotnet core"><!--[--><!--]--> dotnet core <!--[--><!--]--></a></li><li class="navbar-dropdown-item"><a href="/technology/abp/abp001" class="router-link-active" aria-label="ABP vNnext"><!--[--><!--]--> ABP vNnext <!--[--><!--]--></a></li><li class="navbar-dropdown-item"><a href="/technology/rabbitmq/rabbitmq01" class="router-link-active" aria-label="RabbitMQ"><!--[--><!--]--> RabbitMQ <!--[--><!--]--></a></li><li class="navbar-dropdown-item"><a href="/technology/kafka/kafka01" class="router-link-active" aria-label="Kafka"><!--[--><!--]--> Kafka <!--[--><!--]--></a></li><li class="navbar-dropdown-item"><a href="/technology/Nginx/Nginx001" class="router-link-active" aria-label="Nginx"><!--[--><!--]--> Nginx <!--[--><!--]--></a></li><li class="navbar-dropdown-item"><a href="/technology/sharding_sphere_proxy/sharding_sphere_proxy001.md" class="router-link-active" aria-label="ShardingSphere-Proxy"><!--[--><!--]--> ShardingSphere-Proxy <!--[--><!--]--></a></li><li class="navbar-dropdown-item"><a href="/technology/redis/redis001.md" class="router-link-active" aria-label="Redis"><!--[--><!--]--> Redis <!--[--><!--]--></a></li><li class="navbar-dropdown-item"><a href="/technology/mongodb/mongodb001.md" class="router-link-active" aria-label="MongoDB"><!--[--><!--]--> MongoDB <!--[--><!--]--></a></li><li class="navbar-dropdown-item"><a href="/technology/elasticsearch/elasticsearch001.md" class="router-link-active" aria-label="ElasticSearch"><!--[--><!--]--> ElasticSearch <!--[--><!--]--></a></li><li class="navbar-dropdown-item"><a href="/technology/minio/minio001.md" class="router-link-active" aria-label="Minio"><!--[--><!--]--> Minio <!--[--><!--]--></a></li><li class="navbar-dropdown-item"><a href="/technology/schedule_master/schedule_master001.md" class="router-link-active" aria-label="ScheduleMaster"><!--[--><!--]--> ScheduleMaster <!--[--><!--]--></a></li><li class="navbar-dropdown-item"><a href="/technology/jenkins/jenkins001.md" class="router-link-active" aria-label="Jenkins"><!--[--><!--]--> Jenkins <!--[--><!--]--></a></li><li class="navbar-dropdown-item"><a href="/technology/frp/frp001.md" class="router-link-active" aria-label="Frp"><!--[--><!--]--> Frp <!--[--><!--]--></a></li><li class="navbar-dropdown-item"><a href="/technology/cppreference/" class="router-link-active" aria-label="c/c++"><!--[--><!--]--> c/c++ <!--[--><!--]--></a></li><li class="navbar-dropdown-item"><a href="/technology/linux/" class="router-link-active" aria-label="linux"><!--[--><!--]--> linux <!--[--><!--]--></a></li><li class="navbar-dropdown-item"><a href="/technology/git/" class="router-link-active" aria-label="git 工具"><!--[--><!--]--> git 工具 <!--[--><!--]--></a></li><li class="navbar-dropdown-item"><a href="/technology/mysql/01mysql_info" class="router-link-active" aria-label="mysql"><!--[--><!--]--> mysql <!--[--><!--]--></a></li><li class="navbar-dropdown-item"><a href="/technology/javascript/" class="router-link-active" aria-label="javascript"><!--[--><!--]--> javascript <!--[--><!--]--></a></li><li class="navbar-dropdown-item"><a href="/technology/vue/" class="router-link-active" aria-label="vue"><!--[--><!--]--> vue <!--[--><!--]--></a></li><li class="navbar-dropdown-item"><a href="/technology/css/" class="router-link-active" aria-label="css"><!--[--><!--]--> css <!--[--><!--]--></a></li><li class="navbar-dropdown-item"><a href="/technology/markdown/" class="router-link-active" aria-label="markdown"><!--[--><!--]--> markdown <!--[--><!--]--></a></li><li class="navbar-dropdown-item"><a href="/technology/abpmicroservices/abpmicroservices0001.md" class="router-link-active" aria-label="Apb微服务项目"><!--[--><!--]--> Apb微服务项目 <!--[--><!--]--></a></li><li class="navbar-dropdown-item"><a href="/technology/docker/docker01.md" class="router-link-active" aria-label="Docker"><!--[--><!--]--> Docker <!--[--><!--]--></a></li><li class="navbar-dropdown-item"><a href="/technology/enterprise_architect/ea001.md" class="router-link-active" aria-label="EA建模工具"><!--[--><!--]--> EA建模工具 <!--[--><!--]--></a></li><li class="navbar-dropdown-item"><a href="/technology/design/design001.md" class="router-link-active" aria-label="设计模式"><!--[--><!--]--> 设计模式 <!--[--><!--]--></a></li><!--]--></ul></div></div><div class="navbar-item"><div class="navbar-dropdown-wrapper"><button class="navbar-dropdown-title" type="button" aria-label="阅读"><span class="title">阅读</span><span class="arrow down"></span></button><button class="navbar-dropdown-title-mobile" type="button" aria-label="阅读"><span class="title">阅读</span><span class="right arrow"></span></button><ul style="display:none;" class="navbar-dropdown"><!--[--><li class="navbar-dropdown-item"><a href="/read/yan_pi_juen.md" class="router-link-active" aria-label="羊皮卷"><!--[--><!--]--> 羊皮卷 <!--[--><!--]--></a></li><li class="navbar-dropdown-item"><a href="/read/lan_dao.md" class="router-link-active" aria-label="狼道"><!--[--><!--]--> 狼道 <!--[--><!--]--></a></li><li class="navbar-dropdown-item"><a href="/read/mo_fei_din_lu.md" class="router-link-active" aria-label="墨菲定律"><!--[--><!--]--> 墨菲定律 <!--[--><!--]--></a></li><li class="navbar-dropdown-item"><a href="/read/read01.md" class="router-link-active" aria-label="什么反刍思维"><!--[--><!--]--> 什么反刍思维 <!--[--><!--]--></a></li><!--]--></ul></div></div><div class="navbar-item"><div class="navbar-dropdown-wrapper"><button class="navbar-dropdown-title" type="button" aria-label="收藏"><span class="title">收藏</span><span class="arrow down"></span></button><button class="navbar-dropdown-title-mobile" type="button" aria-label="收藏"><span class="title">收藏</span><span class="right arrow"></span></button><ul style="display:none;" class="navbar-dropdown"><!--[--><li class="navbar-dropdown-item"><a href="/collect/index.md" class="router-link-active" aria-label="浏览器书签"><!--[--><!--]--> 浏览器书签 <!--[--><!--]--></a></li><!--]--></ul></div></div><!--]--></nav><!--[--><!--]--><button class="toggle-color-mode-button" title="toggle color mode"><svg style="" class="icon" focusable="false" viewBox="0 0 32 32"><path d="M16 12.005a4 4 0 1 1-4 4a4.005 4.005 0 0 1 4-4m0-2a6 6 0 1 0 6 6a6 6 0 0 0-6-6z" fill="currentColor"></path><path d="M5.394 6.813l1.414-1.415l3.506 3.506L8.9 10.318z" fill="currentColor"></path><path d="M2 15.005h5v2H2z" fill="currentColor"></path><path d="M5.394 25.197L8.9 21.691l1.414 1.415l-3.506 3.505z" fill="currentColor"></path><path d="M15 25.005h2v5h-2z" fill="currentColor"></path><path d="M21.687 23.106l1.414-1.415l3.506 3.506l-1.414 1.414z" fill="currentColor"></path><path d="M25 15.005h5v2h-5z" fill="currentColor"></path><path d="M21.687 8.904l3.506-3.506l1.414 1.415l-3.506 3.505z" fill="currentColor"></path><path d="M15 2.005h2v5h-2z" fill="currentColor"></path></svg><svg style="display:none;" class="icon" focusable="false" viewBox="0 0 32 32"><path d="M13.502 5.414a15.075 15.075 0 0 0 11.594 18.194a11.113 11.113 0 0 1-7.975 3.39c-.138 0-.278.005-.418 0a11.094 11.094 0 0 1-3.2-21.584M14.98 3a1.002 1.002 0 0 0-.175.016a13.096 13.096 0 0 0 1.825 25.981c.164.006.328 0 .49 0a13.072 13.072 0 0 0 10.703-5.555a1.01 1.01 0 0 0-.783-1.565A13.08 13.08 0 0 1 15.89 4.38A1.015 1.015 0 0 0 14.98 3z" fill="currentColor"></path></svg></button><form class="search-box" role="search"><input type="search" placeholder="搜索" autocomplete="off" spellcheck="false" value><!----></form></div></header><!--]--><div class="sidebar-mask"></div><!--[--><aside class="sidebar"><nav class="navbar-items"><!--[--><div class="navbar-item"><a href="/" class="" aria-label="首页"><!--[--><!--]--> 首页 <!--[--><!--]--></a></div><div class="navbar-item"><div class="navbar-dropdown-wrapper"><button class="navbar-dropdown-title" type="button" aria-label="生活"><span class="title">生活</span><span class="arrow down"></span></button><button class="navbar-dropdown-title-mobile" type="button" aria-label="生活"><span class="title">生活</span><span class="right arrow"></span></button><ul style="display:none;" class="navbar-dropdown"><!--[--><li class="navbar-dropdown-item"><a href="/life/index.md" class="router-link-active" aria-label="生活之旅"><!--[--><!--]--> 生活之旅 <!--[--><!--]--></a></li><!--]--></ul></div></div><div class="navbar-item"><div class="navbar-dropdown-wrapper"><button class="navbar-dropdown-title" type="button" aria-label="技术"><span class="title">技术</span><span class="arrow down"></span></button><button class="navbar-dropdown-title-mobile" type="button" aria-label="技术"><span class="title">技术</span><span class="right arrow"></span></button><ul style="display:none;" class="navbar-dropdown"><!--[--><li class="navbar-dropdown-item"><a href="/technology/dotnetcore/" class="router-link-active" aria-label="dotnet core"><!--[--><!--]--> dotnet core <!--[--><!--]--></a></li><li class="navbar-dropdown-item"><a href="/technology/abp/abp001" class="router-link-active" aria-label="ABP vNnext"><!--[--><!--]--> ABP vNnext <!--[--><!--]--></a></li><li class="navbar-dropdown-item"><a href="/technology/rabbitmq/rabbitmq01" class="router-link-active" aria-label="RabbitMQ"><!--[--><!--]--> RabbitMQ <!--[--><!--]--></a></li><li class="navbar-dropdown-item"><a href="/technology/kafka/kafka01" class="router-link-active" aria-label="Kafka"><!--[--><!--]--> Kafka <!--[--><!--]--></a></li><li class="navbar-dropdown-item"><a href="/technology/Nginx/Nginx001" class="router-link-active" aria-label="Nginx"><!--[--><!--]--> Nginx <!--[--><!--]--></a></li><li class="navbar-dropdown-item"><a href="/technology/sharding_sphere_proxy/sharding_sphere_proxy001.md" class="router-link-active" aria-label="ShardingSphere-Proxy"><!--[--><!--]--> ShardingSphere-Proxy <!--[--><!--]--></a></li><li class="navbar-dropdown-item"><a href="/technology/redis/redis001.md" class="router-link-active" aria-label="Redis"><!--[--><!--]--> Redis <!--[--><!--]--></a></li><li class="navbar-dropdown-item"><a href="/technology/mongodb/mongodb001.md" class="router-link-active" aria-label="MongoDB"><!--[--><!--]--> MongoDB <!--[--><!--]--></a></li><li class="navbar-dropdown-item"><a href="/technology/elasticsearch/elasticsearch001.md" class="router-link-active" aria-label="ElasticSearch"><!--[--><!--]--> ElasticSearch <!--[--><!--]--></a></li><li class="navbar-dropdown-item"><a href="/technology/minio/minio001.md" class="router-link-active" aria-label="Minio"><!--[--><!--]--> Minio <!--[--><!--]--></a></li><li class="navbar-dropdown-item"><a href="/technology/schedule_master/schedule_master001.md" class="router-link-active" aria-label="ScheduleMaster"><!--[--><!--]--> ScheduleMaster <!--[--><!--]--></a></li><li class="navbar-dropdown-item"><a href="/technology/jenkins/jenkins001.md" class="router-link-active" aria-label="Jenkins"><!--[--><!--]--> Jenkins <!--[--><!--]--></a></li><li class="navbar-dropdown-item"><a href="/technology/frp/frp001.md" class="router-link-active" aria-label="Frp"><!--[--><!--]--> Frp <!--[--><!--]--></a></li><li class="navbar-dropdown-item"><a href="/technology/cppreference/" class="router-link-active" aria-label="c/c++"><!--[--><!--]--> c/c++ <!--[--><!--]--></a></li><li class="navbar-dropdown-item"><a href="/technology/linux/" class="router-link-active" aria-label="linux"><!--[--><!--]--> linux <!--[--><!--]--></a></li><li class="navbar-dropdown-item"><a href="/technology/git/" class="router-link-active" aria-label="git 工具"><!--[--><!--]--> git 工具 <!--[--><!--]--></a></li><li class="navbar-dropdown-item"><a href="/technology/mysql/01mysql_info" class="router-link-active" aria-label="mysql"><!--[--><!--]--> mysql <!--[--><!--]--></a></li><li class="navbar-dropdown-item"><a href="/technology/javascript/" class="router-link-active" aria-label="javascript"><!--[--><!--]--> javascript <!--[--><!--]--></a></li><li class="navbar-dropdown-item"><a href="/technology/vue/" class="router-link-active" aria-label="vue"><!--[--><!--]--> vue <!--[--><!--]--></a></li><li class="navbar-dropdown-item"><a href="/technology/css/" class="router-link-active" aria-label="css"><!--[--><!--]--> css <!--[--><!--]--></a></li><li class="navbar-dropdown-item"><a href="/technology/markdown/" class="router-link-active" aria-label="markdown"><!--[--><!--]--> markdown <!--[--><!--]--></a></li><li class="navbar-dropdown-item"><a href="/technology/abpmicroservices/abpmicroservices0001.md" class="router-link-active" aria-label="Apb微服务项目"><!--[--><!--]--> Apb微服务项目 <!--[--><!--]--></a></li><li class="navbar-dropdown-item"><a href="/technology/docker/docker01.md" class="router-link-active" aria-label="Docker"><!--[--><!--]--> Docker <!--[--><!--]--></a></li><li class="navbar-dropdown-item"><a href="/technology/enterprise_architect/ea001.md" class="router-link-active" aria-label="EA建模工具"><!--[--><!--]--> EA建模工具 <!--[--><!--]--></a></li><li class="navbar-dropdown-item"><a href="/technology/design/design001.md" class="router-link-active" aria-label="设计模式"><!--[--><!--]--> 设计模式 <!--[--><!--]--></a></li><!--]--></ul></div></div><div class="navbar-item"><div class="navbar-dropdown-wrapper"><button class="navbar-dropdown-title" type="button" aria-label="阅读"><span class="title">阅读</span><span class="arrow down"></span></button><button class="navbar-dropdown-title-mobile" type="button" aria-label="阅读"><span class="title">阅读</span><span class="right arrow"></span></button><ul style="display:none;" class="navbar-dropdown"><!--[--><li class="navbar-dropdown-item"><a href="/read/yan_pi_juen.md" class="router-link-active" aria-label="羊皮卷"><!--[--><!--]--> 羊皮卷 <!--[--><!--]--></a></li><li class="navbar-dropdown-item"><a href="/read/lan_dao.md" class="router-link-active" aria-label="狼道"><!--[--><!--]--> 狼道 <!--[--><!--]--></a></li><li class="navbar-dropdown-item"><a href="/read/mo_fei_din_lu.md" class="router-link-active" aria-label="墨菲定律"><!--[--><!--]--> 墨菲定律 <!--[--><!--]--></a></li><li class="navbar-dropdown-item"><a href="/read/read01.md" class="router-link-active" aria-label="什么反刍思维"><!--[--><!--]--> 什么反刍思维 <!--[--><!--]--></a></li><!--]--></ul></div></div><div class="navbar-item"><div class="navbar-dropdown-wrapper"><button class="navbar-dropdown-title" type="button" aria-label="收藏"><span class="title">收藏</span><span class="arrow down"></span></button><button class="navbar-dropdown-title-mobile" type="button" aria-label="收藏"><span class="title">收藏</span><span class="right arrow"></span></button><ul style="display:none;" class="navbar-dropdown"><!--[--><li class="navbar-dropdown-item"><a href="/collect/index.md" class="router-link-active" aria-label="浏览器书签"><!--[--><!--]--> 浏览器书签 <!--[--><!--]--></a></li><!--]--></ul></div></div><!--]--></nav><!--[--><!--]--><ul class="sidebar-items"><!--[--><li><p tabindex="0" class="sidebar-item sidebar-heading active collapsible">技术 <span class="down arrow"></span></p><ul style="" class="sidebar-item-children"><!--[--><li><p tabindex="0" class="sidebar-item collapsible">dotnet core <span class="right arrow"></span></p><ul style="display:none;" class="sidebar-item-children"><!--[--><li><a href="/technology/dotnetcore/dotnet01.md" class="sidebar-item" aria-label="dotnet 安装 CLI/SDK"><!--[--><!--]--> dotnet 安装 CLI/SDK <!--[--><!--]--></a><!----></li><li><a href="/technology/dotnetcore/index.md" class="sidebar-item" aria-label="EFCore数据库迁移命令"><!--[--><!--]--> EFCore数据库迁移命令 <!--[--><!--]--></a><!----></li><li><a href="/technology/dotnetcore/socket001.md" class="sidebar-item" aria-label="Socket网络编程"><!--[--><!--]--> Socket网络编程 <!--[--><!--]--></a><!----></li><li><a href="/technology/dotnetcore/dotnet02.md" class="sidebar-item" aria-label="Net 后台代码模拟浏览器请求 Get、Post、Put的扩展方法"><!--[--><!--]--> Net 后台代码模拟浏览器请求 Get、Post、Put的扩展方法 <!--[--><!--]--></a><!----></li><!--]--></ul></li><li><p tabindex="0" class="sidebar-item collapsible">ABP vNnext <span class="right arrow"></span></p><ul style="display:none;" class="sidebar-item-children"><!--[--><li><a href="/technology/abp/abp001.md" class="sidebar-item" aria-label="ABP CLI"><!--[--><!--]--> ABP CLI <!--[--><!--]--></a><!----></li><li><a href="/technology/abp/abp002.md" class="sidebar-item" aria-label="ABP vNnext  核心根基模块化"><!--[--><!--]--> ABP vNnext  核心根基模块化 <!--[--><!--]--></a><!----></li><li><a href="/technology/abp/abp003.md" class="sidebar-item" aria-label="ABP核心项目-电商项目(一)-落地实战"><!--[--><!--]--> ABP核心项目-电商项目(一)-落地实战 <!--[--><!--]--></a><!----></li><li><a href="/technology/abp/abp004.md" class="sidebar-item" aria-label="ABP核心项目-电商项目落地实战(二)-领域层优化"><!--[--><!--]--> ABP核心项目-电商项目落地实战(二)-领域层优化 <!--[--><!--]--></a><!----></li><li><a href="/technology/abp/abp005.md" class="sidebar-item" aria-label="ABP核心项目-电商项目落地实战(三)-仓储、服务层优化"><!--[--><!--]--> ABP核心项目-电商项目落地实战(三)-仓储、服务层优化 <!--[--><!--]--></a><!----></li><li><a href="/technology/abp/abp006.md" class="sidebar-item" aria-label="ABP核心项目-电商项目落地实战(四)-应用、web层优化、原理"><!--[--><!--]--> ABP核心项目-电商项目落地实战(四)-应用、web层优化、原理 <!--[--><!--]--></a><!----></li><li><a href="/technology/abp/abp007.md" class="sidebar-item" aria-label="ABP核心项目-电商项目(五)-动态c#API客户端模块"><!--[--><!--]--> ABP核心项目-电商项目(五)-动态c#API客户端模块 <!--[--><!--]--></a><!----></li><li><a href="/technology/abp/abp008.md" class="sidebar-item" aria-label="ABP核心项目-电商项目(六)-用户组件-用户身份模块"><!--[--><!--]--> ABP核心项目-电商项目(六)-用户组件-用户身份模块 <!--[--><!--]--></a><!----></li><li><a href="/technology/abp/abp009.md" class="sidebar-item" aria-label="ABP核心项目-电商项目(七)-用户组件-账户模块"><!--[--><!--]--> ABP核心项目-电商项目(七)-用户组件-账户模块 <!--[--><!--]--></a><!----></li><li><a href="/technology/abp/abp010.md" class="sidebar-item" aria-label="ABP核心项目-电商项目(八)-用户组件-权限模块"><!--[--><!--]--> ABP核心项目-电商项目(八)-用户组件-权限模块 <!--[--><!--]--></a><!----></li><li><a href="/technology/abp/abp011.md" class="sidebar-item" aria-label="ABP核心项目-电商项目(九)-用户组件-多租户模块"><!--[--><!--]--> ABP核心项目-电商项目(九)-用户组件-多租户模块 <!--[--><!--]--></a><!----></li><li><a href="/technology/abp/abp012.md" class="sidebar-item" aria-label="ABP核心项目-电商项目(十)-疑问记录"><!--[--><!--]--> ABP核心项目-电商项目(十)-疑问记录 <!--[--><!--]--></a><!----></li><li><a href="/technology/abp/abp013.md" class="sidebar-item" aria-label="ABP核心项目-电商项目(十一)-设置模块"><!--[--><!--]--> ABP核心项目-电商项目(十一)-设置模块 <!--[--><!--]--></a><!----></li><li><a href="/technology/abp/abp014.md" class="sidebar-item" aria-label="ABP核心项目-电商项目(十二)-特征模块"><!--[--><!--]--> ABP核心项目-电商项目(十二)-特征模块 <!--[--><!--]--></a><!----></li><li><a href="/technology/abp/abp015.md" class="sidebar-item" aria-label="ABP核心项目-电商项目(十三)-异常/认证/本地化模块"><!--[--><!--]--> ABP核心项目-电商项目(十三)-异常/认证/本地化模块 <!--[--><!--]--></a><!----></li><li><a href="/technology/abp/abp016.md" class="sidebar-item" aria-label="ABP核心项目-电商项目(十四)-虚拟文件系统"><!--[--><!--]--> ABP核心项目-电商项目(十四)-虚拟文件系统 <!--[--><!--]--></a><!----></li><!--]--></ul></li><li><p tabindex="0" class="sidebar-item active collapsible">分布式消息中间件 <span class="down arrow"></span></p><ul style="" class="sidebar-item-children"><!--[--><li><a href="/technology/rabbitmq/rabbitmq01.md" class="sidebar-item" aria-label="分布式中间件-RabbitMQ简介（一）"><!--[--><!--]--> 分布式中间件-RabbitMQ简介（一） <!--[--><!--]--></a><!----></li><li><a href="/technology/rabbitmq/rabbitmq02.md" class="sidebar-item" aria-label="分布式中间件-RabbitMQ（二）"><!--[--><!--]--> 分布式中间件-RabbitMQ（二） <!--[--><!--]--></a><!----></li><li><a href="/technology/kafka/kafka01.md" class="sidebar-item active" aria-label="分布式中间件-Kafka介绍（一）"><!--[--><!--]--> 分布式中间件-Kafka介绍（一） <!--[--><!--]--></a><!----></li><li><a href="/technology/nginx/nginx001.md" class="sidebar-item" aria-label="分布式中间件-Nginx"><!--[--><!--]--> 分布式中间件-Nginx <!--[--><!--]--></a><!----></li><li><a href="/technology/sharding_sphere_proxy/sharding_sphere_proxy001.md" class="sidebar-item" aria-label="分布式中间件-ShardingSphere-Proxy"><!--[--><!--]--> 分布式中间件-ShardingSphere-Proxy <!--[--><!--]--></a><!----></li><li><a href="/technology/redis/redis001.md" class="sidebar-item" aria-label="分布式中间件-Redis"><!--[--><!--]--> 分布式中间件-Redis <!--[--><!--]--></a><!----></li><li><a href="/technology/mongodb/mongodb001.md" class="sidebar-item" aria-label="分布式中间件-MongoDB"><!--[--><!--]--> 分布式中间件-MongoDB <!--[--><!--]--></a><!----></li><li><a href="/technology/elasticsearch/elasticsearch001.md" class="sidebar-item" aria-label="分布式中间件-ElasticSearch"><!--[--><!--]--> 分布式中间件-ElasticSearch <!--[--><!--]--></a><!----></li><li><a href="/technology/elasticsearch/elasticsearch002.md" class="sidebar-item" aria-label="分布式中间件-ElasticSearch-分词器"><!--[--><!--]--> 分布式中间件-ElasticSearch-分词器 <!--[--><!--]--></a><!----></li><li><a href="/technology/minio/minio001.md" class="sidebar-item" aria-label="分布式中间件-Minio"><!--[--><!--]--> 分布式中间件-Minio <!--[--><!--]--></a><!----></li><li><a href="/technology/schedule_master/schedule_master001.md" class="sidebar-item" aria-label="分布式任务调度中间件-ScheduleMaster"><!--[--><!--]--> 分布式任务调度中间件-ScheduleMaster <!--[--><!--]--></a><!----></li><!--]--></ul></li><li><p tabindex="0" class="sidebar-item collapsible">Apb微服务项目 <span class="right arrow"></span></p><ul style="display:none;" class="sidebar-item-children"><!--[--><li><a href="/technology/abpmicroservices/abpmicroservices0001.md" class="sidebar-item" aria-label="微服务电商项目落地"><!--[--><!--]--> 微服务电商项目落地 <!--[--><!--]--></a><!----></li><li><a href="/technology/abpmicroservices/abpmicroservices0002.md" class="sidebar-item" aria-label="微服务通信"><!--[--><!--]--> 微服务通信 <!--[--><!--]--></a><!----></li><li><a href="/technology/abpmicroservices/abpmicroservices0003.md" class="sidebar-item" aria-label="微服务网关-Ocelot"><!--[--><!--]--> 微服务网关-Ocelot <!--[--><!--]--></a><!----></li><li><a href="/technology/abpmicroservices/abpmicroservices0004.md" class="sidebar-item" aria-label="微服务注册中心-Consul"><!--[--><!--]--> 微服务注册中心-Consul <!--[--><!--]--></a><!----></li><li><a href="/technology/abpmicroservices/abpmicroservices0005.md" class="sidebar-item" aria-label="微服务注配置中心-Nacos"><!--[--><!--]--> 微服务注配置中心-Nacos <!--[--><!--]--></a><!----></li><li><a href="/technology/abpmicroservices/abpmicroservices0006.md" class="sidebar-item" aria-label="微服务事件总线-CAP"><!--[--><!--]--> 微服务事件总线-CAP <!--[--><!--]--></a><!----></li><li><a href="/technology/abpmicroservices/abpmicroservices0007.md" class="sidebar-item" aria-label="微服务链路监控-skywalking"><!--[--><!--]--> 微服务链路监控-skywalking <!--[--><!--]--></a><!----></li><li><a href="/technology/abpmicroservices/abpmicroservices0008.md" class="sidebar-item" aria-label="微服务日志中心"><!--[--><!--]--> 微服务日志中心 <!--[--><!--]--></a><!----></li><li><a href="/technology/abpmicroservices/abpmicroservices0009.md" class="sidebar-item" aria-label="微服务分布式事务"><!--[--><!--]--> 微服务分布式事务 <!--[--><!--]--></a><!----></li><li><a href="/technology/abpmicroservices/abpmicroservices0010.md" class="sidebar-item" aria-label="微服务分布式权限"><!--[--><!--]--> 微服务分布式权限 <!--[--><!--]--></a><!----></li><li><a href="/technology/abpmicroservices/abpmicroservices0011.md" class="sidebar-item" aria-label="微服务分布式文件系统、分布式缓存、分布式锁"><!--[--><!--]--> 微服务分布式文件系统、分布式缓存、分布式锁 <!--[--><!--]--></a><!----></li><li><a href="/technology/abpmicroservices/abpmicroservices0012.md" class="sidebar-item" aria-label="微服务大数据库MongoDB、任务调度Hangfire"><!--[--><!--]--> 微服务大数据库MongoDB、任务调度Hangfire <!--[--><!--]--></a><!----></li><!--]--></ul></li><li><p tabindex="0" class="sidebar-item collapsible">Docker <span class="right arrow"></span></p><ul style="display:none;" class="sidebar-item-children"><!--[--><li><a href="/technology/docker/docker01.md" class="sidebar-item" aria-label="微服务部署Docker"><!--[--><!--]--> 微服务部署Docker <!--[--><!--]--></a><!----></li><li><a href="/technology/docker/docker02.md" class="sidebar-item" aria-label="Docker集群"><!--[--><!--]--> Docker集群 <!--[--><!--]--></a><!----></li><li><a href="/technology/docker/docker03.md" class="sidebar-item" aria-label="微服务部署-k8s(一)"><!--[--><!--]--> 微服务部署-k8s(一) <!--[--><!--]--></a><!----></li><li><a href="/technology/docker/docker04.md" class="sidebar-item" aria-label="微服务部署-k8s(二)-应用"><!--[--><!--]--> 微服务部署-k8s(二)-应用 <!--[--><!--]--></a><!----></li><!--]--></ul></li><li><p tabindex="0" class="sidebar-item collapsible">Jenkins <span class="right arrow"></span></p><ul style="display:none;" class="sidebar-item-children"><!--[--><li><a href="/technology/jenkins/jenkins001.md" class="sidebar-item" aria-label="Jenkins 安装部署"><!--[--><!--]--> Jenkins 安装部署 <!--[--><!--]--></a><!----></li><!--]--></ul></li><li><p tabindex="0" class="sidebar-item collapsible">Frp <span class="right arrow"></span></p><ul style="display:none;" class="sidebar-item-children"><!--[--><li><a href="/technology/frp/frp001.md" class="sidebar-item" aria-label="Frp网络穿透工具"><!--[--><!--]--> Frp网络穿透工具 <!--[--><!--]--></a><!----></li><!--]--></ul></li><li><p tabindex="0" class="sidebar-item collapsible">c/c++ <span class="right arrow"></span></p><ul style="display:none;" class="sidebar-item-children"><!--[--><li><a href="/technology/cppreference/index.md" class="sidebar-item" aria-label="c/c++"><!--[--><!--]--> c/c++ <!--[--><!--]--></a><!----></li><!--]--></ul></li><li><p tabindex="0" class="sidebar-item collapsible">linux <span class="right arrow"></span></p><ul style="display:none;" class="sidebar-item-children"><!--[--><li><a href="/technology/linux/index.md" class="sidebar-item" aria-label="linux基础"><!--[--><!--]--> linux基础 <!--[--><!--]--></a><!----></li><li><a href="/technology/linux/centos9_001.md" class="sidebar-item" aria-label="linux（centos9）root密码忘记了，怎么重置或修改密码"><!--[--><!--]--> linux（centos9）root密码忘记了，怎么重置或修改密码 <!--[--><!--]--></a><!----></li><li><a href="/technology/linux/vpn01.md" class="sidebar-item" aria-label="Ubuntu20.4 搭建vpn服务器"><!--[--><!--]--> Ubuntu20.4 搭建vpn服务器 <!--[--><!--]--></a><!----></li><li><a href="/technology/linux/vpn02.md" class="sidebar-item" aria-label="Linux实现socks终端代理、全局代理"><!--[--><!--]--> Linux实现socks终端代理、全局代理 <!--[--><!--]--></a><!----></li><li><a href="/technology/linux/vpn03.md" class="sidebar-item" aria-label="搭建 vpn 使用 x-ui 部署配置"><!--[--><!--]--> 搭建 vpn 使用 x-ui 部署配置 <!--[--><!--]--></a><!----></li><li><a href="/technology/linux/linux001.md" class="sidebar-item" aria-label="yum及yum-config-manager命令详解"><!--[--><!--]--> yum及yum-config-manager命令详解 <!--[--><!--]--></a><!----></li><li><a href="/technology/linux/linux002.md" class="sidebar-item" aria-label="dnf命令详解"><!--[--><!--]--> dnf命令详解 <!--[--><!--]--></a><!----></li><li><a href="/technology/linux/linux003.md" class="sidebar-item" aria-label="linux 运行 AppImage 应用"><!--[--><!--]--> linux 运行 AppImage 应用 <!--[--><!--]--></a><!----></li><!--]--></ul></li><li><p tabindex="0" class="sidebar-item collapsible">git工具 <span class="right arrow"></span></p><ul style="display:none;" class="sidebar-item-children"><!--[--><li><a href="/technology/git/index.md" class="sidebar-item" aria-label="git 常用命令"><!--[--><!--]--> git 常用命令 <!--[--><!--]--></a><!----></li><!--]--></ul></li><li><p tabindex="0" class="sidebar-item collapsible">Mysql <span class="right arrow"></span></p><ul style="display:none;" class="sidebar-item-children"><!--[--><li><a href="/technology/mysql/index.md" class="sidebar-item" aria-label="Mysql8.0 Ubuntu 20.4 安装"><!--[--><!--]--> Mysql8.0 Ubuntu 20.4 安装 <!--[--><!--]--></a><!----></li><li><a href="/technology/mysql/09mysql_centos.md" class="sidebar-item" aria-label="Mysql8.0 CentOS Stream 9 安装"><!--[--><!--]--> Mysql8.0 CentOS Stream 9 安装 <!--[--><!--]--></a><!----></li><li><a href="/technology/mysql/10mysql_write_read.md" class="sidebar-item" aria-label="Mysql 8.0 主从部署-读写分离"><!--[--><!--]--> Mysql 8.0 主从部署-读写分离 <!--[--><!--]--></a><!----></li><li><a href="/technology/mysql/01mysql_info.md" class="sidebar-item" aria-label="Mysql 架构体系详解"><!--[--><!--]--> Mysql 架构体系详解 <!--[--><!--]--></a><!----></li><li><a href="/technology/mysql/02mysql_info.md" class="sidebar-item" aria-label="InnoDB架构详解、事务介绍"><!--[--><!--]--> InnoDB架构详解、事务介绍 <!--[--><!--]--></a><!----></li><li><a href="/technology/mysql/03mysql_innoDB.md" class="sidebar-item" aria-label="InnoDB事务"><!--[--><!--]--> InnoDB事务 <!--[--><!--]--></a><!----></li><li><a href="/technology/mysql/04mysql_info.md" class="sidebar-item" aria-label="InnoDB索引"><!--[--><!--]--> InnoDB索引 <!--[--><!--]--></a><!----></li><li><a href="/technology/mysql/05InnoDB_lock.md" class="sidebar-item" aria-label="Mysql InnoDB锁"><!--[--><!--]--> Mysql InnoDB锁 <!--[--><!--]--></a><!----></li><li><a href="/technology/mysql/06mysql_info.md" class="sidebar-item" aria-label="Mysql 性能优化"><!--[--><!--]--> Mysql 性能优化 <!--[--><!--]--></a><!----></li><li><a href="/technology/mysql/07mysql_info.md" class="sidebar-item" aria-label="MySQL分库分表"><!--[--><!--]--> MySQL分库分表 <!--[--><!--]--></a><!----></li><li><a href="/technology/mysql/08mysql_info.md" class="sidebar-item" aria-label="MySQL集群篇"><!--[--><!--]--> MySQL集群篇 <!--[--><!--]--></a><!----></li><!--]--></ul></li><li><p tabindex="0" class="sidebar-item collapsible">javascript <span class="right arrow"></span></p><ul style="display:none;" class="sidebar-item-children"><!--[--><li><a href="/technology/javascript/index.html" class="sidebar-item" aria-label="javascript"><!--[--><!--]--> javascript <!--[--><!--]--></a><!----></li><!--]--></ul></li><li><p tabindex="0" class="sidebar-item collapsible">vue  <span class="right arrow"></span></p><ul style="display:none;" class="sidebar-item-children"><!--[--><li><a href="/technology/vue/index.html" class="sidebar-item" aria-label="vue 基础"><!--[--><!--]--> vue 基础 <!--[--><!--]--></a><!----></li><!--]--></ul></li><li><p tabindex="0" class="sidebar-item collapsible">css  <span class="right arrow"></span></p><ul style="display:none;" class="sidebar-item-children"><!--[--><li><a href="/technology/css/index.html" class="sidebar-item" aria-label="css 基础"><!--[--><!--]--> css 基础 <!--[--><!--]--></a><!----></li><!--]--></ul></li><li><p tabindex="0" class="sidebar-item collapsible">EA建模工具 <span class="right arrow"></span></p><ul style="display:none;" class="sidebar-item-children"><!--[--><li><a href="/technology/enterprise_architect/ea001.md" class="sidebar-item" aria-label="EA 工具 UML、类图、顺序图 "><!--[--><!--]--> EA 工具 UML、类图、顺序图  <!--[--><!--]--></a><!----></li><!--]--></ul></li><li><p tabindex="0" class="sidebar-item collapsible">设计模式 <span class="right arrow"></span></p><ul style="display:none;" class="sidebar-item-children"><!--[--><li><a href="/technology/design/design001.md" class="sidebar-item" aria-label="工厂、抽象工厂、策略模式"><!--[--><!--]--> 工厂、抽象工厂、策略模式 <!--[--><!--]--></a><!----></li><li><a href="/technology/design/design002.md" class="sidebar-item" aria-label="设计模式应用场景与优缺点"><!--[--><!--]--> 设计模式应用场景与优缺点 <!--[--><!--]--></a><!----></li><!--]--></ul></li><li><p tabindex="0" class="sidebar-item collapsible">markdown <span class="right arrow"></span></p><ul style="display:none;" class="sidebar-item-children"><!--[--><li><a href="/technology/markdown/index.html" class="sidebar-item" aria-label="markdown 基础 "><!--[--><!--]--> markdown 基础  <!--[--><!--]--></a><!----></li><!--]--></ul></li><!--]--></ul></li><!--]--></ul><!--[--><!--]--></aside><!--]--><!--[--><main class="page"><!--[--><!--]--><div class="theme-default-content"><!--[--><!--]--><div><h2 id="目录" tabindex="-1"><a class="header-anchor" href="#目录" aria-hidden="true">#</a> 目录</h2><nav class="table-of-contents"><ul><li><a aria-current="page" href="/technology/kafka/kafka01.html#目录" class="router-link-active router-link-exact-active">目录</a></li><li><a aria-current="page" href="/technology/kafka/kafka01.html#什么是kafka" class="router-link-active router-link-exact-active">什么是Kafka</a></li><li><a aria-current="page" href="/technology/kafka/kafka01.html#什么是消息" class="router-link-active router-link-exact-active">什么是消息</a></li><li><a aria-current="page" href="/technology/kafka/kafka01.html#什么是队列" class="router-link-active router-link-exact-active">什么是队列</a></li><li><a aria-current="page" href="/technology/kafka/kafka01.html#什么是消息队列" class="router-link-active router-link-exact-active">什么是消息队列</a></li><li><a aria-current="page" href="/technology/kafka/kafka01.html#什么地方使用kafka" class="router-link-active router-link-exact-active">什么地方使用Kafka</a></li><li><a aria-current="page" href="/technology/kafka/kafka01.html#微服务系统中为什么要使用kafka" class="router-link-active router-link-exact-active">微服务系统中为什么要使用Kafka</a></li><li><a aria-current="page" href="/technology/kafka/kafka01.html#微服务系统中如何落地kafka" class="router-link-active router-link-exact-active">微服务系统中如何落地Kafka</a><ul><li><a aria-current="page" href="/technology/kafka/kafka01.html#创建订单业务场景落地" class="router-link-active router-link-exact-active">创建订单业务场景落地</a></li><li><a aria-current="page" href="/technology/kafka/kafka01.html#创建订单业务场景落地-情况1" class="router-link-active router-link-exact-active">创建订单业务场景落地-情况1</a></li><li><a aria-current="page" href="/technology/kafka/kafka01.html#创建订单业务场景落地-情况2" class="router-link-active router-link-exact-active">创建订单业务场景落地-情况2</a></li><li><a aria-current="page" href="/technology/kafka/kafka01.html#创建订单业务场景落地-情况3" class="router-link-active router-link-exact-active">创建订单业务场景落地-情况3</a></li><li><a aria-current="page" href="/technology/kafka/kafka01.html#创建订单-同时发送短信业务场景落地-订阅发布" class="router-link-active router-link-exact-active">创建订单，同时发送短信业务场景落地(订阅发布)</a></li><li><a aria-current="page" href="/technology/kafka/kafka01.html#创建订单-订单消息堆积场景落地" class="router-link-active router-link-exact-active">创建订单，订单消息堆积场景落地</a></li><li><a aria-current="page" href="/technology/kafka/kafka01.html#创建订单-订单消息延迟处理场景落地" class="router-link-active router-link-exact-active">创建订单----订单消息延迟处理场景落地</a></li></ul></li><li><a aria-current="page" href="/technology/kafka/kafka01.html#扩展" class="router-link-active router-link-exact-active">扩展</a></li></ul></nav><h1 id="分布式中间件-kafka" tabindex="-1"><a class="header-anchor" href="#分布式中间件-kafka" aria-hidden="true">#</a> 分布式中间件-Kafka</h1><h2 id="什么是kafka" tabindex="-1"><a class="header-anchor" href="#什么是kafka" aria-hidden="true">#</a> 什么是Kafka</h2><p>Kafka是消息队列。简称：MQ。MQ全称为Message Queue, 消息队列（MQ）是一种应用程序对应用程序的通信方法。应用程序通过读写出入队列的消息（针对应用程序的数据）来通信，而无需专用连接来链接它们。消息传递指的是程序之间通过在消息中发送数据进行通信，而不是通过直接调用彼此来通信，直接调用通常是用于诸如远程过程调用的技术。排队指的是应用程序通过 队列来通信。队列的使用除去了接收和发送应用程序同时执行的要求。其中较为成熟的MQ产品有IBM WEBSPHERE MQ等等...</p><h2 id="什么是消息" tabindex="-1"><a class="header-anchor" href="#什么是消息" aria-hidden="true">#</a> 什么是消息</h2><p>消息就是数据，增删改查的数据。例如：订单增删改查的数据</p><h2 id="什么是队列" tabindex="-1"><a class="header-anchor" href="#什么是队列" aria-hidden="true">#</a> 什么是队列</h2><p>队列指：<strong>一端进数据，一端出数据</strong></p><h2 id="什么是消息队列" tabindex="-1"><a class="header-anchor" href="#什么是消息队列" aria-hidden="true">#</a> 什么是消息队列</h2><p>消息队列指：<strong>一端进消息，一端进消息</strong></p><h2 id="什么地方使用kafka" tabindex="-1"><a class="header-anchor" href="#什么地方使用kafka" aria-hidden="true">#</a> 什么地方使用Kafka</h2><p>Kafka主要用在分布式系统中，主要是应用在微服务系统中。</p><h2 id="微服务系统中为什么要使用kafka" tabindex="-1"><a class="header-anchor" href="#微服务系统中为什么要使用kafka" aria-hidden="true">#</a> 微服务系统中为什么要使用Kafka</h2><p>在微服务系统中，微服务之间通信，主要是通过Http或者gRPC通信。由于http/gRPC通信方式是同步通信，如果遇到了高并发，同步通信就会导致微服务系统性能瓶颈，所以，为了解决微服务性能瓶颈问题。需要将同步通信换成异步通信方式。因此。就选用使用消息队列。</p><p>消息队列的代表技术，就是Kafka。</p><p>在什么样的微服务系统使用Kafka呢？用的比较多的就是电商微服务系统。那么，在电商微服务系统中如何落地Kafka？</p><p>业务场景：创建订单业务场景</p><h2 id="微服务系统中如何落地kafka" tabindex="-1"><a class="header-anchor" href="#微服务系统中如何落地kafka" aria-hidden="true">#</a> 微服务系统中如何落地Kafka</h2><p>条件</p><p>1、电商微服务系统</p><p>2、Kafka</p><p>3、JDK</p><p>步骤</p><p>1、电商微服务系统准备</p><p>​ 通过nuget创建电商微服务系统</p><p>2、JDK准备</p><p>​ JDK已经上传到百度云盘，百度一下即可安装JDK环境</p><p>2、Kafka准备</p><p>​ 2.1 Kafka前提准备</p><p>​ Kafka下载地址：https://downloads.apache.org/kafka/3.5.1/kafka_2.13-3.5.1.tgz <a href="https://kafka.apache.org/downloads" target="_blank" rel="noopener noreferrer">kafk官网下载地址<span><svg class="external-link-icon" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path><polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg><span class="external-link-icon-sr-only">open in new window</span></span></a> ​ 2.2 Kafka运行</p><p>​ 1、先运行zookeeper</p><div class="language-c# line-numbers-mode" data-ext="c#"><pre class="language-c#"><code>zookeeper-server-start.bat ../../config/zookeeper.properties
+</code></pre><div class="line-numbers" aria-hidden="true"><div class="line-number"></div></div></div><p><img src="/images/kafka/kafka_001_image.png" alt="Alt text"><img src="/images/kafka/kafka_002_image.png" alt="Alt text"></p><p>​ 2、然后启动Kafka</p><div class="language-c# line-numbers-mode" data-ext="c#"><pre class="language-c#"><code>kafka-server-start.bat ../../config/server.properties
+</code></pre><div class="line-numbers" aria-hidden="true"><div class="line-number"></div></div></div><p><img src="/images/kafka/kafka_003_image.png" alt="Alt text"><img src="/images/kafka/kafka_004_image.png" alt="Alt text"> ​ 3、使用Kafkatool判断kafka是否运行成功</p><p><a href="https://www.kafkatool.com/download.html" target="_blank" rel="noopener noreferrer">kafkatool下载地址<span><svg class="external-link-icon" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path><polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg><span class="external-link-icon-sr-only">open in new window</span></span></a></p><div class="language-c# line-numbers-mode" data-ext="c#"><pre class="language-c#"><code>双击kafkatool.exe
+</code></pre><div class="line-numbers" aria-hidden="true"><div class="line-number"></div></div></div><p><img src="/images/kafka/kafka_005_image.png" alt="Alt text"></p><p>​ 4、查看结果</p><h3 id="创建订单业务场景落地" tabindex="-1"><a class="header-anchor" href="#创建订单业务场景落地" aria-hidden="true">#</a> 创建订单业务场景落地</h3><p>条件</p><p>1、电商网站微服务</p><p>2、订单微服务</p><p>3、Confluent.Kafka</p><p>步骤</p><p>1、添加订单消息到Kafka中</p><p>​ 1.1 先在电商网站微服务通过nuget引入</p><p>​ Confluent.Kafka</p><p>​ 1.2 然后在电商网站微服务中创建OrderController类</p><p>​ 1.3、然后在OrderController类添加代码</p><div class="language-c# line-numbers-mode" data-ext="c#"><pre class="language-c#"><code> /// &lt;summary&gt;
+        /// 创建订单
+        /// &lt;/summary&gt;
+        /// &lt;param name=&quot;orderCreateDto&quot;&gt;&lt;/param&gt;
+        /// &lt;returns&gt;&lt;/returns&gt;
+        [HttpPost]
+        public IEnumerable&lt;OrderCreateDto&gt; CreateOrder(OrderCreateDto orderCreateDto)
+        {
+       		#region 1、生产者 Producer
+            {
+                var producerConfig = new ProducerConfig
+                {
+                    BootstrapServers = &quot;127.0.0.1:9092&quot;,
+                    MessageTimeoutMs = 50000,
+                    EnableIdempotence = true
+                };
+
+                var builder = new ProducerBuilder&lt;string, string&gt;(producerConfig);
+                builder.SetDefaultPartitioner(RoundRobinPartitioner);
+                using (var producer = builder.Build())
+                {
+                    try
+                    {
+                        var dr = producer.ProduceAsync(&quot;create-order&quot;, new Message&lt;string, string&gt; { Key = &quot;order-1&quot;, Value = OrderJson }).GetAwaiter().GetResult();
+                        _logger.LogInformation(&quot;发送事件 {0} 到 {1} 成功&quot;, dr.Value, dr.TopicPartitionOffset);
+                    }
+                    catch (ProduceException&lt;string, string&gt; ex)
+                    {
+                        _logger.LogError(ex, &quot;发送事件到 {0} 失败，原因 {1} &quot;, &quot;order&quot;, ex.Error.Reason);
+                    }
+                }
+            }
+            #endregion
+      }  
+</code></pre><div class="line-numbers" aria-hidden="true"><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div></div></div><p>1.4、然后启动电商网站添加订单消息到Kafka</p><p>​ 1.5、添加订单消息</p><p>2、从Kafka中消费订单消息</p><p>​ 1.1 先在订单微服务通过nuget引入</p><p>​ Confluent.Kafka</p><p>​ 1.2 然后在订单微服务中创建OrderController类</p><p>​ 1.3、然后在OrderController类添加代码</p><div class="language-c# line-numbers-mode" data-ext="c#"><pre class="language-c#"><code> // &lt;summary&gt;
+        /// 创建订单
+        /// &lt;/summary&gt;
+        /// &lt;returns&gt;&lt;/returns&gt;
+        [HttpGet]
+        public async Task&lt;Order&gt; OrderCreate()
+        {
+            #region 1、工作队列(单消费者) Consumer
+            {
+                new Task(() =&gt;
+                {
+                    var consumerConfig = new ConsumerConfig
+                    {
+                        BootstrapServers = &quot;127.0.0.1:9092&quot;,
+                        AutoOffsetReset = AutoOffsetReset.Earliest,
+                        GroupId = &quot;order&quot;,
+                        EnableAutoCommit = false
+                    };
+                    var builder = new ConsumerBuilder&lt;string, string&gt;(consumerConfig);
+
+                    using (var consumer = builder.Build())
+                    {
+                        // 1、订阅
+                        consumer.Subscribe(&quot;create-order&quot;);
+                        while (true)
+                        {
+                            try
+                            {
+                                // 2、消费(自动确认)
+                                var result = consumer.Consume();
+
+                                // 3、业务逻辑:业务逻辑----&gt;执行失败---&gt;消息丢失
+                                string key = result.Key;
+                                string value = result.Value;
+
+                                _logger.LogInformation($&quot;创建订单：Key:{key}&quot;);
+                                _logger.LogInformation($&quot;创建订单：Order:{value}&quot;);
+                            }
+                            catch (Exception e)
+                            {
+                                _logger.LogInformation($&quot;异常：Order:{e}&quot;);
+                            }
+                        }
+                    }
+                }).Start();
+            }
+            #endregion
+        }
+</code></pre><div class="line-numbers" aria-hidden="true"><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div></div></div><p>1.4、然后启动订单微服务执行监听Kafka</p><p>​ 1.5、消费订单消息</p><h3 id="创建订单业务场景落地-情况1" tabindex="-1"><a class="header-anchor" href="#创建订单业务场景落地-情况1" aria-hidden="true">#</a> 创建订单业务场景落地-情况1</h3><p>情况1：Kafka给订单微服务发消息期间，订单微服务宕机。导致消息丢失</p><p>方案：消息确认机制</p><h4 id="如何落地消息确认机制" tabindex="-1"><a class="header-anchor" href="#如何落地消息确认机制" aria-hidden="true">#</a> 如何落地消息确认机制</h4><p>条件</p><p>1、EnableAutoCommit</p><p>步骤</p><p>1、将订单微服务OrderController EnableAutoCommit修改为true</p><div class="language-c# line-numbers-mode" data-ext="c#"><pre class="language-c#"><code>// &lt;summary&gt;
+        /// 创建订单
+        /// &lt;/summary&gt;
+        /// &lt;returns&gt;&lt;/returns&gt;
+        [HttpGet]
+        public async Task&lt;Order&gt; OrderCreate()
+        {
+            #region 1、工作队列(单消费者) Consumer
+            {
+                new Task(() =&gt;
+                {
+                    var consumerConfig = new ConsumerConfig
+                    {
+                        BootstrapServers = &quot;127.0.0.1:9092&quot;,
+                        AutoOffsetReset = AutoOffsetReset.Earliest,
+                        GroupId = &quot;order&quot;,
+                        EnableAutoCommit = true
+                    };
+                    var builder = new ConsumerBuilder&lt;string, string&gt;(consumerConfig);
+
+                    using (var consumer = builder.Build())
+                    {
+                        // 1、订阅
+                        consumer.Subscribe(&quot;create-order&quot;);
+                        while (true)
+                        {
+                            try
+                            {
+                                // 2、消费(自动确认)
+                                var result = consumer.Consume();
+
+                                // 3、业务逻辑:业务逻辑----&gt;执行失败---&gt;消息丢失
+                                string key = result.Key;
+                                string value = result.Value;
+
+                                _logger.LogInformation($&quot;创建订单：Key:{key}&quot;);
+                                _logger.LogInformation($&quot;创建订单：Order:{value}&quot;);
+                            }
+                            catch (Exception e)
+                            {
+                                _logger.LogInformation($&quot;异常：Order:{e}&quot;);
+                            }
+                        }
+                    }
+                }).Start();
+            }
+            #endregion
+        }
+</code></pre><div class="line-numbers" aria-hidden="true"><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div></div></div><h3 id="创建订单业务场景落地-情况2" tabindex="-1"><a class="header-anchor" href="#创建订单业务场景落地-情况2" aria-hidden="true">#</a> 创建订单业务场景落地-情况2</h3><p>情况2：Kafka给订单微服务发了消息，订单微服务收到消息。 订单微服务发送确认消息给Kafka期间。执行业务逻辑失败了。 导致：消息重复消费</p><p>方案：手动确认</p><h4 id="如何落地手动确认消息" tabindex="-1"><a class="header-anchor" href="#如何落地手动确认消息" aria-hidden="true">#</a> 如何落地手动确认消息</h4><p>条件</p><p>1、Commit</p><p>步骤</p><p>1、将订单微服务OrderController 增加consumer.Commit(result);</p><div class="language-c# line-numbers-mode" data-ext="c#"><pre class="language-c#"><code>// &lt;summary&gt;
+        /// 创建订单
+        /// &lt;/summary&gt;
+        /// &lt;returns&gt;&lt;/returns&gt;
+        [HttpGet]
+        public async Task&lt;Order&gt; OrderCreate()
+        {
+            #region 1、工作队列(单消费者) Consumer
+            {
+                new Task(() =&gt;
+                {
+                    var consumerConfig = new ConsumerConfig
+                    {
+                        BootstrapServers = &quot;127.0.0.1:9092&quot;,
+                        AutoOffsetReset = AutoOffsetReset.Earliest,
+                        GroupId = &quot;order&quot;,
+                        EnableAutoCommit = false,
+                    };
+                    var builder = new ConsumerBuilder&lt;string, string&gt;(consumerConfig);
+                    var consumer = builder.Build();
+                    // 1、订阅
+                    consumer.Subscribe(&quot;create-order&quot;);
+                    while (true)
+                    {
+                        // 2、消费
+                        var result = consumer.Consume();
+
+                        // 3、业务逻辑
+                        string key = result.Key;
+                        string value = result.Value;
+
+                        _logger.LogInformation($&quot;创建商品：Key:{key}&quot;);
+                        _logger.LogInformation($&quot;创建商品：Order:{value}&quot;);
+
+                        // 3、手动提交（向kafka确认消息）----偏移量---消息的序号
+                        consumer.Commit(result);
+                    }
+                }).Start();
+            }
+            #endregion
+        }
+</code></pre><div class="line-numbers" aria-hidden="true"><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div></div></div><h3 id="创建订单业务场景落地-情况3" tabindex="-1"><a class="header-anchor" href="#创建订单业务场景落地-情况3" aria-hidden="true">#</a> 创建订单业务场景落地-情况3</h3><p>情况3：Kafka给订单微服务发了消息，订单微服务收到消息。 订单微服务发送确认消息给Kafka期间。kafka宕机 导致：消息重复消费</p><p>方案：重置偏移量</p><h4 id="如何落地重置偏移量" tabindex="-1"><a class="header-anchor" href="#如何落地重置偏移量" aria-hidden="true">#</a> 如何落地重置偏移量</h4><p>条件</p><p>1、redis</p><p>2、Microsoft.Extensions.Caching.Redis</p><p>2、Offset</p><p>步骤</p><p>1、先启动redis</p><p>2、然后在订单微服务中nuget引入</p><p>​ Microsoft.Extensions.Caching.Redis</p><p>3、然后在订单微服务Startup中添加</p><div class="language-c# line-numbers-mode" data-ext="c#"><pre class="language-c#"><code>public void ConfigureServices(IServiceCollection services)
+{
+        ....
+        services.AddDistributedRedisCache(options =&gt;
+        {
+            options.Configuration = &quot;localhost:6379&quot;;
+        });
+        ...
+}
+</code></pre><div class="line-numbers" aria-hidden="true"><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div></div></div><p>4、将订单微服务OrderController 增加Offset存储</p><div class="language-c# line-numbers-mode" data-ext="c#"><pre class="language-c#"><code>#region 4、工作队列(单消费者)-手动确认消息-偏移量(重复消费)-存储偏移量
+{
+    new Task(() =&gt;
+             {
+                 var consumerConfig = new ConsumerConfig
+                 {
+                     BootstrapServers = &quot;127.0.0.1:9092&quot;,
+                     AutoOffsetReset = AutoOffsetReset.Earliest,
+                     GroupId = &quot;order&quot;,
+                     EnableAutoCommit = true,
+                 };
+                 var builder = new ConsumerBuilder&lt;string, string&gt;(consumerConfig);
+                 using (var consumer = builder.Build())
+                 {
+                     // 1、订阅
+                     consumer.Subscribe(&quot;create-order&quot;);
+
+                     // 1.2、获取偏移量
+                     string offset = distributedCache.GetString(&quot;create-order&quot;);
+                     if (string.IsNullOrEmpty(offset))
+                     {
+                         offset = &quot;0&quot;;
+                     }
+
+                     // 1.3、重置偏移量
+                     consumer.Assign(new TopicPartitionOffset(new TopicPartition(&quot;create-order&quot;, 0), int.Parse(offset) + 1));
+                     while (true)
+                     {
+                         // 2、消费
+                         var result = consumer.Consume();
+
+                         // 2.1、获取偏移量
+                         _logger.LogInformation($&quot;订单消息偏移量：Offset:{result.Offset}&quot;);
+                         // 2.2、把kafka队列中偏移量存起来。redis mysql
+                         // 2.3、重置kafka队列的偏移量
+                         distributedCache.SetString(&quot;create-order&quot;, result.Offset.Value.ToString());
+
+                         // 3、业务处理
+                         string key = result.Key;
+                         string value = result.Value;
+                         _logger.LogInformation($&quot;创建订单：Key:{key}&quot;);
+                         _logger.LogInformation($&quot;创建订单：Order:{value}&quot;);
+
+                         // redis缺陷：无法保证偏移和业务同时成功。
+                         // 方案：使用数据库来存储偏移量
+                         //       核心：通过数据库事务来保证
+                         // 3、手动提交
+                         // consumer.Commit(result);
+                     }
+                 }
+             }).Start();
+}
+#endregion
+</code></pre><div class="line-numbers" aria-hidden="true"><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div></div></div><p>5、然后进行业务操作</p><h3 id="创建订单-同时发送短信业务场景落地-订阅发布" tabindex="-1"><a class="header-anchor" href="#创建订单-同时发送短信业务场景落地-订阅发布" aria-hidden="true">#</a> 创建订单，同时发送短信业务场景落地(订阅发布)</h3><p>条件</p><p>1、电商网站微服务</p><p>2、订单微服务</p><p>3、短信微服务</p><p>4、Kafka</p><p>5、Confluent.Kafka</p><p>步骤</p><p>1、电商网站微服务准备</p><p>​ 1.1 先在电商网站微服务nuget引入</p><p>​ Confluent.Kafka</p><p>​ 1.2 然后在电商网站微服务中OrderController类中添加</p><div class="language-c# line-numbers-mode" data-ext="c#"><pre class="language-c#"><code>	 /// &lt;summary&gt;
+        /// 创建订单
+        /// &lt;/summary&gt;
+        /// &lt;param name=&quot;orderCreateDto&quot;&gt;&lt;/param&gt;
+        /// &lt;returns&gt;&lt;/returns&gt;
+        [HttpPost]
+        public IEnumerable&lt;OrderCreateDto&gt; CreateOrder(OrderCreateDto orderCreateDto)
+        {
+       		#region 1、生产者 Producer
+            {
+                var producerConfig = new ProducerConfig
+                {
+                    BootstrapServers = &quot;127.0.0.1:9092&quot;,
+                    MessageTimeoutMs = 50000,
+                    EnableIdempotence = true
+                };
+
+                var builder = new ProducerBuilder&lt;string, string&gt;(producerConfig);
+                builder.SetDefaultPartitioner(RoundRobinPartitioner);
+                using (var producer = builder.Build())
+                {
+                    try
+                    {
+                        var dr = producer.ProduceAsync(&quot;create-order&quot;, new Message&lt;string, string&gt; { Key = &quot;order-1&quot;, Value = OrderJson }).GetAwaiter().GetResult();
+                        _logger.LogInformation(&quot;发送事件 {0} 到 {1} 成功&quot;, dr.Value, dr.TopicPartitionOffset);
+                    }
+                    catch (ProduceException&lt;string, string&gt; ex)
+                    {
+                        _logger.LogError(ex, &quot;发送事件到 {0} 失败，原因 {1} &quot;, &quot;order&quot;, ex.Error.Reason);
+                    }
+                }
+            }
+            #endregion
+      }  
+</code></pre><div class="line-numbers" aria-hidden="true"><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div></div></div><p>​ 1.3 最后启动电商网站微服务</p><p>2、订单微服务准备</p><p>​ 2.1 先在订单微服务中通过nuget引入</p><p>​ Confluent.Kafka</p><p>​ 2.2 然后在订单微服务中OrderController类中添加</p><div class="language-c# line-numbers-mode" data-ext="c#"><pre class="language-c#"><code>	// &lt;summary&gt;
+    /// 创建订单
+    /// &lt;/summary&gt;
+    /// &lt;param name=&quot;OrderCreateDto&quot;&gt;&lt;/param&gt;
+    /// &lt;returns&gt;&lt;/returns&gt;
+    [HttpPost]
+    public IEnumerable&lt;Order&gt; CreateOrder(OrderCreateDto OrderCreateDto)
+    {
+    	 #region 5、订阅发布(广播消费)1、创建订单----2、发送短信-GroupId
+            {
+                new Task(() =&gt;
+                {
+                    var consumerConfig = new ConsumerConfig
+                    {
+                        BootstrapServers = &quot;127.0.0.1:9092&quot;,
+                        AutoOffsetReset = AutoOffsetReset.Earliest,
+                        GroupId = &quot;order&quot;,
+                        EnableAutoCommit = true,
+                    };
+                    var builder = new ConsumerBuilder&lt;string, string&gt;(consumerConfig);
+                    var consumer = builder.Build();
+
+                    // 1、订阅
+                    consumer.Subscribe(&quot;create-order&quot;);
+                    // 2、获取偏移量
+                    string offset = distributedCache.GetString(&quot;create-order&quot;);
+                    if (string.IsNullOrEmpty(offset))
+                    {
+                        offset = &quot;0&quot;;
+                    }
+                    // 3、重置偏移量
+                    consumer.Assign(new TopicPartitionOffset(new TopicPartition(&quot;create-order&quot;, 0), int.Parse(offset)));
+                    while (true)
+                    {
+                        // 2、消费
+                        var result = consumer.Consume();
+                        // 2.1、获取偏移量
+                        _logger.LogInformation($&quot;订单消息偏移量：Offset:{result.Offset}&quot;);
+
+                        // 3、业务处理
+                        string key = result.Key;
+                        string value = result.Value;
+                        _logger.LogInformation($&quot;创建商品：Key:{key}&quot;);
+                        _logger.LogInformation($&quot;创建商品：Order:{value}&quot;);
+
+                        // 2.2、把kafka队列中偏移量存起来。redis mysql
+                        // 2.3、重置kafka队列的偏移量
+                        distributedCache.SetString(&quot;create-order&quot;, result.Offset.Value.ToString());
+
+                        // 3、手动提交
+                        //consumer.Commit(result);
+                    }
+                }).Start();
+            }
+            #endregion
+    }
+
+</code></pre><div class="line-numbers" aria-hidden="true"><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div></div></div><p>​ 2.3 最后启动电商网站微服务</p><p>3、短信微服务准备</p><p>​ 3.1 先在短信微服务中通过nuget引入</p><p>​ Confluent.Kafka</p><p>​ 2.2 然后在短信微服务中SmsController类中添加</p><div class="language-c# line-numbers-mode" data-ext="c#"><pre class="language-c#"><code>	/// &lt;summary&gt;
+        /// 发送短信
+        /// &lt;/summary&gt;
+        /// &lt;returns&gt;&lt;/returns&gt;
+        [HttpGet]
+        public IEnumerable&lt;WeatherForecast&gt; Get()
+        {
+            new Task(() =&gt;
+            {
+                var consumerConfig = new ConsumerConfig
+                {
+                    BootstrapServers = &quot;127.0.0.1:9092&quot;,
+                    AutoOffsetReset = AutoOffsetReset.Earliest,
+                    GroupId = &quot;sms&quot;,
+                    EnableAutoCommit = false,
+                };
+                var builder = new ConsumerBuilder&lt;string, string&gt;(consumerConfig);
+                var consumer = builder.Build();
+
+                // 1、订阅
+                consumer.Subscribe(&quot;create-order&quot;);
+                while (true)
+                {
+                    // 2、消费
+                    var result = consumer.Consume();
+                    // 2.1、获取偏移量
+                    _logger.LogInformation($&quot;订单消息偏移量：Offset:{result.Offset}&quot;);
+
+                    // 3、业务处理
+                    string key = result.Key;
+                    string value = result.Value;
+                    _logger.LogInformation($&quot;创建商品：Key:{key}&quot;);
+                    _logger.LogInformation($&quot;创建商品：Order:{value}&quot;);
+
+                    // 3、手动提交
+                    consumer.Commit(result);
+                }
+            }).Start();
+        }
+</code></pre><div class="line-numbers" aria-hidden="true"><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div></div></div><p>​ 2.3 最后启动电商网站微服务</p><p>4、Kafka准备</p><p>​ 4.1 启动Kafka</p><p>5、最后进行业务操作</p><h4 id="原理过程分析" tabindex="-1"><a class="header-anchor" href="#原理过程分析" aria-hidden="true">#</a> 原理过程分析</h4><p>条件</p><p>1、消费者组GroupId</p><p>过程</p><p>消费者组，就是订阅发布，生产者把消息发给给Kafka----&gt;Kafka再把消息发送给主题-----&gt;主题把消息发送给组-----&gt;组再把消息发送消费者</p><h3 id="创建订单-订单消息堆积场景落地" tabindex="-1"><a class="header-anchor" href="#创建订单-订单消息堆积场景落地" aria-hidden="true">#</a> 创建订单，订单消息堆积场景落地</h3><p>条件</p><p>1、电商网站微服务</p><p>2、订单微服务</p><p>3、Kafka</p><p>4、Confluent.Kafka</p><p>步骤</p><p>1、电商网站微服务准备</p><p>​ 1.1 先在电商网站微服务nuget引入</p><p>​ Confluent.Kafka</p><p>​ 1.2 然后在电商网站微服务中OrderController类中添加</p><div class="language-c# line-numbers-mode" data-ext="c#"><pre class="language-c#"><code>	/// &lt;summary&gt;
+        /// 创建订单
+        /// &lt;/summary&gt;
+        /// &lt;param name=&quot;orderCreateDto&quot;&gt;&lt;/param&gt;
+        /// &lt;returns&gt;&lt;/returns&gt;
+        [HttpPost]
+        public IEnumerable&lt;OrderCreateDto&gt; CreateOrder(OrderCreateDto orderCreateDto)
+        {
+       		#region 1、生产者 Producer
+            {
+                var producerConfig = new ProducerConfig
+                {
+                    BootstrapServers = &quot;127.0.0.1:9092&quot;,
+                    MessageTimeoutMs = 50000,
+                    EnableIdempotence = true
+                };
+
+                var builder = new ProducerBuilder&lt;string, string&gt;(producerConfig);
+                builder.SetDefaultPartitioner(RoundRobinPartitioner);
+                using (var producer = builder.Build())
+                {
+                    try
+                    {
+                        var dr = producer.ProduceAsync(&quot;create-order&quot;, new Message&lt;string, string&gt; { Key = &quot;order-1&quot;, Value = OrderJson }).GetAwaiter().GetResult();
+                        _logger.LogInformation(&quot;发送事件 {0} 到 {1} 成功&quot;, dr.Value, dr.TopicPartitionOffset);
+                    }
+                    catch (ProduceException&lt;string, string&gt; ex)
+                    {
+                        _logger.LogError(ex, &quot;发送事件到 {0} 失败，原因 {1} &quot;, &quot;order&quot;, ex.Error.Reason);
+                    }
+                }
+            }
+            #endregion
+      }  
+</code></pre><div class="line-numbers" aria-hidden="true"><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div></div></div><p>​ 1.3 最后启动电商网站微服务</p><p>2、订单微服务准备</p><p>​ 2.1 先在订单微服务中通过nuget引入</p><p>​ Confluent.Kafka</p><p>​ 2.2 然后在订单微服务中OrderController类中添加</p><div class="language-c# line-numbers-mode" data-ext="c#"><pre class="language-c#"><code>	// &lt;summary&gt;
+    /// 创建订单
+    /// &lt;/summary&gt;
+    /// &lt;param name=&quot;OrderCreateDto&quot;&gt;&lt;/param&gt;
+    /// &lt;returns&gt;&lt;/returns&gt;
+    [HttpPost]
+    public IEnumerable&lt;Order&gt; CreateOrder(OrderCreateDto OrderCreateDto)
+    {
+    	 new Task(() =&gt;
+                {
+                    var consumerConfig = new ConsumerConfig
+                    {
+                        BootstrapServers = &quot;127.0.0.1:9092&quot;,
+                        AutoOffsetReset = AutoOffsetReset.Earliest,
+                        GroupId = &quot;order&quot;,
+                        EnableAutoCommit = false,
+                    };
+                    var builder = new ConsumerBuilder&lt;string, string&gt;(consumerConfig);
+                    var consumer = builder.Build();
+
+                    // 1、订阅
+                    consumer.Subscribe(&quot;create-order-1&quot;);
+                    // 2、获取偏移量
+                    *//*string offset = distributedCache.GetString(&quot;create-order&quot;);
+                    if (string.IsNullOrEmpty(offset))
+                    {
+                        offset = &quot;0&quot;;
+                    }*//*
+                    // 3、重置偏移量
+                    //consumer.Assign(new TopicPartitionOffset(new TopicPartition(&quot;create-order&quot;, 1), int.Parse(offset)));
+                    while (true)
+                    {
+                        // 2、消费
+                        var result = consumer.Consume();
+                        // 2.1、获取偏移量
+                        _logger.LogInformation($&quot;订单消息偏移量：Offset:{result.Offset}&quot;);
+                        // 3、业务处理
+                        string key = result.Key;
+                        string value = result.Value;
+                        _logger.LogInformation($&quot;创建商品：Key:{key}&quot;);
+                        _logger.LogInformation($&quot;创建商品：Order:{value}&quot;);
+
+                        // 2.2、把kafka队列中偏移量存起来。redis mysql
+                        // 2.3、重置kafka队列的偏移量
+                        //distributedCache.SetString(&quot;create-order&quot;, result.Offset.Value.ToString());
+
+                        // 3、手动提交
+                        consumer.Commit(result);
+                    }
+                }).Start();
+            }
+            #endregion
+    }
+</code></pre><div class="line-numbers" aria-hidden="true"><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div></div></div><p>​ 2.3 然后在订单微服务中KafkaController类中添加</p><div class="language-c# line-numbers-mode" data-ext="c#"><pre class="language-c#"><code>/// &lt;summary&gt;
+        /// 创建分区(更新分区)
+        /// &lt;/summary&gt;
+        /// &lt;param name=&quot;topic&quot;&gt;&lt;/param&gt;
+        /// &lt;param name=&quot;Partitions&quot;&gt;&lt;/param&gt;
+        /// &lt;returns&gt;&lt;/returns&gt;
+        [HttpGet(&quot;PartitionUpdate&quot;)]
+        public async Task PartitionCreate(string topic,int PartitionCount)
+        {
+            AdminClientConfig adminClientConfig = new AdminClientConfig
+            {
+                BootstrapServers = &quot;127.0.0.1:9092&quot;,
+            };
+
+            var bu = new AdminClientBuilder(adminClientConfig).Build();
+            bu.CreatePartitionsAsync(new PartitionsSpecification[] {
+                    new PartitionsSpecification { Topic = topic, IncreaseTo=PartitionCount}
+                }).Wait();
+
+            await Task.CompletedTask;
+        }
+</code></pre><div class="line-numbers" aria-hidden="true"><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div></div></div><p>​ 2.4 然后启动订单微服务</p><p>​ 2.5 然后创建新的分区</p><p>​ 2.6、然后在kafkatool查看分区结果</p><p>4、Kafka准备</p><p>​ 4.1 启动Kafka</p><p>5、最后进行业务操作</p><h4 id="原理过程分析-1" tabindex="-1"><a class="header-anchor" href="#原理过程分析-1" aria-hidden="true">#</a> 原理过程分析</h4><p>条件</p><p>1、分区Partition</p><p>过程</p><p>分区Partition，就是指数据分开存储，生产者把消息发送给Kafka----&gt;Kafka再把消息发发送给主题----&gt;主题再把消息发送给指定分区-----&gt;指定分区再发送给消费者</p><p>注意：分区和消费者是固定绑定的</p><h3 id="创建订单-订单消息延迟处理场景落地" tabindex="-1"><a class="header-anchor" href="#创建订单-订单消息延迟处理场景落地" aria-hidden="true">#</a> 创建订单----订单消息延迟处理场景落地</h3><p>条件</p><p>1、电商网站微服务</p><p>2、订单微服务</p><p>3、Kafka</p><p>4、Confluent.Kafka</p><p>步骤</p><p>1、电商网站微服务准备</p><p>​ 1.1 先在电商网站微服务nuget引入</p><p>​ Confluent.Kafka</p><p>​ 1.2 然后在电商网站微服务中OrderController类中添加</p><div class="language-c# line-numbers-mode" data-ext="c#"><pre class="language-c#"><code>	// &lt;summary&gt;
+    /// 创建订单
+    /// &lt;/summary&gt;
+    /// &lt;param name=&quot;OrderCreateDto&quot;&gt;&lt;/param&gt;
+    /// &lt;returns&gt;&lt;/returns&gt;
+    [HttpPost]
+    public IEnumerable&lt;Order&gt; CreateOrder(OrderCreateDto OrderCreateDto)
+    {
+    	 #region 1、生产者 Producer
+            {
+                var producerConfig = new ProducerConfig
+                {
+                    BootstrapServers = &quot;127.0.0.1:9092&quot;,
+                    MessageTimeoutMs = 50000,
+                    EnableIdempotence = true
+                };
+
+                var builder = new ProducerBuilder&lt;string, string&gt;(producerConfig);
+                builder.SetDefaultPartitioner(RoundRobinPartitioner);
+                using (var producer = builder.Build())
+                {
+                    try
+                    {
+                        var OrderJson = JsonConvert.SerializeObject(orderCreateDto);
+                       // TopicPartition topicPartition = new TopicPartition(&quot;order-create&quot;, 2); // 指定分区发送消息
+                        //var dr = producer.ProduceAsync(topicPartition, new Message&lt;string, string&gt; { Key = &quot;order-1&quot;, Value = OrderJson }).GetAwaiter().GetResult();
+                        var dr = producer.ProduceAsync(&quot;create-order-1&quot;, new Message&lt;string, string&gt; { Key = &quot;order-1&quot;, Value = OrderJson }).GetAwaiter().GetResult();
+                        _logger.LogInformation(&quot;发送事件 {0} 到 {1} 成功&quot;, dr.Value, dr.TopicPartitionOffset);
+                    }
+                    catch (ProduceException&lt;string, string&gt; ex)
+                    {
+                        _logger.LogError(ex, &quot;发送事件到 {0} 失败，原因 {1} &quot;, &quot;order&quot;, ex.Error.Reason);
+                    }
+                }
+            }
+            #endregion
+    }
+</code></pre><div class="line-numbers" aria-hidden="true"><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div></div></div><p>​ 1.3 然后在电商网站微服务中OrderController类中添加</p><div class="language-c# line-numbers-mode" data-ext="c#"><pre class="language-c#"><code>	// &lt;summary&gt;
+    /// 创建订单
+    /// &lt;/summary&gt;
+    /// &lt;param name=&quot;OrderCreateDto&quot;&gt;&lt;/param&gt;
+    /// &lt;returns&gt;&lt;/returns&gt;
+    [HttpPost]
+    public IEnumerable&lt;Order&gt; CreateOrder(OrderCreateDto OrderCreateDto)
+    {
+    	 #region 8、创建订单----1、订单消息延迟处理
+            {
+                new Task(() =&gt;
+                {
+                    var consumerConfig = new ConsumerConfig
+                    {
+                        BootstrapServers = &quot;127.0.0.1:9092&quot;,
+                        AutoOffsetReset = AutoOffsetReset.Earliest,
+                        GroupId = &quot;order&quot;,
+                        EnableAutoCommit = false,
+                        FetchMinBytes=170,
+                        FetchMaxBytes=3060
+                    };
+                    var builder = new ConsumerBuilder&lt;string, string&gt;(consumerConfig);
+                    using (var consumer = builder.Build())
+                    {
+                        // 1、订阅
+                        consumer.Subscribe(&quot;create-order-1&quot;);
+                        // 2、偏移量恢复
+                        string offset = distributedCache.GetString(&quot;create-order-1&quot;);
+                        if (string.IsNullOrEmpty(offset))
+                        {
+                            offset = &quot;0&quot;;
+                        }
+                        consumer.Assign(new TopicPartitionOffset(new TopicPartition(&quot;create-order-1&quot;, 0), int.Parse(offset)));
+                        while (true)
+                        {
+                            // 1、恢复消息
+                            new Timer((s) =&gt;
+                            {
+                                consumer.Resume(new List&lt;TopicPartition&gt; { new TopicPartition(&quot;create-order-1&quot;, 0) });
+                            }, null, Timeout.Infinite, Timeout.Infinite).Change(5000, 5000);
+
+                            // 1.1、消费暂停
+                            consumer.Pause(new List&lt;TopicPartition&gt; { new TopicPartition(&quot;create-order-1&quot;, 0) });
+
+                            // 2、消费消息
+                            var result = consumer.Consume(); //批量获取消息，根据-----》字节数
+                            try
+                            {
+                                // 2.1、获取偏移量
+                                _logger.LogInformation($&quot;订单消息偏移量：Offset:{result.Offset}&quot;);
+
+                                // 3、业务处理
+                                string key = result.Key;
+                                string value = result.Value;
+                                _logger.LogInformation($&quot;创建商品：Key:{key}&quot;);
+                                _logger.LogInformation($&quot;创建商品：Order:{value}&quot;);
+
+                                // 2.2、把kafka队列中偏移量存起来。redis mysql
+                                // 2.3、重置kafka队列的偏移量
+                                distributedCache.SetString(&quot;create-order-1&quot;, result.Offset.Value.ToString());
+
+                                // 3、手动提交
+                                consumer.Commit(result);
+                            }
+                            catch (Exception)
+                            {
+
+                                throw;
+                            } finally
+                            {
+                                consumer.Pause(new List&lt;TopicPartition&gt; { new TopicPartition(&quot;create-order-1&quot;, 0) });
+                                Console.WriteLine($&quot;暂停消费&quot;);
+                            }
+                        }
+                    }
+
+                }).Start();
+            }
+            #endregion
+</code></pre><div class="line-numbers" aria-hidden="true"><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div></div></div><p>​ 1.3 最后启动订单微服务</p><p>2.3 然后在订单微服务中KafkaController类中添加</p><div class="language-c# line-numbers-mode" data-ext="c#"><pre class="language-c#"><code>/// &lt;summary&gt;
+        /// 创建主题
+        /// &lt;/summary&gt;
+        /// &lt;param name=&quot;topic&quot;&gt;&lt;/param&gt;
+        /// &lt;param name=&quot;Partitions&quot;&gt;&lt;/param&gt;
+        /// &lt;returns&gt;&lt;/returns&gt;
+        [HttpGet(&quot;TopicCreate&quot;)]
+        public async Task TopicCreate(string topic)
+        {
+            AdminClientConfig adminClientConfig = new AdminClientConfig
+            {
+                BootstrapServers = &quot;127.0.0.1:9092&quot;,
+            };
+
+            var bu = new AdminClientBuilder(adminClientConfig).Build();
+            bu.CreateTopicsAsync(new TopicSpecification[] {
+                    new TopicSpecification { Name = topic}
+                }).Wait();
+
+            await Task.CompletedTask;
+        }
+</code></pre><div class="line-numbers" aria-hidden="true"><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div><div class="line-number"></div></div></div><p>​ 2.4 然后启动订单微服务</p><p>​ 2.5 然后创建新的主题</p><p>​ 2.6、然后在kafkatool查看分区结果</p><p>4、Kafka准备</p><p>​ 4.1 启动Kafka</p><p>5、最后进行业务操作</p><h4 id="原理过程分析-2" tabindex="-1"><a class="header-anchor" href="#原理过程分析-2" aria-hidden="true">#</a> 原理过程分析</h4><p>条件</p><p>1、Pause</p><p>2、Resume</p><p>3、Timer</p><p>过程</p><p>1、生产者调用consumer.Pause（）。暂定消费var result = consumer.Consume();</p><p>2、然后使用定时器Timer每隔5秒钟调用consumer.Resume。重新消费</p><p>3、起到延时消费的作用</p><h2 id="扩展" tabindex="-1"><a class="header-anchor" href="#扩展" aria-hidden="true">#</a> <strong>扩展</strong></h2><p>1、集群。微服务里面</p><p>2、微服务</p><p>3、ssdb canal微服务</p><p>4、结合ABP</p></div><!--[--><!--]--></div><footer class="page-meta"><!----><!----><!----></footer><!----><!--[--><!--]--></main><!--]--></div><!----><!----><!--]--></div>
+    <script type="module" src="/assets/app-1642d2c6.js" defer></script>
+  </body>
+</html>
