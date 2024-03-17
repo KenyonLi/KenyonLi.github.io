@@ -398,7 +398,12 @@ module.exports = [
         children: [{
           text: '工厂、抽象工厂、策略模式',
           link: '/technology/design/design001.md',
-        }],
+        },
+        {
+          text: '设计模式应用场景与优缺点',
+          link: '/technology/design/design002.md',
+        }
+       ],
         // 该元素在当前路由路径是 /foo/ 开头时激活
         // 支持正则表达式
         activeMatch: "/",
