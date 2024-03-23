@@ -1,5 +1,5 @@
 ---
-title: '设计模式'
+title: '工厂、抽象工厂、策略模式'
 date: '2023-12-20' 
 tags:
 - '设计模式'
@@ -296,18 +296,18 @@ class DefaultIOCFactory
 }
 ```
 2、程序集加载
-``` bash
-   class DefaultIOCFactory
+``` C#
+class DefaultIOCFactory
 {
- /// <summary>
-        /// 1、IOC容器(存储对象)
-        /// </summary>
-        private Dictionary<string, object> iocContainer = new Dictionary<string, object>();
+   /// <summary>
+   /// 1、IOC容器(存储对象)
+   /// </summary>
+   private Dictionary<string, object> iocContainer = new Dictionary<string, object>();
    public DefaultIOCFactory(){
         // 1、加载程序集
             Assembly assembly = Assembly.LoadFrom("RuanMou.ArchitectRelax.DesignMode1");
            } 
-    }
+}
 ```
 3、创建对象
 ``` C#
@@ -479,7 +479,7 @@ class DefaultIOCFactory
         private Dictionary<string, Type> iocTypeContainer = new Dictionary<string, Type>();
    public DefaultIOCFactory(){
         // 1、加载程序集
-            Assembly assembly = Assembly.Load("RuanMou.ArchitectRelax.DesignMode1");
+            Assembly assembly = Assembly.Load("lkn.ArchitectRelax.DesignMode1");
          // 2、使用反射从程序集获取对象类型
             Type[] types = assembly.GetTypes();
               foreach (var type in types)
@@ -581,91 +581,3 @@ class DefaultIOCFactory
        }
 }   
 ```
-9、如何进行对象过滤
-
-10、如何进行循环引用
-
-总结
-
-1、架构师修养
-
-2、6大设计原则
-
-3、设计模式
-
-​ 3.1 工厂模式
-
-​ 3.2 抽象工厂模式
-
-​ 3.3 策略模式
-
-## 建造者
-优点：  
-  1、 建造者 复用对象构造属性    
-  2、不同对象构造需求，遵守开闭原则    
-缺陷：  
-   1、如果需求增多，建造者数量变多   
-   2、增加代码复杂性，导致理解困难  
-     工厂模式，解决建造者问题   
-  使用时机（条件）：
-  1、对象有很多属性的时候。   
-  2、属性数量稳定，不容易发生变化。
-
-## 装饰器 
-  
-1、装饰器应用场景  
-2、装饰器落地 
-3、多级装饰器使用  
-4、抽象装饰器
-5、装饰器：结构性
-
-优势：  
-1、动态给原有对象增加功能，使原有对象遵守开闭原则。
-缺陷： 
-1、需求增多，装饰器类数量增多。   
-2、结构改造，导致复杂性上升。
-
-动态代理：
-问题带来办法，办法带来问题
-
-AOP
-
-使用时机  
-1、修改对象方法的时候。
-
-## 代理模式  
-
-一、代理模式和装饰器模式区别  
-   相同点：   
-        1、都是给方法增加功能————解决问题的场景一样。都是解决函数扩展问题  
-        2、都是结构型设计模式
-   不同点： 
-        1、装饰器：在于功能扩展，不替换原有类功能，不控制原有类  （装饰器可以跟原有类一起存在） 
-        2、代理模式：在于功能扩展，会代替原有类功能，完全控制原有类   （项目只能使用代理类，不能使用原有类）
-二、何时使用代理？  
-    1、新功能，是必须，那么就使用代理 ———— 原有函数，增加新函数时。两个必须同时调用，那么就使用代理模式   
-   
-三、何时使用装饰器模式？ 
-    1、新功能，非必须（可以用，可以不用），那么就使用装饰器 ———— 原有函数，增加新函数时。只有一个是必须调用，那么就使用装饰器模式
-
-AOP 动态代理  
-
-## 责任链模式  
-
-## 迭代器模式
-
-## 空对象模式
-
-## 外观模式
-
-## 适配器模式
-
-## 模板方法模式 
-
-优势：
- 1、提升代码维护性  
- 2、代码的思路更加清晰  
- 缺陷：  
- 1、模板类会越来越多。   
-
-
