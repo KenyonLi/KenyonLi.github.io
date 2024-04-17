@@ -148,6 +148,8 @@ docker概念介绍
 	4、docker启动
 ```bash
      sudo systemctl start docker
+     # 设置为开机启动
+     sudo systemctl enable docker
 ```
 	5、docker 运行(判断是否安装成功)
 ```bash

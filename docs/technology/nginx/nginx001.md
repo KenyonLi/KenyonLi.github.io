@@ -1864,9 +1864,9 @@ stream {
 	tar -zxvf  nginx-1.17.1.tar.gz
 ```
 > 4 切换到/nginx/nginx-1.17.1 
->>	执行./configure
->>		make
->>		make install 进行安装
+>>	执行./configure  
+>>		make  
+>>		make install   进行安装
 >5 切换到/usr/local/nginx/sbin
 >>	执行 ./nginx 启动nginx
 
@@ -1886,10 +1886,10 @@ stream {
 ```bash
 	tar -zxvf  nginx-1.24.0.tar.gz
 ```
-### 4 切换到/nginx/nginx-1.17.1
+### 4 切换到/nginx/nginx-1.24.0
 ```
-	执行./configure
-		make
+	执行./configure  
+		make  
 		make install 进行安装
 ```
 ### 5 切换到/usr/local/nginx/sbin

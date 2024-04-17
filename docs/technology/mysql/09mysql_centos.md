@@ -51,6 +51,8 @@ mysql-server-8.0.32-1.el9.x86_64
 ```bash
 [root@localhost]~# mysqld --initialize
 
+# 修改表名，忽略大小配置 lower_case_table_names=1 
+mysqld --user=mysql --lower_case_table_names=1 --initialize-insecure
 ```
 
 >### 启动mysql 数据库
