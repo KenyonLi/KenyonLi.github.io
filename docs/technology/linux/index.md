@@ -346,3 +346,8 @@ Linux localhost.localdomain 5.14.0-350.el9.x86_64 #1 SMP PREEMPT_DYNAMIC Fri Aug
 [root@localhost ~]# cat /proc/version
 Linux version 5.14.0-350.el9.x86_64 (mockbuild@x86-05.stream.rdu2.redhat.com) (gcc (GCC) 11.4.1 20230605 (Red Hat 11.4.1-2), GNU ld version 2.35.2-42.el9) #1 SMP PREEMPT_DYNAMIC Fri Aug 4 12:40:09 UTC 2023
 ```
+
+### 查看应用安装位置的指令
+``` bash
+find、whereis、which、locate
+```

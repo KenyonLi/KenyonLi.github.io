@@ -248,11 +248,6 @@ asn=="20473" && country=="US" && port=="443" && cert!="Let's Encrypt" && cert.is
 ~/.acme.sh/acme.sh --install-cert -d 45-76-9-193.nip.io --ecc --key-file /etc/x-ui/server.key --fullchain-file /etc/x-ui/server.crt
 ```
 
-
-
-
-
-
 ### 检测端口是否被封
 ```bash
 https://tcp.ping.pe/

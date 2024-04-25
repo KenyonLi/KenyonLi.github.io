@@ -51,7 +51,7 @@ mysql-server-8.0.32-1.el9.x86_64
 ```bash
 [root@localhost]~# mysqld --initialize
 
-# 修改表名，忽略大小配置 lower_case_table_names=1 
+# 修改表名，忽略大小配置 lower_case_table_names=1 ,初始化密码为空
 mysqld --user=mysql --lower_case_table_names=1 --initialize-insecure
 ```
 
@@ -224,8 +224,10 @@ Query OK, 0 rows affected (0.01 sec)
 ```bash
 mysql> create user 'root'@'%' identified with mysql_native_password by '123433356';
 Query OK, 0 rows affected (0.03 sec)
+#授权所有权限
 mysql> grant all privileges on *.* to 'root'@'%' with grant option;
 Query OK, 0 rows affected (0.01 sec)
+#刷新权限
 mysql> flush privileges;
 Query OK, 0 rows affected (0.01 sec)
 ```
@@ -236,4 +238,7 @@ Query OK, 0 rows affected (0.01 sec)
 ```
 ### 终端远程
 ![Alt text](/images/mysql/09mysql_centos001.png)
+
+### 卸载 
+
 

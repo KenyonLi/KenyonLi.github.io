@@ -129,3 +129,6 @@ yum-config-manager --add-repo <file|url>
 ``` bash
 yum-config-manager --enable ItemName
 ```
+
+
+

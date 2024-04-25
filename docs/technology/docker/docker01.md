@@ -256,6 +256,15 @@ docker container prune
 docker container prune --volumes
 ```
  
+ 删除容器
+ ``` bash
+containerId=$(docker ps -a | grep lkn.devops | awk '{print $1}')
+echo $containerId
+if [ -n "$containerId" ]; then
+    docker stop $containerId
+    docker rm $containerId
+fi
+ ```
  
  镜像的常用命令，包括docker rmi、docker image prune和docker container prune。根据实际 来删除镜像以释放磁盘空间。在使用这些命令时，务必小心，以免误删重要的镜像或容器。
 

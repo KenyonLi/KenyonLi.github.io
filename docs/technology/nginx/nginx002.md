@@ -1869,9 +1869,6 @@ stream {
 >>		make install   进行安装
 >5 切换到/usr/local/nginx/sbin
 >>	执行 ./nginx 启动nginx
->6 添加 SSL模块
-### 新增SSL模块进行重新配置：
-[root@xxx nginx]# ./configure --prefix=/usr/local/nginx --with-http_stub_status_module --with-http_ssl_module
 
 >yum方式
 

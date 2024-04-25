@@ -385,7 +385,7 @@ D:\experimental environment\minio>minio.exe server .\data
 步骤  
 1、先在ProductController类中添加代码   
 ``` C# 
-/// <summary>
+        /// <summary>
         /// 批量商品图片删除
         /// </summary>
         /// <returns></returns>
