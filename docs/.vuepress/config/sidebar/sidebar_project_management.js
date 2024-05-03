@@ -5,7 +5,7 @@ const managementConf = require('./project_management/management')
 //SidebarItem
 module.exports = [
     {
-        text: '什么项目管理',
+        text: '工作职责',
         collapsible: true,
         activeMatch: "/",
         children: managementConf

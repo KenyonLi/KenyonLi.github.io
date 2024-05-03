@@ -2,7 +2,7 @@
 //SidebarItem
 module.exports = [
     {
-        text: '管理范畴',
+        text: '项目管理工作职责',
         link: "/technology/project_management/project/management_0001.md",
     }
 ]
