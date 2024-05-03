@@ -23,160 +23,51 @@ module.exports = [
     link: '/technology/',
     children: [
       {
-        text: "dotnet core",
-        link: "/technology/dotnetcore/",
+        text: "前端设计与分析",
+        link: "/technology/front_end/vue/index.md",
         // 该元素将一直处于激活状态
         activeMatch: "/",
       },
       {
-        text: "ABP vNnext",
-        link: "/technology/abp/abp001",
+        text: "后端设计与分析",
+        link: "/technology/back_end/csharp/csharp01.md",
         // 该元素将一直处于激活状态
         activeMatch: "/",
       },
       {
-        text: "RabbitMQ",
-        link: "/technology/rabbitmq/rabbitmq01",
+        text: "数据库设计与分析",
+        link: "/technology/database_design_analysis/mysql/01mysql_info.md",
         // 该元素将一直处于激活状态
         activeMatch: "/",
       },
       {
-        text: "Kafka",
-        link: "/technology/kafka/kafka01",
+        text: "架构设计与分析",
+        link: "/technology/architecture_design_analysis/enterprise_architect/ea001.md",
         // 该元素将一直处于激活状态
         activeMatch: "/",
       },
       {
-        text: "Nginx",
-        link: "/technology/Nginx/Nginx001",
+        text: "部署与运维技术",
+        link: "/technology/deployment_operations/docker/docker01.md",
         // 该元素将一直处于激活状态
         activeMatch: "/",
       },
       {
-        text: "ShardingSphere-Proxy",
-        link: "/technology/sharding_sphere_proxy/sharding_sphere_proxy001.md",
+        text: "产品设计与分析",
+        link: "/technology/product_design_analysis/axure_rp_10_001.md",
         // 该元素将一直处于激活状态
         activeMatch: "/",
       },
       {
-        text: "Redis",
-        link: "/technology/redis/redis001.md",
+        text: "代码管理",
+        link: "/technology/code_management/git/index.md",
         // 该元素将一直处于激活状态
         activeMatch: "/",
       },
       {
-        text: "MongoDB",
-        link: "/technology/mongodb/mongodb001.md",
+        text: "项目管理",
+        link: "/technology/project_management/project_management_0001.md",
         // 该元素将一直处于激活状态
-        activeMatch: "/",
-      },{
-        text: "ElasticSearch",
-        link: "/technology/elasticsearch/elasticsearch001.md",
-        // 该元素将一直处于激活状态
-        activeMatch: "/",
-      },
-      {
-        text: "Minio",
-        link: "/technology/minio/minio001.md",
-        activeMatch: "/",
-      },
-      {
-        text: "ScheduleMaster",
-        link: "/technology/schedule_master/schedule_master001.md",
-        activeMatch: "/",
-      },
-      {
-        text: "Jenkins",
-        link: "/technology/jenkins/jenkins001.md",
-        activeMatch: "/",
-      },
-      {
-        text: "Frp",
-        link: "/technology/frp/frp001.md",
-        activeMatch: "/",
-      },
-      {
-        text: "c/c++",
-        link: "/technology/cppreference/",
-        // 该元素在当前路由路径是 /foo/ 开头时激活
-        // 支持正则表达式
-        activeMatch: "/",
-      },
-      {
-        text: "linux",
-        link: "/technology/linux/",
-        // 该元素在当前路由路径是 /foo/ 开头时激活
-        // 支持正则表达式
-        activeMatch: "/",
-      },
-      {
-        text: "git 工具",
-        link: "/technology/git/",
-        // 该元素在当前路由路径是 /foo/ 开头时激活
-        // 支持正则表达式
-        activeMatch: "/",
-      },
-      {
-        text: "mysql",
-        link: "/technology/mysql/01mysql_info",
-        // 该元素在当前路由路径是 /foo/ 开头时激活
-        // 支持正则表达式
-        activeMatch: "/",
-      },
-      {
-        text: "javascript",
-        link: "/technology/javascript/",
-        // 该元素在当前路由路径是 /foo/ 开头时激活
-        // 支持正则表达式
-        activeMatch: "/",
-      },
-      {
-        text: "vue",
-        link: "/technology/vue/",
-        // 该元素在当前路由路径是 /foo/ 开头时激活
-        // 支持正则表达式
-        activeMatch: "/",
-      },
-      {
-        text: "css",
-        link: "/technology/css/",
-        // 该元素在当前路由路径是 /foo/ 开头时激活
-        // 支持正则表达式
-        activeMatch: "/",
-      },
-      {
-        text: "markdown",
-        link: "/technology/markdown/",
-        // 该元素在当前路由路径是 /foo/ 开头时激活
-        // 支持正则表达式
-        activeMatch: "/",
-      },
-      {
-        text: "Apb微服务项目",
-        link: "/technology/abpmicroservices/abpmicroservices0001.md",
-        // 该元素在当前路由路径是 /foo/ 开头时激活
-        // 支持正则表达式
-        activeMatch: "/",
-      },
-      {
-        text: "Docker",
-        link: "/technology/docker/docker01.md",
-        // 该元素在当前路由路径是 /foo/ 开头时激活
-        // 支持正则表达式
-        activeMatch: "/",
-      },
-      {
-        text: "EA建模工具",
-        link: "/technology/enterprise_architect/ea001.md",
-        // 该元素在当前路由路径是 /foo/ 开头时激活
-        // 支持正则表达式
-        activeMatch: "/",
-      } ,
-      {
-        text: "设计模式",
-        link: "/technology/design/design001.md",
-        // 该元素在当前路由路径是 /foo/ 开头时激活
-        // 支持正则表达式
         activeMatch: "/",
       }
   ]},
@@ -185,28 +76,35 @@ module.exports = [
     children: [
       {
         text: "羊皮卷",
-        link: "/read/yan_pi_juen.md",
+        link: "/read/social_interaction/yan_pi_juen.md",
         // 该元素在当前路由路径是 /foo/ 开头时激活
         // 支持正则表达式
         activeMatch: "/",
       },
       {
         text: "狼道",
-        link: "/read/lan_dao.md",
+        link: "/read/social_interaction/lan_dao.md",
         // 该元素在当前路由路径是 /foo/ 开头时激活
         // 支持正则表达式
         activeMatch: "/",
       },
       {
         text: "墨菲定律",
-        link: "/read/mo_fei_din_lu.md",
+        link: "/read/social_interaction/mo_fei_din_lu.md",
         // 该元素在当前路由路径是 /foo/ 开头时激活
         // 支持正则表达式
         activeMatch: "/",
       },
       {
         text: "什么反刍思维",
-        link: "/read/read01.md",
+        link: "/read/social_interaction/read01.md",
+        // 该元素在当前路由路径是 /foo/ 开头时激活
+        // 支持正则表达式
+        activeMatch: "/",
+      },
+      {
+        text: "面向对象分析与设计",
+        link: "/read/technology/object_oriented_analysis.md",
         // 该元素在当前路由路径是 /foo/ 开头时激活
         // 支持正则表达式
         activeMatch: "/",
