@@ -73,19 +73,3 @@ module.exports = [
     tasklist: true,
   }),
 ]
-
-/*
-module.exports = {
-  plugins: [
-    [
-      'vuepress-plugin-toc',
-      {
-        containerSelector: '#main-container', // 目录所在容器的 CSS 选择器
-        titleSelector: 'h1, h2', // 标题的 CSS 选择器
-        includeLevel: [1, 2], // 目录包含的标题级别
-        exclude: '', // 目录不包含的标题
-        smoothScroll: true, // 是否启用平滑滚动
-      },
-    ],
-  ],
-}*/
