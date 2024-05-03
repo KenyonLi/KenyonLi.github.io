@@ -1,14 +1,14 @@
 //linux  
-const linuxConf = require('./sidebar_deployment_operations/linux')
+const linuxConf = require('./deployment_operations/linux')
 
 //docker 容器
-const dockerConf = require('./sidebar_deployment_operations/docker')
+const dockerConf = require('./deployment_operations/docker')
 
 //frp 网络穿透工具
-const frpConf = require('./sidebar_deployment_operations/frp')
+const frpConf = require('./deployment_operations/frp')
 
 //jenkins 工具
-const jenkinsConf = require('./sidebar_deployment_operations/jenkins')
+const jenkinsConf = require('./deployment_operations/jenkins')
 
 
 //sidebar_deployment_operations 部署与运维技术
@@ -30,7 +30,7 @@ module.exports = [
         text: 'jenkins工具',
         collapsible: true,
         activeMatch: "/",
-        children: jenkins
+        children: jenkinsConf
     },
     {
         text: 'frp 网络穿透工具',

@@ -1,7 +1,7 @@
 //C# 语法特性
 const csharpConf = require('./back_end/csharp')
 //C/C++ 语法
-const csharpConf = require('./back_end/cppreferenceConf')
+const cppreferenceConf = require('./back_end/cppreference')
 
 //dotnet core
 const dotnetcoreConf = require('./back_end/dotnetcore')
@@ -28,7 +28,7 @@ const sharding_sphere_proxyConf = require('./back_end/sharding_sphere_proxy')
 const schedule_masterConf = require('./back_end/schedule_master')
 
 //分布式中间件-minio
-const schedule_masterConf = require('./back_end/minio')
+const minioConf = require('./back_end/minio')
 
 //性能调优
 const tuningConf = require('./back_end/tuning')

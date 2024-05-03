@@ -1,7 +1,7 @@
 //git 工具
-const gitConf = require('./sidebar_code_management/git')
+const gitConf = require('./code_management/git')
 //Markdown语法
-const markdownConf = require('./sidebar_code_management/markdown')
+const markdownConf = require('./code_management/markdown')
 
 //sidebar_code_management代码管理
 //SidebarItem

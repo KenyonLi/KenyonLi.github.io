@@ -1,15 +1,15 @@
 
 //javasrcipt 
-const front_end_javascriptConf = require('./sidebar_front_end/front_end_javascript')
+const front_end_javascriptConf = require('./front_end/front_end_javascript')
 
 //h5语法
-const front_end_h5Conf = require('./sidebar_front_end/front_end_h5')
+const front_end_h5Conf = require('./front_end/front_end_h5')
 
 //CSS样式 
-const front_end_cssConf = require('./sidebar_front_end/front_end_css')
+const front_end_cssConf = require('./front_end/front_end_css')
 
 //Vue语法 
-const front_end_vueConf = require('./sidebar_front_end/front_end_vue')
+const front_end_vueConf = require('./front_end/front_end_vue')
 
 // sidebar_front_end 前端设计与分析
 //SidebarItem
