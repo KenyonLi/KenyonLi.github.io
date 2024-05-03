@@ -2,7 +2,7 @@
 //SidebarItem
 module.exports = [
     {
-        text: '分布式中间件-Kafka介绍（一）',
-        link: '/technology/kafka/kafka01.md',
+        text: 'git 常用命令',
+        link: '/technology/code_management/git/index.md',
     }
 ]

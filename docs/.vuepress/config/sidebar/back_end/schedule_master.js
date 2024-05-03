@@ -1,4 +1,4 @@
-// elasticsearch 后端技术
+// schedule_master 分布式任务调度中间件
 //SidebarItem
 module.exports = [
     {

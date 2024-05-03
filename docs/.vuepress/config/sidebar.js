@@ -11,11 +11,11 @@ const sidebar_product_design_analysisConf = require('./sidebar/sidebar_product_d
 //架构设计与分析
 const sidebar_architecture_design_analysisConf = require('./sidebar/sidebar_architecture_design_analysis')
 //代码管理
-const sidebar_artificial_intelligenceConf = require('./sidebar/sidebar_artificial_intelligence')
+const sidebar_code_managementConf = require('./sidebar/sidebar_code_management')
 //人工智能
 const sidebar_artificial_intelligenceConf = require('./sidebar/sidebar_artificial_intelligence')
 //项目管理
-const sidebar_artificial_intelligenceConf = require('./sidebar/sidebar_artificial_intelligence')
+const sidebar_project_managementConf = require('./sidebar/sidebar_project_management')
 
 module.exports = [
   // SidebarItem
@@ -52,7 +52,7 @@ module.exports = [
   {
     text: '代码管理',
     collapsible: true,
-    children:sidebar_product_design_analysisConf
+    children:sidebar_code_managementConf
   },
   {
     text: '人工智能',
@@ -62,6 +62,6 @@ module.exports = [
   {
     text: '项目管理',
     collapsible: true,
-    children:sidebar_product_design_analysisConf
+    children:sidebar_project_managementConf
   },
 ]

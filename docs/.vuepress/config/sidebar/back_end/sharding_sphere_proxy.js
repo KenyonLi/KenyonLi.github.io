@@ -3,6 +3,6 @@
 module.exports = [
     {
         text: '分布式中间件-ShardingSphere-Proxy',
-        link: "/technology/sharding_sphere_proxy/sharding_sphere_proxy001.md",
+        link: "/technology/back_end/sharding_sphere_proxy/sharding_sphere_proxy001.md",
     }
 ]

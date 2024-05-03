@@ -2,11 +2,11 @@
 //SidebarItem
 module.exports = [
     {
-        text: "分布式中间件-ElasticSearch",
-        link: "/technology/elasticsearch/elasticsearch001.md",
+        text: "ElasticSearch",
+        link: "/technology/back_end/elasticsearch/elasticsearch001.md",
     },
     {
-        text: "分布式中间件-ElasticSearch-分词器",
-        link: "/technology/elasticsearch/elasticsearch002.md",
+        text: "ElasticSearch-分词器",
+        link: "/technology/back_end/elasticsearch/elasticsearch002.md",
     }
 ]
