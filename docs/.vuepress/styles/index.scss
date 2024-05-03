@@ -7,4 +7,23 @@
 
     --nprogress-color: #29d;
     --nprogress-z-index: 1031;
+    --content-width:var(--content-width);
+   
+  }
+  
+.theme-default-content{
+  padding-right:10vw !important;
+}
+.table-of-contents {
+    position:fixed;
+    top: 50px;
+    right: 0;
+    z-index:var(--back-to-top-z-index);
+    background-color: #fff;
+    border: 1px solid #ddd;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    padding: 10px;
+    max-height: 90vh;
+    max-width: 9vw;
+    overflow-y: auto;
   }

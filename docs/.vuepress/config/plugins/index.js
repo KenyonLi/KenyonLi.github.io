@@ -10,8 +10,8 @@ import { tocPlugin } from '@vuepress/plugin-toc'
 import { googleAnalyticsPlugin } from '@vuepress/plugin-google-analytics'
 import { palettePlugin } from '@vuepress/plugin-palette'
 import { mdEnhancePlugin } from "vuepress-plugin-md-enhance";
- 
-module.exports = [ 
+
+module.exports = [
   searchPlugin({
     locales: {
       "/": {
@@ -51,8 +51,9 @@ module.exports = [
   activeHeaderLinksPlugin({
     // 配置项
   }),
+
   tocPlugin({
-    // 配置项
+    //配置
   }),
   googleAnalyticsPlugin({
     id: 'G-78HEE87XEQ',
@@ -62,13 +63,29 @@ module.exports = [
   mdEnhancePlugin({
     // 你的选项
     mark: true,
-     // 启用自定义对齐
-     align: true,
-      // 启用 mermaid
-      mermaid: true,
-      // 添加选项卡支持
-      tabs: true,
-       // 启用任务列表
-       tasklist: true,
+    // 启用自定义对齐
+    align: true,
+    // 启用 mermaid
+    mermaid: true,
+    // 添加选项卡支持
+    tabs: true,
+    // 启用任务列表
+    tasklist: true,
   }),
 ]
+
+/*
+module.exports = {
+  plugins: [
+    [
+      'vuepress-plugin-toc',
+      {
+        containerSelector: '#main-container', // 目录所在容器的 CSS 选择器
+        titleSelector: 'h1, h2', // 标题的 CSS 选择器
+        includeLevel: [1, 2], // 目录包含的标题级别
+        exclude: '', // 目录不包含的标题
+        smoothScroll: true, // 是否启用平滑滚动
+      },
+    ],
+  ],
+}*/
