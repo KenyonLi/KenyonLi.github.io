@@ -23,19 +23,19 @@ module.exports = [
     link: '/technology/',
     children: [
       {
-        text: "前端设计与分析",
+        text: "前端设计与技术",
         link: "/technology/front_end/vue/index.md",
         // 该元素将一直处于激活状态
         activeMatch: "/",
       },
       {
-        text: "后端设计与分析",
+        text: "后端设计与技术",
         link: "/technology/back_end/csharp/csharp01.md",
         // 该元素将一直处于激活状态
         activeMatch: "/",
       },
       {
-        text: "数据库设计与分析",
+        text: "数据库设计与技术",
         link: "/technology/database_design_analysis/mysql/01mysql_info.md",
         // 该元素将一直处于激活状态
         activeMatch: "/",
@@ -61,6 +61,12 @@ module.exports = [
       {
         text: "代码管理",
         link: "/technology/code_management/git/index.md",
+        // 该元素将一直处于激活状态
+        activeMatch: "/",
+      },
+      {
+        text: "人工智能",
+        link: "/technology/artificial_intelligence/ai/ai0001.md",
         // 该元素将一直处于激活状态
         activeMatch: "/",
       },
