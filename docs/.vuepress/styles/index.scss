@@ -1,28 +1,33 @@
 :root {
-    scroll-behavior: smooth;
-    --back-to-top-z-index: 5;
-    --back-to-top-color: #3eaf7c;
-    --back-to-top-color-hover: #71cda3;
+  scroll-behavior: smooth;
+  --back-to-top-z-index: 5;
+  --back-to-top-color: #3eaf7c;
+  --back-to-top-color-hover: #71cda3;
 
 
-    --nprogress-color: #29d;
-    --nprogress-z-index: 1031;
-    --content-width:var(--content-width);
-  }
-  
-.theme-default-content{
-  padding-right:11vw !important;
+  --nprogress-color: #29d;
+  --nprogress-z-index: 1031;
+  --content-width: var(--content-width);
 }
+
+.theme-default-content {
+  padding-right: 11vw !important;
+}
+
 .table-of-contents {
-    position:fixed;
-    top: 50px;
-    right: 0;
-    z-index:var(--back-to-top-z-index);
-    background-color: #fff;
-    border: 1px solid #ddd;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-    padding: 10px;
-    max-height: 90vh;
-    max-width: 9vw;
-    overflow-y: auto;
-  }
+  position: fixed;
+  top: 50px;
+  right: 0;
+  z-index: var(--back-to-top-z-index);
+  background-color: var(--vp-bglt);
+  border: 1px solid var(--c-border);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  padding: 10px;
+  max-height: 83vh;
+  max-width: 9vw;
+  overflow-y: auto;
+  overflow-x: auto;
+}
+.table-of-contents ul li{
+  min-width: 20vw;
+}
