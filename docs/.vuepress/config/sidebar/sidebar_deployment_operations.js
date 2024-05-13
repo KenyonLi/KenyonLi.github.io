@@ -1,6 +1,10 @@
 //linux  
 const linuxConf = require('./deployment_operations/linux')
 
+//nginxConf 工具
+const nginxConf = require('./deployment_operations/nginx.js')
+
+
 //docker 容器
 const dockerConf = require('./deployment_operations/docker')
 
@@ -19,6 +23,12 @@ module.exports = [
         collapsible: true,
         activeMatch: "/",
         children: linuxConf
+    },
+    {
+        text: 'Nginx工具',
+        collapsible: true,
+        activeMatch: "/",
+        children: nginxConf
     },
     {
         text: 'Docker容器',

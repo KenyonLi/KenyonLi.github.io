@@ -3,6 +3,6 @@
 module.exports = [
     {
         text: "分布式任务调度中间件-ScheduleMaster",
-        link: "/technology/schedule_master/schedule_master001.md",
+        link: "/technology/back_end/schedule_master/schedule_master001.md",
     }
 ]
