@@ -10,7 +10,7 @@ categories:
 # NavLink - 外部 URL
 prev:
   text: MySQL分库分表
-  link: /technology/mysql/07mysql_info.md
+  link: /technology/database_design_analysis/mysql/07mysql_info.md
 
 #next:
  # text: InnoDB锁

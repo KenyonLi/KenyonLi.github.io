@@ -10,11 +10,11 @@ categories:
 # NavLink - 外部 URL
 prev:
   text: Mysql 性能优化
-  link: /technology/mysql/06mysql_info.md
+  link: /technology/database_design_analysis/mysql/06mysql_info.md
 
 next:
   text: MySQL集群篇
-  link: /technology/mysql/08mysql_info.md
+  link: /technology/database_design_analysis/mysql/08mysql_info.md
 ---
 ## 目录
 [[toc]]

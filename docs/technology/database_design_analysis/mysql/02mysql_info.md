@@ -10,11 +10,11 @@ categories:
 # NavLink - 外部 URL
 prev:
   text: Mysql 架构体系详解
-  link: /technology/mysql/01mysql_info.md
+  link: /technology/database_design_analysis/mysql/01mysql_info.md
 
 next:
   text: InnoDB事务
-  link: /technology/mysql/03mysql_innoDB.md
+  link: /technology/database_design_analysis/mysql/03mysql_innoDB.md
 ---
 ## 目录
 [[toc]]

@@ -10,11 +10,11 @@ categories:
 # NavLink - 外部 URL
 prev:
  text: Mysql InnoDB锁
- link: /technology/mysql/05InnoDB_lock.md
+ link: /technology/database_design_analysis/mysql/05InnoDB_lock.md
 
 next:
  text: MySQL分库分表
- link: /technology/mysql/07mysql_info.md
+ link: /technology/database_design_analysis/mysql/07mysql_info.md
 ---
 ## 目录
 [[toc]]
