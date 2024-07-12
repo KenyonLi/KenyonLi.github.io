@@ -1008,7 +1008,11 @@ Tips:重启jenkins
 
 ![1720401974307](assets\1720401974307.png)
 
+> /usr/lib/jvm/java-1.8.0-openjdk
+
 ![1720402279122](assets\1720402279122.png)
+
+> /usr/bin/git
 
 ![1720402299113](assets\1720402299113.png)
 
@@ -1048,8 +1052,16 @@ Tips:重启jenkins
 
 ![1720409739890](assets\1720409739890.png)
 
+> git 不需要账号拉取代码仓库代码
+
+![1720663485438](assets/1720663485438.png)
+
+> git需要账号和密码拉取代码仓库代码
+
+![1720663428444](assets/1720663428444.png)
+
 ```bash
-https://github.com/KenyonLi/csharp.learm.git
+https://gitee.com/LearnKenyonLi/jenkins-my-web-api.git
 ```
 
 ##### 2.3.3 配置执行脚本
@@ -1087,7 +1099,11 @@ dotnet publish -c Release /p:SkipTests=true
    >
    > Dashboard-->Manage Jenkins-->System--> Global properties
    >
+   > ```bash
    > /usr/local/dotnet
+   > ```
+   >
+   > 
    >
    > ![1720438036616](assets\1720438036616.png)
 
@@ -1236,7 +1252,7 @@ Max number of backup sets 配置值为-1表示不限制，备份中排除了buil
 
 点击保存后，等待时间到10：00过后，我们查看master上的、data/jenkins_backup目录。
 
-![1720485814810](assets\1720485814810.png)
+![1720490847559](assets/1720490847559.png)
 
 发现备份到点已经执行完毕，那么目录下备份的内容是否正确的内容，查看生成的备份目录
 
@@ -1266,11 +1282,309 @@ Manage Jenkins-->Tools and Actions --> ThinBackup
 
 2、rsync增量同步备份文件
 
-使用rsync命令可以实现在每天jenkins完毕后，将当天新增的同步内容，增量同步到备份服务器上
+使用rsync命令可以实现在每天jenkins完毕后，将当天新增的同步内容，增量同步到备份服务器上在mater上切换到jenkins用户，执行rsync备份命令。
+
+> 特殊说明：执行sshpass命令前先在CI服务器上执行一次rsync命令（仅需一次即可），只有这次执行通过后，后续再执行sshpass带密码才可使用。后续再执行sshpass前都无需单独再执行rsync命令。
+>
+> 注意：两台服务都需要安装：rsync工具
+
+
+
+``` bash
+#CI服务器
+sshpass -p <your_password输入密码> rsync -avz /data/jenkins_backup root@192.168.3.32:/data/jenkins_backup
+
+sshpass -p skce010993 rsync -avz /data/jenkins_backup/ root@192.168.3.32:/data/jenkins_backup/
+#备份服务器
+sshpass -p <your_password输入密码> rsync -avz /data/jenkins_backup/  root@192.168.2.4:/root/jenkins_bachkup/
+sshpass -p skce010993 rsync -avz /data/jenkins_backup/ root@192.168.2.4:/root/jenkins_backup/
+```
+
+执行后，发现已经开始同步
+
+```bash
+[root@localhost ~]# sshpass -p skce010993 rsync -avz /data/jenkins_backup/ root@192.168.3.32:/data/jenkins_backup/
+sending incremental file list
+
+sent 121,882 bytes  received 1,142 bytes  10,697.74 bytes/sec
+total size is 804,022,255  speedup is 6,535.49
+
+```
+
+![1720594521574](assets/1720594521574.png)
+
+登录到备份服务器，切换到jkenkins用户，然后查看是否同步过来。
+
+![1720594602334](assets/1720594602334.png)
+
+3、脚本自动执行同步
+
+将`rsync`做成脚本自动执行，比如`jenkins`配置的是每天10：00执行同步，那么`rsync`可以在每天10：30执行再自动执行
+
+登录CI服务器上，执行如下操作：
+
+1. 编辑备份shell脚本
+
+``` bash
+vim /usr/local/backup_jenkins.sh
+```
+
+在脚本内填入如下内容
+
+```bash
+sshpass -p <登录服务输入密码> rsync -avz /data/jenkins_backup/ root@192.168.2.4:/root/jenkins_backup/
+```
+
+2. 给脚本添加执行权限
+
+```bash
+chmod +x /usr/local/jenkins/backup_jenkins.sh
+```
+
+3. 添加到系统crontab文件中，切换到root用户
+
+```bash
+vim /etc/crontab
+```
+
+在最后添加如下内容
+
+``` bash
+30 16 * * * /bin/bash  /usr/local/jenkins/backup_jenkins.sh &>/dev/null
+```
+
+保存完后，重启contab
+
+```bash
+systemctl restart crond.service
+```
+
+等待到16：10后，查看备份服务器的备份目录，查看同步的结果：
+
+> 以上jenkins设置的时间和crontabl的时间均为演示需要，实际企业发过程中根据需要自行调整。
+
+##### 2.4.4 恢复备份文件
+
+为了演示恢复备份文件的效果，我们可以假设jenkins数据全丢了，现在什么配置没有了。为了实现这个效果我们决定切换jenkins工作目录到一个空目录下，然后重启jenkins,这样jenkins等同于一个全新的jenkins，就相当于数据丢了。
+
+* jenkins没有切换到空工作目录前：有上文所述的5个测试用户，角色配置，7个测试job,还有备份设置
+* 登录到jenkins开始切换
+
+新建一个空的工作目录并授权
+
+``` bash
+mkdir /data/jenkins_data_temp
+```
+
+切换到jenkins用户，修改jenkins启动脚本
+
+``` bash
+vim /usr/local/jenkins/jenkins.sh
+```
+
+修改JENKINS_HOME的值为/data/jenkins_data_temp
+
+打掉启动中的jenkins进程，然后启动jenkins
+
+``` bash
+#禁用
+/usr/local/jenkins/jenkins.sh stop
+#启用
+/usr/local/jenkins/jenkins.sh start
+```
+
+访问jenkins:
+
+http://192.168.3.32:8099/login?from=%2Fme%2Fmy-views%2Fview%2Fall%2Fjob%2Fnet-demo%2F
+
+发现`jenkins`首页变成最初的初始化页面了，我们按照步骤先登录然后设置`admin`密码为`admin`。
+
+![1720609884869](assets/1720609884869.png)
+
+
+
+此时的jenkins已经是全新的无任何配置的jenkins了，我们需要更换镜像中心地址，然后下载ThinBackup插件
+
+![1720610763622](assets/1720610763622.png)
+
+
+
+``` bash
+https://mirror.xmission.com/jenkins/updates/update-center.json
+```
+
+插件安装完毕后,重启`jenkins`，然后登录找到`ThinBackup`的配置，点击Settings,配置备份目录，然后恢复的时候就能从备份目录中，找到之前备份的那些文件了
+
+
+
+![1720611500513](assets/1720611500513.png)
+
+
+
+ ![1720611636248](assets/1720611636248.png)
+
+恢复过程页面是不会有恢复完成提示的，等待几分钟后，执行jenkins的重启连接即可
+
+``` bash
+http://192.168.3.32:8099/restart
+```
 
 
 
 ### 3. 持续集成Pipeline流水线
+
+#### 3.1.1 Pipeline流水线简介
+
+流水线是用户定义的一个持续部署流水模型。流水线的代码定义了整个的构建过程，通常包括构建、测试、交付应用程序的三个阶段。pipeline的构建脚本定义可以写在一个文本文件中（称为`jenkinsfile`）,p 这个文件也可以作为代码被提交到项目的源代码的控制仓库。将pipeline脚本作为代码提交的好处：
+
+* 方便对流水线脚本代码复查/迭代。
+* 方便对流水线进行审计跟踪。
+* 该流水线代码可以被项目的多个成员共享、查看和编辑。
+* 源码管理方便复用。
+
+#### 3.1.2 语法支持
+
+`Jenkinsfile`能使用两种语法进行编写 1.声明式【Declarative Pipeline】和2.脚本化【Scripted Pipeline】的，两者都支持建立连续运行的Pipeline. 这两种语法对比如下：
+
+* 共同点：两者都是pipeline代码的持久实现，都能够使用pipeline内置的插件或者插件提供的steps,两者都可以利用共享库扩展。
+
+* 区别： 
+
+  两者不同之处在于语法和灵活性。
+
+  * 声明式：对用户来说，语法更严格，有固定的组织结构，更容易生成代码段，使其成为用户更理想的选择。
+  * 脚本化：更加灵活，因为Groovy本身只能对结构和语法进行限制，对于更复杂的`pipeline`来说,用户可以根据自己的业务进行灵活的实现和扩展。
+
+* 建议选择那种语法？
+
+  通常建议使用声明式的方式进行编写，从Jenkins社区动向来看，很明显这种语法结构也会是未来的趋势。相比脚本化的流水语法，它提供更丰富的语法特性，它是为为使编写和读取流水线代码更容易而设计的。
+
+  本实验有头pipeline的脚本也是基于声明式的方式进行编写
+
+####  3.1.3 基本概念
+
+* `Stage`:阶段，一个`Pipline`可以划分为若干个 `stage`,每个`Stage`代表一组操作。
+  * 注意，`Stage`是一个逻辑分组的概念，可以跨多个`Node`。
+* `Node`:CI服务器节点， 一个`Node`就是一个`Jenkins`节点，或者是`Master`,或者是`Agent`,是执行`step`的具体运行期环境。
+* `Step`:步骤，`Step`是最基本的操作单元，小到创建一个目录，大到构建一个`Docker`镜像，由各类`Jenkins Plugin`提供
+
+#### 3.1.4  创建方式
+
+* 方式一：直接在`jenkins web ui` 网页界面输入脚本（本实验大部分时候用这种方式）
+* 方式二：编写`jenkinsfile`文件并将文件存放在项目根目录，项目需推送到源代码管理库（本实验最后会有使用说明）
+
+#### 3.1.5 语法
+
+声明式`pipeline`基本语法和表达式，遵循`groovy`语法，但是有以下例外：
+
+* 声明式`pipeline`必须包含在固定格式的`pipeline{}`块内，比如：
+
+  ``` javascript
+  pipeline{/*insert Declarative Pipeline here*/}
+  ```
+
+* 每个声明语句必须独立一行，行尾无需使用分号
+
+* 块只能由阶段（`stages{}`）、指令、步骤（`steps{}`）、或赋值语句组成
+
+* 属性引用语句被视为无参数方法调用，如`input()`
+
+**块（Blocks）**
+
+* 由大括号括起来的语句：如 `pipeline{}`、`parameters{}`、`script{}`
+
+**章节（Sections）**
+
+* 通常包括一个或者多个指令或步骤 ，如 `agent`、`post`、`stages`、`steps`
+
+**指令（Directives）**
+
+* `environment`,`options`,`parameters`,`triggers`,`stages`,`tools`,`when`
+
+**步骤（steps）**
+
+* 执行脚本式`pipeline`,如`script{}`
+
+> 详细语法参见官方文档 https://www.jenkins.io/zh/doc/book/pipeline/syntax/#declarative-directives
+
+#### 3.1.6 语法示例
+
+流水线`Stage`视图示例：
+
+![1720665479014](assets/1720665479014.png)
+
+``` json
+pipeline {
+    agent any
+
+    stages {
+        stage('Build') {
+            steps {
+                echo 'Building...'
+                // 在此处添加您的构建命令，例如：mvn clean install 或者 gradle build 等等
+                // sh 'mvn clean install'
+            }
+        }
+
+        stage('Test') {
+            steps {
+                echo 'Testing...'
+                // 在此处添加您的测试命令，例如：mvn test 或者 gradle test 等等
+                // sh 'mvn test'
+            }
+            post {
+                always {
+                    // 发布 JUnit 测试结果
+                    junit 'tests/MyApp.Tests/test_results_junit.xml'
+                }
+            }
+        }
+
+        stage('Deploy') {
+            steps {
+                echo 'Deploying...'
+                // 在此处添加您的部署命令，例如：部署到服务器或者推送到容器等
+                // sh 'scp target/*.jar user@server:/path/to/deploy'
+            }
+        }
+    }
+}
+
+```
+
+* pipeline是声明式流水线的特定语法，包含执行整个流水线的所有内容、指令
+* agent一般用作于指定在哪个节点上构建，如果不指定就写any表示任意节点。
+* stage是一个描述stage of this Pipeline的语法块。stage块定义了在整个流水线的执行任务的分组（“Build”、“Test”和“Deploy”阶段），注意stage括号的值表示阶段名称，值内容不是固定的，需要自己定义。
+* steps 描述 stage中要运行的步骤。
+* sh 描述一个执行给定的shell命令
+* echo 表示字符串输出
+* junit 是指向聚合测试报告位置
+
+上述pipeline表示，指定任意节点，完成pipeline"Build"、“Test”、“Deploy”三个阶段，每个阶段内部执行不同的步骤。
+
+#### 3.2 Pipeline基本使用
+
+#### 3.2.1 入门案例：拉取gig代码，构建及部署
+
+**添加凭据**
+
+添加git仓库的证书信息，找到Manage Jenkins->Manage Credentials->Credentials下的jenkins点击进去。
+
+进入后点击添加凭据，然后填写凭据的内容，也就是git仓库的账号和密码（实验的Gitlab的账号）
+
+![1720709299540](assets/1720709299540.png)
+
+![1720709279679](assets/1720709279679.png)
+
+**新建一个job**
+
+新建一个pipeline类型的job,名字为net_web_api_demo,其他的不用操作
+
+``` yaml
+
+```
+
+
 
 ### 4. Jenkins持续集成项目实战
 
